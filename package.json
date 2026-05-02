@@ -63,7 +63,7 @@
     "@types/node": "^22.15.3",
     "@types/supertest": "^6.0.3",
     "@types/swagger-ui-express": "^4.1.8",
-    "cross-env": "^7.0.3",
+    "cross-env": "^10.1.0",
     "eslint": "^9.25.1",
     "eslint-config-prettier": "^10.1.2",
     "husky": "^9.1.7",
