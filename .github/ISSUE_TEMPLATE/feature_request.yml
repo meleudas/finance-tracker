@@ -1,0 +1,50 @@
+name: Feature request
+description: Запропонувати нову можливість або покращення
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Опишіть ідею та контекст. Це допоможе пріоритизувати дорожню карту.
+
+  - type: input
+    id: node_version
+    attributes:
+      label: Версія Node.js (для dev-сценаріїв)
+      description: Якщо релевантно — `node -v`
+      placeholder: "v20.x.x"
+    validations:
+      required: false
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Проблема / мотивація
+      description: Яку задачу це вирішує? Хто виграє?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Запропоноване рішення
+      description: Як це може виглядати в API, UI або процесах.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Альтернативи
+      description: Що ще розглядали.
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Додатковий контекст
+      description: Скріншоти, посилання, ADR, приклади.
+    validations:
+      required: false

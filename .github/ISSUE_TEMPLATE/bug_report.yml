@@ -1,0 +1,70 @@
+name: Bug report
+description: Повідомити про помилку або некоректну поведінку
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Дякуємо за звіт. Заповніть поля нижче — так швидше відтворимо проблему.
+
+  - type: input
+    id: node_version
+    attributes:
+      label: Версія Node.js
+      description: Результат `node -v`
+      placeholder: "v20.x.x"
+    validations:
+      required: true
+
+  - type: textarea
+    id: env
+    attributes:
+      label: Оточення
+      description: ОС, браузер (якщо стосується), версія додатку / коміт / реліз за потреби.
+      placeholder: Windows 11, Firefox 125…
+    validations:
+      required: false
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Кроки відтворення
+      description: Послідовність дій від чистого стану до помилки.
+      placeholder: |
+        1. …
+        2. …
+        3. …
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Очікувана поведінка
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Фактична поведінка
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Логи та помилки
+      description: Стектрейс, відповідь API, вихід у консолі (без секретів і токенів).
+      render: shell
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Підтвердження
+      options:
+        - label: Я перевірив(ла), що в цьому звіті немає паролів, токенів чи персональних даних
+          required: true

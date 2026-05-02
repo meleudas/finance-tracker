@@ -1,0 +1,51 @@
+# Локально: лише PostgreSQL (додаток — `npm run dev` на хості).
+# Повний стек: docker compose --profile full up -d
+#
+# Змінні для сервісу `app` беруться з `.env` у цій теці (підстановка у compose).
+# DATABASE_URL для контейнера завжди на сервіс `postgres` (не localhost).
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-finance}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-finance}
+      POSTGRES_DB: ${POSTGRES_DB:-finance_tracker}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-finance} -d ${POSTGRES_DB:-finance_tracker}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    profiles:
+      - full
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      DATABASE_URL: postgresql://${POSTGRES_USER:-finance}:${POSTGRES_PASSWORD:-finance}@postgres:5432/${POSTGRES_DB:-finance_tracker}?schema=public
+      JWT_ACCESS_SECRET: "${JWT_ACCESS_SECRET}"
+      JWT_REFRESH_SECRET: "${JWT_REFRESH_SECRET}"
+      CORS_ORIGIN: "${CORS_ORIGIN:-http://localhost:5173}"
+      LOG_LEVEL: "${LOG_LEVEL:-info}"
+    ports:
+      - "${APP_PORT:-3001}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:
