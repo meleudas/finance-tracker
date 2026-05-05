@@ -8,51 +8,72 @@
 - **Відтворюваний** білд Docker-образу.
 - Мінімізація ризику деплою зламаних міграцій або типів.
 
-## Етапи (GitHub Actions)
+## Workflow `CI` ([.github/workflows/ci.yml](../.github/workflows/ci.yml))
+
+Тригери: **push** і **pull_request** до гілок `main` та `develop`.
+
+Увімкнено **concurrency** з `cancel-in-progress: true` — при новому запуску на тій самій гілці попередній скасовується.
 
 ```mermaid
 flowchart LR
-  A[Checkout] --> B[Install]
-  B --> C[Lint]
-  C --> D[Typecheck]
-  D --> E[Test]
-  E --> F[Build]
-  F --> G[Docker build]
-  G --> H[Security scan]
+  A[Checkout] --> B[setup-node + npm ci]
+  B --> C[prisma generate]
+  C --> D[prisma validate]
+  D --> E[prisma migrate deploy]
+  E --> F[ESLint]
+  F --> G[Typecheck]
+  G --> H[Test test:ci]
+  H --> I[Build]
+  I --> J[docker build]
+  J --> K["npm audit warn-only"]
 ```
 
-| Етап | Що робить |
-|------|-----------|
-| **Lint** | ESLint (+ optional Prettier check) |
-| **Typecheck** | `tsc --noEmit` |
-| **Test** | Jest з coverage; сервіс PostgreSQL як service container або mock-first |
-| **Build** | Компіляція TS у `dist/` |
-| **Docker build** | Багатоетапний Dockerfile з кешем шарів |
-| **Security scan** | npm audit / OSV або Trivy scan image (обрати один стек) |
+| Крок         | Що робить                                                                 |
+| ------------ | ------------------------------------------------------------------------- | --- | --------------------------------------------------- |
+| Install      | `npm ci` (Node 22, кеш npm за `package-lock.json`)                        |
+| Prisma       | `npx prisma generate`, `npx prisma validate`, `npx prisma migrate deploy` |
+| ESLint       | `npm run lint`                                                            |
+| Typecheck    | `npm run typecheck`                                                       |
+| Test         | `npm run test:ci` (Jest з coverage)                                       |
+| Build        | `npm run build` (`prisma generate` + `tsc`)                               |
+| Docker build | `docker build -f docker/Dockerfile -t finance-tracker:ci .`               |
+| npm audit    | `npm audit --omit=dev --audit-level=high` з суфіксом `                    |     | true` у workflow — лише попередження, без фейлу job |
 
-## Тригери
+### Сервіс PostgreSQL у CI
 
-- **Pull request** до `main` / `develop` — повний пайплайн.
-- **Push** до `main` — повний пайплайн + optional push image у registry.
+Для кроків Prisma і тестів піднімається контейнер **postgres:16-alpine** з healthcheck. `DATABASE_URL` у job вказує на `localhost:5432` (див. `env` у `ci.yml`).
 
-## Сервісні контейнери
+**Redis і MinIO** у цьому workflow **не** піднімаються; integration-тести, яким потрібні ці сервіси, доведеться доповнити окремими service containers або моками (див. [12-testing.md](12-testing.md)).
 
-Для integration тестів з реальною БД:
+### Docker build і `DATABASE_URL`
 
-```yaml
-# ілюстрація — фактичний файл у .github/workflows/ci.yml
-services:
-  postgres:
-    image: postgres:16-alpine
-    env:
-      POSTGRES_USER: test
-      POSTGRES_PASSWORD: test
-      POSTGRES_DB: finance_tracker_test
-    ports:
-      - 5432:5432
+У build-stage [docker/Dockerfile](../docker/Dockerfile) задано placeholder:
+
+```dockerfile
+ARG DATABASE_URL=postgresql://placeholder:placeholder@localhost:5432/placeholder?schema=public
+ENV DATABASE_URL=$DATABASE_URL
 ```
 
-Перед тестами: `npx prisma migrate deploy` з `DATABASE_URL` на сервіс.
+Це потрібно, щоб `prisma generate` у `npm run build` не падав через `prisma.config.ts` / змінні оточення. Реальне підключення до БД в runtime — у контейнері після деплою.
+
+## Інші workflows
+
+### Dependency Review ([.github/workflows/dependency-review.yml](../.github/workflows/dependency-review.yml))
+
+- Тригер: **pull_request** до `main` / `develop`.
+- Дія: `actions/dependency-review-action` з `fail-on-severity: high`.
+- Може додавати коментар у PR при невдачі (`comment-summary-in-pr: on-failure`).
+
+### CodeQL ([.github/workflows/codeql.yml](../.github/workflows/codeql.yml))
+
+- Мова: **javascript**.
+- Тригери: push/PR у `main` / `develop`, плюс **щотижневий** schedule (`cron`).
+- Результати — у Security вкладці репозиторію GitHub.
+
+## Dependabot ([.github/dependabot.yml](../.github/dependabot.yml))
+
+- Щотижневі PR для **npm**, **github-actions**, **docker** (контекст `docker/`).
+- Для npm налаштовані **групи** оновлень (`@types/*`, eslint-стек, prisma).
 
 ## Branch protection (рекомендація)
 
@@ -62,8 +83,8 @@ services:
 
 ## Секрети
 
-- `DATABASE_URL` для CI — з GitHub Encrypted Secrets (якщо не використовується лише service container).
-- Registry credentials для push образів — окремі secrets.
+- Для поточного `ci.yml` секрети для `DATABASE_URL` не обов’язкові — URL заданий у `env` job.
+- Для push образу в registry — окремі secrets (якщо додасте крок publish).
 
 ## Навігація
 

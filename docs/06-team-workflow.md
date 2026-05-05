@@ -6,11 +6,11 @@
 
 ## Розподіл відповідальності (рекомендований)
 
-| Роль | Фокус | Типові артефакти |
-|------|--------|------------------|
-| **Dev A — Auth / Security / Infra** | Реєстрація, логін, JWT + cookies, bcrypt, Helmet, CORS, rate limit, Docker, CI скелет | `middleware/auth`, `services/auth`, `repositories/user*`, `.github/workflows`, `docker/` |
-| **Dev B — Core domain** | Рахунки, категорії, транзакції, інваріанти балансу, Prisma-моделі домену | `services/*`, `repositories/*`, `controllers/*`, `routes/v1/*`, зміни в `schema.prisma` (узгоджено) |
-| **Dev C — Budgets / Reports / QA-Docs** | Бюджети, агрегати звітів, OpenAPI polish, тест-план, покриття | `services/report*`, `repositories/report*`, `validators`, `tests/`, `docs/` |
+| Роль                                    | Фокус                                                                                 | Типові артефакти                                                                                    |
+| --------------------------------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| **Dev A — Auth / Security / Infra**     | Реєстрація, логін, JWT + cookies, bcrypt, Helmet, CORS, rate limit, Docker, CI скелет | `middleware/auth`, `services/auth`, `repositories/user*`, `.github/workflows`, `docker/`            |
+| **Dev B — Core domain**                 | Рахунки, категорії, транзакції, інваріанти балансу, Prisma-моделі домену              | `services/*`, `repositories/*`, `controllers/*`, `routes/v1/*`, зміни в `schema.prisma` (узгоджено) |
+| **Dev C — Budgets / Reports / QA-Docs** | Бюджети, агрегати звітів, OpenAPI polish, тест-план, покриття                         | `services/report*`, `repositories/report*`, `validators`, `tests/`, `docs/`                         |
 
 > Ролі не жорсткі: при блокерах — короткий **pairing** або тимчасовий обмін задачею.
 
@@ -39,6 +39,10 @@ gitGraph
   checkout main
   merge develop
 ```
+
+## Git hooks (Husky)
+
+Після `npm install` активується **Husky** (`prepare` у `package.json`): **pre-commit** запускає **lint-staged** (ESLint + Prettier на staged файлах), **commit-msg** — **commitlint** (conventional commits). Це доповнює CI, але не замінює його. Деталі інструментів: [04-tech-stack.md](04-tech-stack.md), локальний setup: [14-setup.md](14-setup.md).
 
 ## Pull Request — правила
 

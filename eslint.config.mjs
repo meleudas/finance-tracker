@@ -23,12 +23,14 @@ export default tseslint.config(
     ignores: [
       "dist/**",
       "node_modules/**",
+      "src/generated/prisma/**",
       "coverage/**",
       "prisma/migrations/**",
       "prisma/seed.ts",
       "commitlint.config.cjs",
       "jest.config.cjs",
       "eslint.config.mjs",
+      "prisma.config.ts",
     ],
   },
   {
