@@ -174,9 +174,9 @@ export type AttachmentGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inter
 export type AttachmentGroupByOutputType = {
   id: string
   transactionId: string
-  storageKey: string | null
-  mimeType: string | null
-  originalName: string | null
+  storageKey: string
+  mimeType: string
+  originalName: string
   createdAt: Date
   updatedAt: Date
   deletedAt: Date | null
@@ -207,9 +207,9 @@ export type AttachmentWhereInput = {
   NOT?: Prisma.AttachmentWhereInput | Prisma.AttachmentWhereInput[]
   id?: Prisma.StringFilter<"Attachment"> | string
   transactionId?: Prisma.StringFilter<"Attachment"> | string
-  storageKey?: Prisma.StringNullableFilter<"Attachment"> | string | null
-  mimeType?: Prisma.StringNullableFilter<"Attachment"> | string | null
-  originalName?: Prisma.StringNullableFilter<"Attachment"> | string | null
+  storageKey?: Prisma.StringFilter<"Attachment"> | string
+  mimeType?: Prisma.StringFilter<"Attachment"> | string
+  originalName?: Prisma.StringFilter<"Attachment"> | string
   createdAt?: Prisma.DateTimeFilter<"Attachment"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Attachment"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Attachment"> | Date | string | null
@@ -220,9 +220,9 @@ export type AttachmentWhereInput = {
 export type AttachmentOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   transactionId?: Prisma.SortOrder
-  storageKey?: Prisma.SortOrderInput | Prisma.SortOrder
-  mimeType?: Prisma.SortOrderInput | Prisma.SortOrder
-  originalName?: Prisma.SortOrderInput | Prisma.SortOrder
+  storageKey?: Prisma.SortOrder
+  mimeType?: Prisma.SortOrder
+  originalName?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -236,9 +236,9 @@ export type AttachmentWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.AttachmentWhereInput[]
   NOT?: Prisma.AttachmentWhereInput | Prisma.AttachmentWhereInput[]
   transactionId?: Prisma.StringFilter<"Attachment"> | string
-  storageKey?: Prisma.StringNullableFilter<"Attachment"> | string | null
-  mimeType?: Prisma.StringNullableFilter<"Attachment"> | string | null
-  originalName?: Prisma.StringNullableFilter<"Attachment"> | string | null
+  storageKey?: Prisma.StringFilter<"Attachment"> | string
+  mimeType?: Prisma.StringFilter<"Attachment"> | string
+  originalName?: Prisma.StringFilter<"Attachment"> | string
   createdAt?: Prisma.DateTimeFilter<"Attachment"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Attachment"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Attachment"> | Date | string | null
@@ -249,9 +249,9 @@ export type AttachmentWhereUniqueInput = Prisma.AtLeast<{
 export type AttachmentOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   transactionId?: Prisma.SortOrder
-  storageKey?: Prisma.SortOrderInput | Prisma.SortOrder
-  mimeType?: Prisma.SortOrderInput | Prisma.SortOrder
-  originalName?: Prisma.SortOrderInput | Prisma.SortOrder
+  storageKey?: Prisma.SortOrder
+  mimeType?: Prisma.SortOrder
+  originalName?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -267,9 +267,9 @@ export type AttachmentScalarWhereWithAggregatesInput = {
   NOT?: Prisma.AttachmentScalarWhereWithAggregatesInput | Prisma.AttachmentScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Attachment"> | string
   transactionId?: Prisma.StringWithAggregatesFilter<"Attachment"> | string
-  storageKey?: Prisma.StringNullableWithAggregatesFilter<"Attachment"> | string | null
-  mimeType?: Prisma.StringNullableWithAggregatesFilter<"Attachment"> | string | null
-  originalName?: Prisma.StringNullableWithAggregatesFilter<"Attachment"> | string | null
+  storageKey?: Prisma.StringWithAggregatesFilter<"Attachment"> | string
+  mimeType?: Prisma.StringWithAggregatesFilter<"Attachment"> | string
+  originalName?: Prisma.StringWithAggregatesFilter<"Attachment"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Attachment"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Attachment"> | Date | string
   deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Attachment"> | Date | string | null
@@ -278,9 +278,9 @@ export type AttachmentScalarWhereWithAggregatesInput = {
 
 export type AttachmentCreateInput = {
   id?: string
-  storageKey?: string | null
-  mimeType?: string | null
-  originalName?: string | null
+  storageKey: string
+  mimeType: string
+  originalName: string
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -291,9 +291,9 @@ export type AttachmentCreateInput = {
 export type AttachmentUncheckedCreateInput = {
   id?: string
   transactionId: string
-  storageKey?: string | null
-  mimeType?: string | null
-  originalName?: string | null
+  storageKey: string
+  mimeType: string
+  originalName: string
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -302,9 +302,9 @@ export type AttachmentUncheckedCreateInput = {
 
 export type AttachmentUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  originalName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  storageKey?: Prisma.StringFieldUpdateOperationsInput | string
+  mimeType?: Prisma.StringFieldUpdateOperationsInput | string
+  originalName?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -315,9 +315,9 @@ export type AttachmentUpdateInput = {
 export type AttachmentUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   transactionId?: Prisma.StringFieldUpdateOperationsInput | string
-  storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  originalName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  storageKey?: Prisma.StringFieldUpdateOperationsInput | string
+  mimeType?: Prisma.StringFieldUpdateOperationsInput | string
+  originalName?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -327,9 +327,9 @@ export type AttachmentUncheckedUpdateInput = {
 export type AttachmentCreateManyInput = {
   id?: string
   transactionId: string
-  storageKey?: string | null
-  mimeType?: string | null
-  originalName?: string | null
+  storageKey: string
+  mimeType: string
+  originalName: string
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -338,9 +338,9 @@ export type AttachmentCreateManyInput = {
 
 export type AttachmentUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  originalName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  storageKey?: Prisma.StringFieldUpdateOperationsInput | string
+  mimeType?: Prisma.StringFieldUpdateOperationsInput | string
+  originalName?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -350,9 +350,9 @@ export type AttachmentUpdateManyMutationInput = {
 export type AttachmentUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   transactionId?: Prisma.StringFieldUpdateOperationsInput | string
-  storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  originalName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  storageKey?: Prisma.StringFieldUpdateOperationsInput | string
+  mimeType?: Prisma.StringFieldUpdateOperationsInput | string
+  originalName?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -449,9 +449,9 @@ export type AttachmentUncheckedUpdateManyWithoutTransactionNestedInput = {
 
 export type AttachmentCreateWithoutTransactionInput = {
   id?: string
-  storageKey?: string | null
-  mimeType?: string | null
-  originalName?: string | null
+  storageKey: string
+  mimeType: string
+  originalName: string
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -460,9 +460,9 @@ export type AttachmentCreateWithoutTransactionInput = {
 
 export type AttachmentUncheckedCreateWithoutTransactionInput = {
   id?: string
-  storageKey?: string | null
-  mimeType?: string | null
-  originalName?: string | null
+  storageKey: string
+  mimeType: string
+  originalName: string
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -501,9 +501,9 @@ export type AttachmentScalarWhereInput = {
   NOT?: Prisma.AttachmentScalarWhereInput | Prisma.AttachmentScalarWhereInput[]
   id?: Prisma.StringFilter<"Attachment"> | string
   transactionId?: Prisma.StringFilter<"Attachment"> | string
-  storageKey?: Prisma.StringNullableFilter<"Attachment"> | string | null
-  mimeType?: Prisma.StringNullableFilter<"Attachment"> | string | null
-  originalName?: Prisma.StringNullableFilter<"Attachment"> | string | null
+  storageKey?: Prisma.StringFilter<"Attachment"> | string
+  mimeType?: Prisma.StringFilter<"Attachment"> | string
+  originalName?: Prisma.StringFilter<"Attachment"> | string
   createdAt?: Prisma.DateTimeFilter<"Attachment"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Attachment"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Attachment"> | Date | string | null
@@ -512,9 +512,9 @@ export type AttachmentScalarWhereInput = {
 
 export type AttachmentCreateManyTransactionInput = {
   id?: string
-  storageKey?: string | null
-  mimeType?: string | null
-  originalName?: string | null
+  storageKey: string
+  mimeType: string
+  originalName: string
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -523,9 +523,9 @@ export type AttachmentCreateManyTransactionInput = {
 
 export type AttachmentUpdateWithoutTransactionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  originalName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  storageKey?: Prisma.StringFieldUpdateOperationsInput | string
+  mimeType?: Prisma.StringFieldUpdateOperationsInput | string
+  originalName?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -534,9 +534,9 @@ export type AttachmentUpdateWithoutTransactionInput = {
 
 export type AttachmentUncheckedUpdateWithoutTransactionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  originalName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  storageKey?: Prisma.StringFieldUpdateOperationsInput | string
+  mimeType?: Prisma.StringFieldUpdateOperationsInput | string
+  originalName?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -545,9 +545,9 @@ export type AttachmentUncheckedUpdateWithoutTransactionInput = {
 
 export type AttachmentUncheckedUpdateManyWithoutTransactionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  storageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  originalName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  storageKey?: Prisma.StringFieldUpdateOperationsInput | string
+  mimeType?: Prisma.StringFieldUpdateOperationsInput | string
+  originalName?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -626,9 +626,9 @@ export type $AttachmentPayload<ExtArgs extends runtime.Types.Extensions.Internal
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     transactionId: string
-    storageKey: string | null
-    mimeType: string | null
-    originalName: string | null
+    storageKey: string
+    mimeType: string
+    originalName: string
     createdAt: Date
     updatedAt: Date
     deletedAt: Date | null

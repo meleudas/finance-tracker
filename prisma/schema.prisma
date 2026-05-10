@@ -76,6 +76,7 @@ model Account {
   user           User            @relation(fields: [userId], references: [id], onDelete: Restrict)
   currency       Currency        @relation(fields: [currencyId], references: [id], onDelete: Restrict)
   transactions   Transaction[]
+  budgets        Budget[]
   recurringRules RecurringRule[]
   transfersFrom  Transfer[]      @relation("TransferFromAccount")
   transfersTo    Transfer[]      @relation("TransferToAccount")
@@ -161,6 +162,7 @@ model Transfer {
 model Budget {
   id          String    @id @default(cuid())
   userId      String    @map("user_id")
+  accountId   String    @map("account_id")
   currencyId  String    @map("currency_id")
   categoryId  String?   @map("category_id")
   name        String
@@ -173,10 +175,12 @@ model Budget {
   isDeleted   Boolean   @default(false) @map("is_deleted")
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  account  Account   @relation(fields: [accountId], references: [id], onDelete: Restrict)
   currency Currency  @relation(fields: [currencyId], references: [id], onDelete: Restrict)
   category Category? @relation(fields: [categoryId], references: [id], onDelete: Restrict)
 
   @@index([userId, isDeleted])
+  @@index([accountId])
   @@map("budgets")
 }
 
@@ -232,9 +236,9 @@ model RecurringFrequency {
 model Attachment {
   id            String    @id @default(cuid())
   transactionId String    @map("transaction_id")
-  storageKey    String?   @map("storage_key")
-  mimeType      String?   @map("mime_type")
-  originalName  String?   @map("original_name")
+  storageKey    String    @map("storage_key")
+  mimeType      String    @map("mime_type")
+  originalName  String    @map("original_name")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
   deletedAt     DateTime? @map("deleted_at")

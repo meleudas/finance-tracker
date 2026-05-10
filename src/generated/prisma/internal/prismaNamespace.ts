@@ -1288,6 +1288,7 @@ export type TransferScalarFieldEnum = (typeof TransferScalarFieldEnum)[keyof typ
 export const BudgetScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
+  accountId: 'accountId',
   currencyId: 'currencyId',
   categoryId: 'categoryId',
   name: 'name',
