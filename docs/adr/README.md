@@ -50,8 +50,9 @@ What else was evaluated and why rejected?
 
 ## Реєстр рішень у цьому проєкті
 
-| ID | Назва |
-|----|--------|
-| [0001-use-prisma.md](0001-use-prisma.md) | Використання Prisma як ORM |
-| [0002-jwt-in-cookies.md](0002-jwt-in-cookies.md) | Refresh JWT у httpOnly cookies |
-| [0003-repository-layer.md](0003-repository-layer.md) | Рівень репозиторіїв над Prisma |
+| ID                                                                                               | Назва                                                             |
+| ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| [0001-use-prisma.md](0001-use-prisma.md)                                                         | Використання Prisma як ORM                                        |
+| [0002-jwt-in-cookies.md](0002-jwt-in-cookies.md)                                                 | Refresh JWT у httpOnly cookies                                    |
+| [0003-repository-layer.md](0003-repository-layer.md)                                             | Рівень репозиторіїв над Prisma                                    |
+| [0004-recurring-frequency-and-s3-attachments.md](0004-recurring-frequency-and-s3-attachments.md) | RecurringFrequency як таблиця; Attachment через `storageKey` (S3) |

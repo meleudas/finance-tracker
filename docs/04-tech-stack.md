@@ -6,27 +6,30 @@
 
 ## Зведена таблиця
 
-| Технологія | Роль у проєкті |
-|------------|----------------|
-| **Node.js** (LTS, рекомендовано ≥ 20) | Середовище виконання |
-| **TypeScript** (strict) | Статична типізація всього `src/` |
-| **Express.js** | HTTP-сервер, middleware pipeline |
-| **PostgreSQL** | Реляційне сховище, ACID для транзакцій |
-| **Prisma** | ORM, міграції, типізований клієнт |
-| **Zod** | Валідація runtime + вивід типів |
-| **@asteasolutions/zod-to-openapi** | Генерація OpenAPI 3 з Zod + Swagger UI |
-| **jsonwebtoken** (JWT) | Access/refresh токени (контракт див. [09-security.md](09-security.md)) |
-| **bcrypt** | Хешування паролів |
-| **cookie-parser** + **httpOnly** cookies | Передача refresh (і/або access за потреби) без XSS-доступу з JS |
-| **Pino** + **pino-http** | Структуровані логи, HTTP-метадані |
-| **Jest** + **Supertest** | Unit та integration тести HTTP API |
-| **@prisma/client** mock (jest) | Ізоляція **репозиторіїв** або legacy-тестів без реальної БД; сервіси бажано тестувати через **мок репозиторіїв** |
-| **Helmet** | Заголовки безпеки HTTP |
-| **cors** | Контроль дозволених origins |
-| **express-rate-limit** | Захист від bruteforce / DoS на чутливих маршрутах |
-| **sanitization** (наприклад, **express-mongo-sanitize** або еквівалент для JSON) | Зменшення ризику ін’єкцій у логіках, що будують запити |
-| **Docker** + **Docker Compose** | Відтворювані середовища dev/staging/prod |
-| **GitHub Actions** | CI/CD: lint → test → build → scan → image |
+| Технологія                                                                       | Роль у проєкті                                                                                                   |
+| -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Node.js** (LTS, рекомендовано ≥ 20)                                            | Середовище виконання                                                                                             |
+| **TypeScript** (strict)                                                          | Статична типізація всього `src/`                                                                                 |
+| **Express.js**                                                                   | HTTP-сервер, middleware pipeline                                                                                 |
+| **PostgreSQL**                                                                   | Реляційне сховище, ACID для транзакцій                                                                           |
+| **Prisma**                                                                       | ORM, міграції, типізований клієнт                                                                                |
+| **Zod**                                                                          | Валідація runtime + вивід типів                                                                                  |
+| **@asteasolutions/zod-to-openapi**                                               | Генерація OpenAPI 3 з Zod + Swagger UI                                                                           |
+| **jsonwebtoken** (JWT)                                                           | Access/refresh токени (контракт див. [09-security.md](09-security.md))                                           |
+| **bcrypt**                                                                       | Хешування паролів                                                                                                |
+| **cookie-parser** + **httpOnly** cookies                                         | Передача refresh (і/або access за потреби) без XSS-доступу з JS                                                  |
+| **Pino** + **pino-http**                                                         | Структуровані логи, HTTP-метадані                                                                                |
+| **Jest** + **Supertest**                                                         | Unit та integration тести HTTP API                                                                               |
+| **@prisma/client** mock (jest)                                                   | Ізоляція **репозиторіїв** або legacy-тестів без реальної БД; сервіси бажано тестувати через **мок репозиторіїв** |
+| **Helmet**                                                                       | Заголовки безпеки HTTP                                                                                           |
+| **cors**                                                                         | Контроль дозволених origins                                                                                      |
+| **express-rate-limit**                                                           | Захист від bruteforce / DoS на чутливих маршрутах                                                                |
+| **sanitization** (наприклад, **express-mongo-sanitize** або еквівалент для JSON) | Зменшення ризику ін’єкцій у логіках, що будують запити                                                           |
+| **Redis**                                                                        | Кеш, черги, rate limiting тощо — інфра в Compose готова; конкретне використання залежить від реалізації в `src/` |
+| **S3-сумісне сховище** (локально **MinIO**)                                      | Зберігання файлів (вкладення до транзакцій); у продакшені — той самий API (AWS S3, Cloudflare R2, …)             |
+| **Docker** + **Docker Compose**                                                  | Postgres, Redis, MinIO та опційно контейнер API — однакове середовище для команди                                |
+| **GitHub Actions**                                                               | CI: Prisma, lint, typecheck, test, build, Docker image; окремо CodeQL, Dependency Review                         |
+| **Husky** + **lint-staged** + **commitlint**                                     | Локальні git hooks: формат/лінт на staged файлах, перевірка conventional commits                                 |
 
 ## Обґрунтування вибору
 
@@ -58,7 +61,15 @@ JSON-логи придатні для агрегації (Loki, ELK); **pino-htt
 
 ### Docker
 
-Один спосіб підняти **PostgreSQL** і зафіксувати версії для всіх розробників і CI.
+Compose піднімає **PostgreSQL**, **Redis** і **MinIO** (S3 API) для локальної parity з продом; за потреби той самий compose збирає образ API. Деталі портів і змінних: [14-setup.md](14-setup.md).
+
+### Redis та object storage
+
+**Redis** у стеку дозволяє додавати кеш, черги або сесії без зміни базової інфраструктури. **MinIO** емулює S3 у dev; у продакшені ті самі змінні `S3_*` вказують на реальний бакет. Модель даних для ключів файлів: [07-database.md](07-database.md), [ADR 0004](adr/0004-recurring-frequency-and-s3-attachments.md).
+
+### Husky та якість комітів
+
+Після `npm install` скрипт `prepare` підключає **Husky**: pre-commit запускає **lint-staged**, commit-msg — **commitlint**. Це не частина runtime, але знижує шум у CI.
 
 ## Версії (рекомендація)
 
