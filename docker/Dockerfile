@@ -13,7 +13,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY package.json package-lock.json* ./
 COPY prisma ./prisma
 COPY prisma.config.ts ./
-COPY tsconfig.json ./
+COPY tsconfig.json tsconfig.app.json ./
 COPY src ./src
 RUN npm run build
 RUN npm prune --omit=dev
