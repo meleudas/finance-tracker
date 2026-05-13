@@ -1,10 +1,10 @@
 import {
-  getPaginationOptions,
   getStartOfMonth,
   getEndOfMonth,
   getFormattedDate,
-} from "C:/Users/user/finance-tracker/src/utils";
-import { DB_CONSTANTS } from "C:/Users/user/finance-tracker/src/utils";
+} from "../../src/utils/helpers/dateHelpers";
+import { DB_CONSTANTS } from "../../src/utils/constants/dbConstants";
+import { getPaginationOptions } from "../../src/utils/helpers/paginationHelper";
 
 describe("Helpers Logic (Unit)", () => {
   describe("getPaginationOptions", () => {

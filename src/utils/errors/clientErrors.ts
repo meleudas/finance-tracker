@@ -8,7 +8,7 @@ export class ValidationError extends AppError {
 
 export class NotFoundError extends AppError {
   constructor(resource = "Resource") {
-    super("NOT_FOUND", `${resource} not found or access denied`, 404);
+    super("NOT_FOUND", `${resource} not found`, 404);
   }
 }
 
