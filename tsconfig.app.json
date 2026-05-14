@@ -4,18 +4,20 @@
     "module": "CommonJS",
     "moduleResolution": "Node",
     "lib": ["ES2022"],
-    "types": ["node", "jest"],
+    "types": ["node"],
+    "outDir": "dist",
+    "rootDir": "src",
     "strict": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
     "noUncheckedIndexedAccess": true,
-    "noEmit": true,
-    "declaration": false,
-    "declarationMap": false,
-    "sourceMap": true
+    "noEmitOnError": true
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts"],
-  "exclude": ["node_modules", "dist", "coverage"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "tests", "src/**/__mocks__/**"]
 }
