@@ -67,13 +67,14 @@ export class AuthController {
 
   async refreshHandler(req: Request, res: Response, next: NextFunction) {
     try {
-      
+
       if (!req.cookies.refreshToken || typeof req.cookies.refreshToken !== 'string') {
-        throw new AppError(
+        next(new AppError(
           'REFRESH_TOKEN_IS_REQUIRED',
           'Refresh token is required',
           401
-        );
+        ));
+        return;
       }
 
       const refreshToken = req.cookies.refreshToken;
