@@ -2,7 +2,7 @@ import type { Budget } from "../../generated/prisma/client";
 import { BaseRepository, type PrismaDelegate } from "./BaseRepository";
 import type { IBudgetRepository, BudgetUpsertParams } from "../interfaces/IBudgetRepository";
 import type { RequestOptions } from "../interfaces/IBaseRepository";
-import { withAbortSignal } from "../../utils/withAbortSignal";
+import { withAbortSignal } from "../../utils/helpers/withAbortSignal";
 
 export class BudgetRepository extends BaseRepository<Budget> implements IBudgetRepository {
   protected get delegate(): PrismaDelegate {

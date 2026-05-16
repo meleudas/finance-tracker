@@ -1,11 +1,4 @@
-export class AbortError extends Error {
-  public readonly code = "ABORT_ERR";
-
-  constructor(message = "Operation was aborted") {
-    super(message);
-    this.name = "AbortError";
-  }
-}
+import { AbortError } from "../errors/clientErrors";
 
 /**
  * Races a promise against an AbortSignal.

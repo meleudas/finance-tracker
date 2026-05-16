@@ -9,7 +9,7 @@ import type {
   RequestOptions,
 } from "../interfaces/IBaseRepository";
 import { BaseRepository, type PrismaDelegate } from "./BaseRepository";
-import { withAbortSignal } from "../../utils/withAbortSignal";
+import { withAbortSignal } from "../../utils/helpers/withAbortSignal";
 
 export class TransactionRepository
   extends BaseRepository<Transaction>

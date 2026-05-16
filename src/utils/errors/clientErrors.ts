@@ -17,3 +17,10 @@ export class ConflictError extends AppError {
     super("CONFLICT", message, 409);
   }
 }
+
+export class AbortError extends AppError {
+  constructor(message = "Operation was aborted") {
+    super("ABORTED", message, 499);
+    this.name = "AbortError";
+  }
+}
