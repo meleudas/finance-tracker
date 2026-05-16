@@ -2,7 +2,7 @@ import type { Category } from "../../generated/prisma/client";
 import { BaseRepository, type PrismaDelegate } from "./BaseRepository";
 import type { ICategoryRepository, CategoryUpsertParams } from "../interfaces/ICategoryRepository";
 import type { RequestOptions } from "../interfaces/IBaseRepository";
-import { withAbortSignal } from "../../utils/helpers/withAbortSignal";
+import { withAbortSignal } from "../../utils/helpers/WithAbortSignal";
 
 export class CategoryRepository extends BaseRepository<Category> implements ICategoryRepository {
   protected get delegate(): PrismaDelegate {

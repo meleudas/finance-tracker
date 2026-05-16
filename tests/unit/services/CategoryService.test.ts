@@ -1,8 +1,8 @@
 import { CategoryService } from "../../../src/services/impl/CategoryService";
 import type { ICategoryRepository } from "../../../src/repositories/interfaces/ICategoryRepository";
-import { NotFoundError, ConflictError } from "../../../src/utils/errors/clientErrors";
-import { ForbiddenError } from "../../../src/utils/errors/securityErrors";
-import { ValidationError } from "../../../src/utils/errors/clientErrors";
+import { NotFoundError, ConflictError } from "../../../src/utils/errors/ClientErrors";
+import { ForbiddenError } from "../../../src/utils/errors/SecurityErrors";
+import { ValidationError } from "../../../src/utils/errors/ClientErrors";
 import type { Category } from "../../../src/generated/prisma/client";
 
 interface MockPrismaTx {

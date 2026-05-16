@@ -2,11 +2,84 @@ import {
   getStartOfMonth,
   getEndOfMonth,
   getFormattedDate,
-} from "../../src/utils/helpers/dateHelpers";
+} from "../../src/utils/helpers/DateHelpers";
 import { DB_CONSTANTS } from "../../src/utils/constants/dbConstants";
-import { getPaginationOptions } from "../../src/utils/helpers/paginationHelper";
+import { getPaginationOptions } from "../../src/utils/helpers/PaginationHelper";
+import { withAbortSignal } from "../../src/utils/helpers/WithAbortSignal";
 
 describe("Helpers Logic (Unit)", () => {
+  describe("withAbortSignal - Unit Tests", () => {
+    it("має успішно повернути значення промісу, якщо signal не передано", async () => {
+      const originalPromise = Promise.resolve("success_data");
+
+      const result = await withAbortSignal(originalPromise);
+
+      expect(result).toBe("success_data");
+    });
+
+    it("має успішно виконати проміс, якщо операція завершилась до скасування сигналу", async () => {
+      const controller = new AbortController();
+      const originalPromise = Promise.resolve(1000);
+
+      const result = await withAbortSignal(originalPromise, controller.signal);
+
+      expect(result).toBe(1000);
+    });
+
+    it("має миттєво відхилити проміс із AbortError, якщо сигнал вже був скасований на момент виклику", async () => {
+      const controller = new AbortController();
+      controller.abort();
+
+      const originalPromise = new Promise((resolve) =>
+        setTimeout(() => {
+          resolve("late_data");
+        }, 50),
+      );
+
+      await expect(withAbortSignal(originalPromise, controller.signal)).rejects.toThrow();
+
+      try {
+        await withAbortSignal(originalPromise, controller.signal);
+      } catch (error: unknown) {
+        expect(error).toHaveProperty("name", "AbortError");
+      }
+    });
+
+    it("має перервати очікування та викинути AbortError, якщо сигнал скасовується під час виконання промісу", async () => {
+      const controller = new AbortController();
+
+      const longRunningPromise = new Promise((resolve) =>
+        setTimeout(() => {
+          resolve("db_data");
+        }, 200),
+      );
+
+      const wrappedPromise = withAbortSignal(longRunningPromise, controller.signal);
+
+      setTimeout(() => {
+        controller.abort();
+      }, 50);
+
+      await expect(wrappedPromise).rejects.toThrow();
+
+      try {
+        await wrappedPromise;
+      } catch (error: unknown) {
+        expect(error).toHaveProperty("name", "AbortError");
+      }
+    });
+
+    it("має коректно прокинути оригінальну помилку, якщо сам проміс завершився невдачею", async () => {
+      const controller = new AbortController();
+      const dbError = new Error("Connection timeout");
+      const failingPromise = Promise.reject(dbError);
+
+      await expect(withAbortSignal(failingPromise, controller.signal)).rejects.toThrow(
+        "Connection timeout",
+      );
+    });
+  });
+
   describe("getPaginationOptions", () => {
     it("should calculate skip and take for the first page", () => {
       const result = getPaginationOptions(1, 10);

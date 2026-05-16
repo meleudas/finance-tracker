@@ -5,7 +5,7 @@ import type {
 } from "../interfaces/IAttachmentRepository";
 import type { RequestOptions } from "../interfaces/IBaseRepository";
 import { BaseRepository, type PrismaDelegate } from "./BaseRepository";
-import { withAbortSignal } from "../../utils/helpers/withAbortSignal";
+import { withAbortSignal } from "../../utils/helpers/WithAbortSignal";
 
 export class AttachmentRepository
   extends BaseRepository<Attachment>

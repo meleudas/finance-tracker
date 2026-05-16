@@ -5,7 +5,7 @@ import type {
   PaginationParams,
   RequestOptions,
 } from "../interfaces/IBaseRepository";
-import { withAbortSignal } from "../../utils/helpers/withAbortSignal";
+import { withAbortSignal } from "../../utils/helpers/WithAbortSignal";
 
 export interface PrismaDelegate {
   findUnique: (args: unknown) => Promise<unknown>;

@@ -8,10 +8,10 @@ import type {
   CategoryNode,
 } from "../interfaces/ICategoryService";
 import type { RequestOptions } from "../../repositories/interfaces/IBaseRepository";
-import { NotFoundError } from "../../utils/errors/clientErrors";
-import { ForbiddenError } from "../../utils/errors/securityErrors";
-import { ValidationError } from "../../utils/errors/clientErrors";
-import { ConflictError } from "../../utils/errors/clientErrors";
+import { NotFoundError } from "../../utils/errors/ClientErrors";
+import { ForbiddenError } from "../../utils/errors/SecurityErrors";
+import { ValidationError } from "../../utils/errors/ClientErrors";
+import { ConflictError } from "../../utils/errors/ClientErrors";
 
 // Динамічно витягуємо суворий внутрішній тип транзакційного клієнта без any
 type PrismaTransactionClient = Parameters<Parameters<typeof globalPrisma.$transaction>[0]>[0];

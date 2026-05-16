@@ -10,7 +10,7 @@ jest.mock("../../../src/config/prismaClient", () => ({
 
 import { prisma } from "../../../src/config/prismaClient";
 import { CurrencyRepository } from "../../../src/repositories/impl/CurrencyRepository";
-import { AbortError } from "../../../src/utils/errors/clientErrors";
+import { AbortError } from "../../../src/utils/errors/ClientErrors";
 
 describe("CurrencyRepository", () => {
   let repo: CurrencyRepository;

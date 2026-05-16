@@ -2,7 +2,7 @@ import type { Currency } from "../../generated/prisma/client";
 import type { ICurrencyRepository, CurrencyUpsertParams } from "../interfaces/ICurrencyRepository";
 import type { RequestOptions } from "../interfaces/IBaseRepository";
 import { BaseRepository, type PrismaDelegate } from "./BaseRepository";
-import { withAbortSignal } from "../../utils/helpers/withAbortSignal";
+import { withAbortSignal } from "../../utils/helpers/WithAbortSignal";
 
 export class CurrencyRepository extends BaseRepository<Currency> implements ICurrencyRepository {
   protected get delegate(): PrismaDelegate {

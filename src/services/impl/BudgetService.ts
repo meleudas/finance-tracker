@@ -8,7 +8,7 @@ import type {
 } from "../interfaces/IBudgetService";
 import type { RequestOptions } from "../../repositories/interfaces/IBaseRepository";
 import type { Prisma } from "../../generated/prisma/client";
-import { AppError } from "../../utils/errors/AppError";
+import { NotFoundError, ValidationError, ConflictError } from "../../utils/errors/ClientErrors";
 
 interface BudgetRequestOptions extends RequestOptions {
   tx?: Prisma.TransactionClient;
@@ -20,18 +20,18 @@ interface BudgetRequestOptions extends RequestOptions {
  * ============================================================================
  *
  * 1. БЕЗПЕКА ТА ІЗОЛЯЦІЯ:
- *    Користувач може управляти та переглядати бюджети лише для своїх власних
+ *    Користувач може управління та переглядати бюджети лише для своїх власних
  *    рахунків (Account) та категорій (Category). Будь-які маніпуляції з чужими
  *    ID перериваються помилкою 404/403.
  *
  * 2. СУВОРЕ ВАЛЮТНЕ КОНВЕНЦІЮВАННЯ:
- *    Валюта ліміту бюджету (`currencyId`) повинна ЖОРСТКО збігатися з базовою
+ *    Валюта ліміту budget (`currencyId`) повинна ЖОРСТКО збігатися з базовою
  *    валютою обраного рахунку (`account.currencyId`). Оскільки багатовалютна
  *    конвертація винесена поза скоуп MVP, пряме змішування валют заборонено.
  *
  * 3. КОНТРОЛЬ ФІНАНСОВИХ ПЕРІОДІВ:
  *    - Дата початку бюджету (`periodStart`) має бути суворо раніше за дату
- *      завершення періду (`periodEnd`).
+ *      завершення періоду (`periodEnd`).
  *    - ЗАБОРОНЕНО перетинання періодів: для одного і того самого рахунку та
  *      однієї і тієї самої категорії (або загального рахунку) не може існувати
  *      двох активних (`isDeleted: false`) лімітів, часові проміжки яких перетинаються.
@@ -41,22 +41,21 @@ interface BudgetRequestOptions extends RequestOptions {
  *    до категорії, її тип повинен мати суворий напрямок `CategoryKind.EXPENSE`.
  *
  * 5. АГРЕГАЦІЯ ТА ПРОГРЕС (ПЛАН vs ФАКТ):
- *    При розрахунку прогресу бюджету, система динамічно підраховує суму всіх
+ *    При розрахунку прогресу бюджету, system динамічно підраховує суму всіх
  *    активних фінансових транзакцій з типом `EXPENSE` за вказаний період
  *    (`occurredAt` між `periodStart` та `periodEnd`), які належать до обраного
  *    рахунку та (опціонально) категорії.
  */
-
 export class BudgetService implements IBudgetService {
   async createBudget(dto: CreateBudgetDTO, options?: BudgetRequestOptions): Promise<Budget> {
     const tx = options?.tx ?? globalPrisma;
 
     if (new Date(dto.periodStart) >= new Date(dto.periodEnd)) {
-      throw new AppError(
-        "INVALID_PERIOD_RANGE",
-        "Дата початку періоду має бути раніше за дату завершення",
-        400,
-      );
+      throw new ValidationError("Start date must be before end date");
+    }
+
+    if (dto.limitAmount <= 0) {
+      throw new ValidationError("Limit amount must be greater than zero");
     }
 
     const account = await tx.account.findUnique({
@@ -65,48 +64,35 @@ export class BudgetService implements IBudgetService {
     });
 
     if (account?.userId !== dto.userId) {
-      throw new AppError("ACCOUNT_NOT_FOUND", "Обраний рахунок не знайдено", 404);
+      throw new NotFoundError("Account");
     }
 
     if (account.currencyId !== dto.currencyId) {
-      throw new AppError(
-        "CURRENCY_MISMATCH",
-        "Валюта бюджету повинна відповідати валюті обраного рахунку",
-        400,
-      );
+      throw new ValidationError("Budget currency must match the account currency");
     }
 
-    if (dto.categoryId) {
+    // Безпечне перетворення типу для суворого лінтера з undefined у string | null
+    const targetCategoryId = dto.categoryId === undefined ? null : dto.categoryId;
+
+    if (targetCategoryId !== null) {
       const category = await tx.category.findUnique({
-        where: { id: dto.categoryId, isDeleted: false },
+        where: { id: targetCategoryId, isDeleted: false },
       });
 
       if (category?.userId !== dto.userId) {
-        throw new AppError("CATEGORY_NOT_FOUND", "Обрану категорію не знайдено", 404);
+        throw new NotFoundError("Category");
       }
 
       if (category.kind !== "EXPENSE") {
-        throw new AppError(
-          "INVALID_BUDGET_CATEGORY_KIND",
-          "Бюджет можна встановити лише для категорій витрат (EXPENSE)",
-          400,
-        );
+        throw new ValidationError("Budgets can only be set for expense categories");
       }
-    }
-
-    if (dto.limitAmount <= 0) {
-      throw new AppError(
-        "INVALID_LIMIT_AMOUNT",
-        "Сума ліміту бюджету повинна бути більшою за нуль",
-        400,
-      );
     }
 
     const overlappingBudget = await tx.budget.findFirst({
       where: {
         userId: dto.userId,
         accountId: dto.accountId,
-        categoryId: dto.categoryId ?? null,
+        categoryId: targetCategoryId, // Передаємо чітко типізоване значення
         isDeleted: false,
         NOT: {
           OR: [
@@ -118,11 +104,7 @@ export class BudgetService implements IBudgetService {
     });
 
     if (overlappingBudget) {
-      throw new AppError(
-        "BUDGET_PERIOD_OVERLAP",
-        "На вказаний проміжок часу для цього рахунку/категорії вже встановлено активний бюджет",
-        400,
-      );
+      throw new ConflictError("An active budget already overlaps with this period");
     }
 
     return tx.budget.create({
@@ -130,7 +112,7 @@ export class BudgetService implements IBudgetService {
         userId: dto.userId,
         accountId: dto.accountId,
         currencyId: dto.currencyId,
-        categoryId: dto.categoryId ?? null,
+        categoryId: targetCategoryId,
         name: dto.name.trim(),
         periodStart: new Date(dto.periodStart),
         periodEnd: new Date(dto.periodEnd),
@@ -152,15 +134,11 @@ export class BudgetService implements IBudgetService {
     });
 
     if (!budget) {
-      throw new AppError("BUDGET_NOT_FOUND", "Бюджет не знайдено", 404);
+      throw new NotFoundError("Budget");
     }
 
     if (dto.limitAmount <= 0) {
-      throw new AppError(
-        "INVALID_LIMIT_AMOUNT",
-        "Сума ліміту бюджету повинна бути більшою за нуль",
-        400,
-      );
+      throw new ValidationError("Limit amount must be greater than zero");
     }
 
     return tx.budget.update({
@@ -181,7 +159,7 @@ export class BudgetService implements IBudgetService {
     });
 
     if (!budget) {
-      throw new AppError("BUDGET_NOT_FOUND", "Бюджет не знайдено або вже видалено", 404);
+      throw new NotFoundError("Budget");
     }
 
     await tx.budget.update({
@@ -227,7 +205,7 @@ export class BudgetService implements IBudgetService {
         },
       };
 
-      if (budget.categoryId) {
+      if (budget.categoryId !== null) {
         txWhereClause.categoryId = budget.categoryId;
       }
 

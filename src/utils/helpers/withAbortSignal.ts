@@ -1,4 +1,4 @@
-import { AbortError } from "../errors/clientErrors";
+import { AbortError } from "../errors/ClientErrors";
 
 /**
  * Races a promise against an AbortSignal.
