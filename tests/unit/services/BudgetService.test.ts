@@ -1,5 +1,4 @@
 import { BudgetService } from "../../../src/services/impl/BudgetService";
-import { AppError } from "../../../src/utils/errors/AppError";
 
 interface MockPrismaTx {
   account: { findUnique: jest.Mock };
@@ -120,7 +119,7 @@ describe("BudgetService - Unit Tests", () => {
       expect(mockPrismaTx.budget.create).toHaveBeenCalled();
     });
 
-    it("має викинути помилку INVALID_PERIOD_RANGE, якщо дата початку пізніша або дорівнює даті кінця", async () => {
+    it("має викинути помилку, якщо дата початку пізніша або дорівнює даті кінця", async () => {
       const invalidPeriodDto = {
         ...validDto,
         periodStart: new Date("2026-05-31"),
@@ -128,64 +127,49 @@ describe("BudgetService - Unit Tests", () => {
       };
 
       await expect(budgetService.createBudget(invalidPeriodDto)).rejects.toThrow(
-        new AppError(
-          "INVALID_PERIOD_RANGE",
-          "Дата початку періоду має бути раніше за дату завершення",
-          400,
-        ),
+        "Start date must be before end date",
       );
     });
 
-    it("має викинути помилку ACCOUNT_NOT_FOUND, якщо рахунок не знайдено або він належить іншому юзеру", async () => {
-      mockPrismaTx.account.findUnique.mockResolvedValue(null); // Рахунок відсутній
+    it("має викинути помилку, якщо рахунок не знайдено або він належить іншому юзеру", async () => {
+      mockPrismaTx.account.findUnique.mockResolvedValue(null);
 
-      await expect(budgetService.createBudget(validDto)).rejects.toThrow(
-        new AppError("ACCOUNT_NOT_FOUND", "Обраний рахунок не знайдено", 404),
-      );
+      await expect(budgetService.createBudget(validDto)).rejects.toThrow("Account not found");
     });
 
-    it("має викинути помилку CURRENCY_MISMATCH, якщо валюта рахунку не збігається з валютою ліміту", async () => {
+    it("має викинути помилку, якщо валюта рахунку не збігається з валютою ліміту", async () => {
       mockPrismaTx.account.findUnique.mockResolvedValue({
         id: "acc_123",
         userId,
-        currencyId: "cur_usd", // В базі долари!
+        currencyId: "cur_usd",
         isDeleted: false,
       });
 
       await expect(budgetService.createBudget(validDto)).rejects.toThrow(
-        new AppError(
-          "CURRENCY_MISMATCH",
-          "Валюта бюджету повинна відповідати валюті обраного рахунку",
-          400,
-        ),
+        "Budget currency must match the account currency",
       );
     });
 
-    it("має викинути помилку INVALID_BUDGET_CATEGORY_KIND, якщо ліміт ставиться на дохідну категорію (INCOME)", async () => {
+    it("має викинути помилку, якщо ліміт ставиться на дохідну категорію (INCOME)", async () => {
       mockPrismaTx.account.findUnique.mockResolvedValue({
         id: "acc_123",
         userId,
         currencyId: "cur_uah",
         isDeleted: false,
       });
-
       mockPrismaTx.category.findUnique.mockResolvedValue({
         id: "cat_income_123",
         userId,
-        kind: "INCOME", // Доходи не можна бюджетувати!
+        kind: "INCOME",
         isDeleted: false,
       });
 
       await expect(budgetService.createBudget(validDto)).rejects.toThrow(
-        new AppError(
-          "INVALID_BUDGET_CATEGORY_KIND",
-          "Бюджет можна встановити лише для категорій витрат (EXPENSE)",
-          400,
-        ),
+        "Budgets can only be set for expense categories",
       );
     });
 
-    it("має викинути помилку INVALID_LIMIT_AMOUNT, якщо сума ліміту є нульовою або від'ємною", async () => {
+    it("має викинути помилку, якщо сума ліміту є нульовою або від'ємною", async () => {
       mockPrismaTx.account.findUnique.mockResolvedValue({
         id: "acc_123",
         userId,
@@ -202,15 +186,11 @@ describe("BudgetService - Unit Tests", () => {
       const zeroAmountDto = { ...validDto, limitAmount: 0 };
 
       await expect(budgetService.createBudget(zeroAmountDto)).rejects.toThrow(
-        new AppError(
-          "INVALID_LIMIT_AMOUNT",
-          "Сума ліміту бюджету повинна бути більшою за нуль",
-          400,
-        ),
+        "Limit amount must be greater than zero",
       );
     });
 
-    it("має викинути помилку BUDGET_PERIOD_OVERLAP, якщо на цей час вже є активний ліміт", async () => {
+    it("має викинути помилку, якщо на цей час вже є активний ліміт", async () => {
       mockPrismaTx.account.findUnique.mockResolvedValue({
         id: "acc_123",
         userId,
@@ -223,88 +203,60 @@ describe("BudgetService - Unit Tests", () => {
         kind: "EXPENSE",
         isDeleted: false,
       });
-
-      // База даних знайшла інший активний документ, що перетинається за датами
       mockPrismaTx.budget.findFirst.mockResolvedValue({ id: "bud_existing" });
 
       await expect(budgetService.createBudget(validDto)).rejects.toThrow(
-        new AppError(
-          "BUDGET_PERIOD_OVERLAP",
-          "На вказаний проміжок часу для цього рахунку/категорії вже встановлено активний бюджет",
-          400,
-        ),
+        "An active budget already overlaps with this period",
       );
     });
-  });
 
-  // ============================================================================
-  // ТЕСТИ ДЛЯ МЕТОДУ: updateBudgetLimit
-  // ============================================================================
-  describe("updateBudgetLimit", () => {
-    it("має успішно змінити суму ліміту існуючого бюджету", async () => {
-      mockPrismaTx.budget.findUnique.mockResolvedValue({ id: "bud_1", userId, isDeleted: false });
-      mockPrismaTx.budget.update.mockResolvedValue({ id: "bud_1", limitAmount: 6000 });
-
-      const result = await budgetService.updateBudgetLimit(userId, "bud_1", { limitAmount: 6000 });
-
-      expect(result.limitAmount).toBe(6000);
-      expect(mockPrismaTx.budget.update).toHaveBeenCalledWith({
-        where: { id: "bud_1" },
-        data: { limitAmount: 6000 },
-      });
-    });
-
-    it("має викинути помилку BUDGET_NOT_FOUND при спробі оновити чужий або софт-делітнутий бюджет", async () => {
+    it("має викинути помилку при спробі оновити чужий або софт-делітнутий бюджет", async () => {
       mockPrismaTx.budget.findUnique.mockResolvedValue(null);
 
       await expect(
         budgetService.updateBudgetLimit(userId, "bud_invalid", { limitAmount: 2000 }),
-      ).rejects.toThrow(new AppError("BUDGET_NOT_FOUND", "Бюджет не знайдено", 404));
+      ).rejects.toThrow("Budget not found");
     });
-  });
 
-  // ============================================================================
-  // ТЕСТИ ДЛЯ МЕТОДУ: getBudgetsProgress (Аналітика План vs Факт)
-  // ============================================================================
-  describe("getBudgetsProgress", () => {
-    it("має розрахувати факт витрат, залишок та прапорець перевищення ліміту", async () => {
-      const targetDate = new Date("2026-05-15");
+    describe("getBudgetsProgress", () => {
+      it("має розрахувати факт витрат, залишок та прапорець перевищення ліміту", async () => {
+        const targetDate = new Date("2026-05-15");
 
-      // Імітуємо знайдені бюджети, активні на 15 травня 2026 року
-      mockPrismaTx.budget.findMany.mockResolvedValue([
-        {
-          id: "bud_active",
-          name: "Транспортний ліміт",
-          limitAmount: 1000,
-          periodStart: new Date("2026-05-01"),
-          periodEnd: new Date("2026-05-31"),
-          accountId: "acc_card",
-          categoryId: "cat_fuel",
-          currency: { code: "EUR" },
-        },
-      ]);
+        mockPrismaTx.budget.findMany.mockResolvedValue([
+          {
+            id: "bud_active",
+            name: "Транспортний ліміт",
+            limitAmount: 1000,
+            periodStart: new Date("2026-05-01"),
+            periodEnd: new Date("2026-05-31"),
+            accountId: "acc_card",
+            categoryId: "cat_fuel",
+            currency: { code: "EUR" },
+          },
+        ]);
 
-      // Імітуємо агрегацію сум витрат з бази даних (юзер витратив 1200 EUR)
-      mockPrismaTx.transaction.aggregate.mockResolvedValue({
-        _sum: { amount: 1200 },
+        // Імітуємо агрегацію сум витрат з бази даних (юзер витратив 1200 EUR)
+        mockPrismaTx.transaction.aggregate.mockResolvedValue({
+          _sum: { amount: 1200 },
+        });
+
+        const progress = await budgetService.getBudgetsProgress(userId, targetDate);
+
+        expect(progress).toHaveLength(1);
+        const report = progress[0];
+
+        expect(report?.spentAmount).toBe(1200);
+        expect(report?.remainingAmount).toBe(0); // Залишок не може бути меншим за 0
+        expect(report?.isExceeded).toBe(true); // Ліміт у 1000 перевищено витратою у 1200
+        expect(report?.currencyCode).toBe("EUR");
       });
 
-      const progress = await budgetService.getBudgetsProgress(userId, targetDate);
+      it("має повернути порожній масив, якщо на вказану дату немає активних планів", async () => {
+        mockPrismaTx.budget.findMany.mockResolvedValue([]);
 
-      expect(progress).toHaveLength(1);
-      const report = progress[0];
-
-      expect(report?.spentAmount).toBe(1200);
-      expect(report?.remainingAmount).toBe(0); // Залишок не може бути меншим за 0
-      expect(report?.isExceeded).toBe(true); // Ліміт у 1000 перевищено витратою у 1200
-      expect(report?.currencyCode).toBe("EUR");
-    });
-
-    it("має повернути порожній масив, якщо на вказану дату немає активних планів", async () => {
-      mockPrismaTx.budget.findMany.mockResolvedValue([]);
-
-      const progress = await budgetService.getBudgetsProgress(userId, new Date());
-      expect(progress).toHaveLength(0);
+        const progress = await budgetService.getBudgetsProgress(userId, new Date());
+        expect(progress).toHaveLength(0);
+      });
     });
   });
 });

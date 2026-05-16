@@ -10,7 +10,7 @@ jest.mock("../../../src/config/prismaClient", () => ({
 
 import { prisma } from "../../../src/config/prismaClient";
 import { CategoryRepository } from "../../../src/repositories/impl/CategoryRepository";
-import { AbortError } from "../../../src/utils/errors/ClientErrors";
+import { AbortError } from "../../../src/utils/errors/СlientErrors";
 
 type LocalCategoryKind = "INCOME" | "EXPENSE";
 

@@ -8,7 +8,7 @@ import type {
 } from "../interfaces/IBudgetService";
 import type { RequestOptions } from "../../repositories/interfaces/IBaseRepository";
 import type { Prisma } from "../../generated/prisma/client";
-import { NotFoundError, ValidationError, ConflictError } from "../../utils/errors/ClientErrors";
+import { NotFoundError, ValidationError, ConflictError } from "../../utils/errors/СlientErrors";
 
 interface BudgetRequestOptions extends RequestOptions {
   tx?: Prisma.TransactionClient;
@@ -71,7 +71,6 @@ export class BudgetService implements IBudgetService {
       throw new ValidationError("Budget currency must match the account currency");
     }
 
-    // Безпечне перетворення типу для суворого лінтера з undefined у string | null
     const targetCategoryId = dto.categoryId === undefined ? null : dto.categoryId;
 
     if (targetCategoryId !== null) {
@@ -92,7 +91,7 @@ export class BudgetService implements IBudgetService {
       where: {
         userId: dto.userId,
         accountId: dto.accountId,
-        categoryId: targetCategoryId, // Передаємо чітко типізоване значення
+        categoryId: targetCategoryId,
         isDeleted: false,
         NOT: {
           OR: [

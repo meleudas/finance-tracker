@@ -10,7 +10,7 @@ jest.mock("../../../src/config/prismaClient", () => ({
 
 import { prisma } from "../../../src/config/prismaClient";
 import { BudgetRepository } from "../../../src/repositories/impl/BudgetRepository";
-import { AbortError } from "../../../src/utils/errors/ClientErrors";
+import { AbortError } from "../../../src/utils/errors/СlientErrors";
 
 describe("BudgetRepository", () => {
   let repo: BudgetRepository;
@@ -22,7 +22,6 @@ describe("BudgetRepository", () => {
 
   describe("коректність", () => {
     it("findByUserId: включає category та currency для зручності", async () => {
-      // Cast to jest.Mock specifically on the budget property
       (prisma.budget.findMany as jest.Mock).mockResolvedValue([]);
 
       await repo.findByUserId("u1");

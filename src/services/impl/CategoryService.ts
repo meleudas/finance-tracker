@@ -8,12 +8,11 @@ import type {
   CategoryNode,
 } from "../interfaces/ICategoryService";
 import type { RequestOptions } from "../../repositories/interfaces/IBaseRepository";
-import { NotFoundError } from "../../utils/errors/ClientErrors";
+import { NotFoundError } from "../../utils/errors/СlientErrors";
 import { ForbiddenError } from "../../utils/errors/SecurityErrors";
-import { ValidationError } from "../../utils/errors/ClientErrors";
-import { ConflictError } from "../../utils/errors/ClientErrors";
+import { ValidationError } from "../../utils/errors/СlientErrors";
+import { ConflictError } from "../../utils/errors/СlientErrors";
 
-// Динамічно витягуємо суворий внутрішній тип транзакційного клієнта без any
 type PrismaTransactionClient = Parameters<Parameters<typeof globalPrisma.$transaction>[0]>[0];
 
 export interface CategoryRequestOptions extends RequestOptions {
@@ -105,10 +104,8 @@ export class CategoryService implements ICategoryService {
 
     const updateData: Record<string, unknown> = {};
 
-    // Безпечне приведення типу опцій для репозиторіїв, щоб уникнути no-unsafe-argument
     const repoOptions = options as unknown as RequestOptions;
 
-    // Замініть початок блоку перевірки імені на цей варіант:
     if (dto.name !== undefined) {
       const trimmedName = dto.name.trim();
 
