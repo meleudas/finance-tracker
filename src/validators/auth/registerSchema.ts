@@ -15,3 +15,5 @@ export const registerSchema = z.object({
     .regex(/\d/, { message: "Must contain at least one number" })
     .regex(/[!@#$%^&*(),.?":{}|<>]/, { message: "Must contain at least one special character" }),
 });
+
+export type RegisterSchema = z.infer<typeof registerSchema>;

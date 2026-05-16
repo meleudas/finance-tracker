@@ -9,3 +9,5 @@ export const loginSchema = z.object({
     .max(255, { message: "Email is too long" }),
   password: z.string().min(1, { message: "Password is required" }),
 });
+
+export type LoginSchema = z.infer<typeof loginSchema>;
