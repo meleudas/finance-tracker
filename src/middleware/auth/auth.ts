@@ -1,6 +1,6 @@
 import { NextFunction, Response, Request as ExpressRequest } from "express";
 import { AppError } from "../../utils/errors/appError";
-import { getHeader } from "../../utils/auth/getHeaders";
+import { getHeader } from "../../utils/helpers/auth/getHeaders";
 import { verify } from "jsonwebtoken";
 import { config } from "../../config/ConfigService";
 
@@ -8,7 +8,7 @@ export const authMiddleware = (req: ExpressRequest, res: Response, next: NextFun
   try {
     const authHeader = getHeader(req, 'authorization');
 
-    if (!authHeader?.startsWith("Bearer ") || !authHeader) {
+    if (!authHeader?.startsWith("Bearer ")) {
       next(new AppError(
         "ACCESS_TOKEN_IS_REQUIRED",
         "Access token is required",

@@ -1,4 +1,4 @@
-import {Env} from "./env";
+import {env, type Env} from "./env";
 
 export type LogLevel = 'info' | 'debug' | 'error' | 'warn' | 'fatal' | 'trace' | 'silent';
 
@@ -69,3 +69,5 @@ export class ConfigService {
     return this.config.LOG_LEVEL;
   }
 }
+
+export const config = new ConfigService(env)

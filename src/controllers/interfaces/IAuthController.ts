@@ -1,4 +1,4 @@
-import {NextFunction} from "express";
+import { NextFunction } from "express";
 
 export interface IAuthController {
   registerHandler: (req: Request, res: Response, next: NextFunction) => Promise<void>;
