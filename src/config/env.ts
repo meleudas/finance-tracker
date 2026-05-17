@@ -9,6 +9,10 @@ const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string().min(32),
   CORS_ORIGIN: z.string().min(1),
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]),
+  JWT_ACCESS_TTL: z.string().default('15m'),
+  JWT_REFRESH_TTL: z.string().default('7d'),
+  JWT_ISSUER: z.string().default('finance-tracker-api'),
+  JWT_AUDIENCE: z.string().default('finance-tracker-api')
 });
 
 export type Env = z.infer<typeof envSchema>;
