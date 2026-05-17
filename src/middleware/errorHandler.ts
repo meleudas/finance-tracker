@@ -1,4 +1,5 @@
 import type { ErrorRequestHandler } from "express";
+import { AbortError } from "../utils/withAbortSignal";
 
 function isRecord(value: unknown): value is Record<PropertyKey, unknown> {
   return typeof value === "object" && value !== null;
@@ -21,15 +22,18 @@ function readCode(err: unknown): string {
 }
 
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next): void => {
+  if (err instanceof AbortError) {
+    if (!res.headersSent) {
+      res.status(499).end();
+    }
+    return;
+  }
+
   const requestId = req.id;
   const statusCode = readStatusCode(err);
   const code = readCode(err);
-  const exposeMessage =
-    statusCode !== 500 || process.env.NODE_ENV !== "production";
-  const message =
-    exposeMessage && err instanceof Error
-      ? err.message
-      : "Internal server error";
+  const exposeMessage = statusCode !== 500 || process.env.NODE_ENV !== "production";
+  const message = exposeMessage && err instanceof Error ? err.message : "Internal server error";
 
   res.status(statusCode).json({
     error: {
