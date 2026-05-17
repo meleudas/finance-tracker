@@ -1,6 +1,6 @@
 import type { Category } from "../../generated/prisma/client";
 import { BaseRepository, type PrismaDelegate } from "./BaseRepository";
-import type { ICategoryRepository, CategoryUpsertParams } from "../interfaces/ICategoryRepository";
+import type { ICategoryRepository } from "../interfaces/ICategoryRepository";
 import type { RequestOptions } from "../interfaces/IBaseRepository";
 import { withAbortSignal } from "../../utils/helpers/WithAbortSignal";
 
@@ -28,7 +28,7 @@ export class CategoryRepository extends BaseRepository<Category> implements ICat
     );
   }
 
-  async upsert(params: CategoryUpsertParams, options?: RequestOptions): Promise<Category> {
-    return withAbortSignal(this.prisma.category.upsert(params), options?.signal);
-  }
+  //async upsert(params: CategoryUpsertParams, options?: RequestOptions): Promise<Category> {
+  //return withAbortSignal(this.prisma.category.upsert(params), options?.signal);
+  //}
 }

@@ -3,7 +3,7 @@ import type { Currency } from "../../generated/prisma/client";
 import type { ICurrencyService } from "../interfaces/ICurrencyService";
 import type { RequestOptions } from "../../repositories/interfaces/IBaseRepository";
 import type { Prisma } from "../../generated/prisma/client";
-import { AppError } from "../../utils/errors/AppError";
+import { NotFoundError } from "../../utils/errors/СlientErrors";
 
 interface CurrencyRequestOptions extends RequestOptions {
   tx?: Prisma.TransactionClient;
@@ -50,11 +50,7 @@ export class CurrencyService implements ICurrencyService {
     });
 
     if (!currency || currency.isDeleted) {
-      throw new AppError(
-        "CURRENCY_NOT_FOUND",
-        `Валюту з кодом ${formattedCode} не знайдено в системі`,
-        404,
-      );
+      throw new NotFoundError(`Валюту з кодом ${formattedCode} не знайдено в системі`);
     }
 
     return currency;
@@ -68,7 +64,7 @@ export class CurrencyService implements ICurrencyService {
     });
 
     if (!currency || currency.isDeleted) {
-      throw new AppError("CURRENCY_NOT_FOUND", "Вказану валюту не знайдено", 404);
+      throw new NotFoundError("Вказану валюту не знайдено");
     }
 
     return currency;

@@ -48,7 +48,7 @@ describe("BudgetRepository", () => {
       });
     });
 
-    it("upsert коректно передає Decimal дані", async () => {
+    /*it("upsert коректно передає Decimal дані", async () => {
       const params = {
         where: { id: "b1" },
         create: {
@@ -67,7 +67,7 @@ describe("BudgetRepository", () => {
 
       await repo.upsert(params);
       expect(prisma.budget.upsert).toHaveBeenCalledWith(params);
-    });
+    });*/
   });
 
   describe("стійкість до зловмисних / крайніх вхідних даних", () => {

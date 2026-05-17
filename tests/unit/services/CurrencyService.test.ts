@@ -1,5 +1,5 @@
 import { CurrencyService } from "../../../src/services/impl/CurrencyService";
-import { AppError } from "../../../src/utils/errors/AppError";
+import { NotFoundError } from "../../../src/utils/errors/СlientErrors";
 
 interface MockPrismaTx {
   currency: {
@@ -81,7 +81,7 @@ describe("CurrencyService - Unit Tests", () => {
       mockPrismaTx.currency.findUnique.mockResolvedValue(null);
 
       await expect(currencyService.getCurrencyByCode("XYZ")).rejects.toThrow(
-        new AppError("CURRENCY_NOT_FOUND", "Валюту з кодом XYZ не знайдено в системі", 404),
+        new NotFoundError("Валюту з кодом XYZ не знайдено в системі"),
       );
     });
   });

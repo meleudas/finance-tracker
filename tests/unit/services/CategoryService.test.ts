@@ -1,8 +1,11 @@
 import { CategoryService } from "../../../src/services/impl/CategoryService";
 import type { ICategoryRepository } from "../../../src/repositories/interfaces/ICategoryRepository";
-import { NotFoundError, ConflictError } from "../../../src/utils/errors/СlientErrors";
+import {
+  NotFoundError,
+  ConflictError,
+  ValidationError,
+} from "../../../src/utils/errors/СlientErrors";
 import { ForbiddenError } from "../../../src/utils/errors/SecurityErrors";
-import { ValidationError } from "../../../src/utils/errors/СlientErrors";
 import type { Category } from "../../../src/generated/prisma/client";
 
 interface MockPrismaTx {
@@ -48,7 +51,7 @@ describe("CategoryService - Unit Tests", () => {
       count: jest.fn(),
       findByUserId: jest.fn(),
       findSubCategories: jest.fn(),
-      upsert: jest.fn(),
+      //upsert: jest.fn(),
     };
 
     categoryService = new CategoryService(mockCategoryRepo);

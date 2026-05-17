@@ -8,7 +8,7 @@ export interface BudgetUpsertParams {
     userId: string;
     accountId: string;
     currencyId: string;
-    categoryId?: string | null;
+    categoryId?: string;
     name: string;
     periodStart: Date;
     periodEnd: Date;
@@ -30,5 +30,5 @@ export interface BudgetUpsertParams {
 export interface IBudgetRepository extends IBaseRepository<Budget> {
   findByUserId(userId: string, options?: RequestOptions): Promise<Budget[]>;
   findActiveByPeriod(userId: string, date: Date, options?: RequestOptions): Promise<Budget[]>;
-  upsert(params: BudgetUpsertParams, options?: RequestOptions): Promise<Budget>;
+  //upsert(params: BudgetUpsertParams, options?: RequestOptions): Promise<Budget>;
 }

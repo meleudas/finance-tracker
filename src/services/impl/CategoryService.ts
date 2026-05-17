@@ -8,10 +8,8 @@ import type {
   CategoryNode,
 } from "../interfaces/ICategoryService";
 import type { RequestOptions } from "../../repositories/interfaces/IBaseRepository";
-import { NotFoundError } from "../../utils/errors/СlientErrors";
+import { NotFoundError, ValidationError, ConflictError } from "../../utils/errors/СlientErrors";
 import { ForbiddenError } from "../../utils/errors/SecurityErrors";
-import { ValidationError } from "../../utils/errors/СlientErrors";
-import { ConflictError } from "../../utils/errors/СlientErrors";
 
 type PrismaTransactionClient = Parameters<Parameters<typeof globalPrisma.$transaction>[0]>[0];
 

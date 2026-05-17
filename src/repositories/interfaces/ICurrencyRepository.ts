@@ -20,5 +20,5 @@ export interface CurrencyUpsertParams {
 
 export interface ICurrencyRepository extends IBaseRepository<Currency> {
   findByCode(code: string, options?: RequestOptions): Promise<Currency | null>;
-  upsert(params: CurrencyUpsertParams, options?: RequestOptions): Promise<Currency>;
+  //upsert(params: CurrencyUpsertParams, options?: RequestOptions): Promise<Currency>;
 }

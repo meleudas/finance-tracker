@@ -4,7 +4,7 @@ import type { IBaseRepository, RequestOptions } from "./IBaseRepository";
 export interface CategoryUpsertParams {
   where: Prisma.CategoryWhereUniqueInput;
   create: {
-    id?: string;
+    id: string;
     userId: string;
     parentId?: string | null;
     name: string;
@@ -22,5 +22,5 @@ export interface CategoryUpsertParams {
 export interface ICategoryRepository extends IBaseRepository<Category> {
   findByUserId(userId: string, options?: RequestOptions): Promise<Category[]>;
   findSubCategories(parentId: string, options?: RequestOptions): Promise<Category[]>;
-  upsert(params: CategoryUpsertParams, options?: RequestOptions): Promise<Category>;
+  //upsert(params: CategoryUpsertParams, options?: RequestOptions): Promise<Category>;
 }

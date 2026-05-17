@@ -1,6 +1,6 @@
 import type { Budget } from "../../generated/prisma/client";
 import { BaseRepository, type PrismaDelegate } from "./BaseRepository";
-import type { IBudgetRepository, BudgetUpsertParams } from "../interfaces/IBudgetRepository";
+import type { IBudgetRepository } from "../interfaces/IBudgetRepository";
 import type { RequestOptions } from "../interfaces/IBaseRepository";
 import { withAbortSignal } from "../../utils/helpers/WithAbortSignal";
 
@@ -40,7 +40,7 @@ export class BudgetRepository extends BaseRepository<Budget> implements IBudgetR
     );
   }
 
-  async upsert(params: BudgetUpsertParams, options?: RequestOptions): Promise<Budget> {
-    return withAbortSignal(this.prisma.budget.upsert(params), options?.signal);
-  }
+  //async upsert(params: BudgetUpsertParams, options?: RequestOptions): Promise<Budget> {
+  //return withAbortSignal(this.prisma.budget.upsert(params), options?.signal);
+  //}
 }
