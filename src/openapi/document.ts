@@ -22,6 +22,7 @@ export function generateOpenApiDocument() {
     ],
     tags: [
       { name: "System", description: "Health and infrastructure" },
+      { name: "Auth", description: "Authentication and Authorization" },
       { name: "Transactions", description: "Income and expense entries" },
       { name: "Transfers", description: "Transfers between accounts" },
       { name: "Attachments", description: "Files linked to transactions" },
