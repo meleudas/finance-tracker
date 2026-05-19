@@ -49,6 +49,10 @@ const envSchema = z.object({
   ATTACHMENT_DOWNLOAD_URL_CACHE_TTL_SECONDS: z.coerce.number().int().min(30).max(3600).default(240),
   /** Dev/test only: default acting user when auth middleware is not wired yet. */
   DEV_USER_ID: cuidSchema.optional(),
+  JWT_ACCESS_TTL: z.string().default('15m'),
+  JWT_REFRESH_TTL: z.string().default('7d'),
+  JWT_ISSUER: z.string().default('finance-tracker-api'),
+  JWT_AUDIENCE: z.string().default('finance-tracker-api')
 });
 
 export type Env = z.infer<typeof envSchema>;
