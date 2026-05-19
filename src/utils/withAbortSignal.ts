@@ -1,7 +1,8 @@
 export class AbortError extends Error {
-  public readonly code = "ABORT_ERR";
+  public readonly code = "REQUEST_ABORTED";
+  public readonly statusCode = 499;
 
-  constructor(message = "Operation was aborted") {
+  constructor(message = "Request was aborted") {
     super(message);
     this.name = "AbortError";
   }
