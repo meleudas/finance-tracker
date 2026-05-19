@@ -39,7 +39,7 @@ export class AuthController {
 
     res.status(201).json({
       success: true,
-      data: { user },
+      data: { user, accessToken, refreshToken },
     });
   });
 
@@ -71,17 +71,19 @@ export class AuthController {
 
     res.status(200).json({
       success: true,
-      data: { user },
+      data: { user, accessToken, refreshToken },
     });
   });
 
   refreshHandler = asyncHandler(async (req: Request, res: Response) => {
-    const cookies = req.cookies as Record<string, unknown>;
-    if (!cookies.refreshToken || typeof cookies.refreshToken !== "string") {
+    const cookies = (req.cookies as Record<string, unknown> | undefined) ?? {};
+    const body = (req.body as Record<string, unknown> | undefined) ?? {};
+
+    const token = (cookies.refreshToken as string | undefined) ?? (body.refreshToken as string | undefined);
+
+    if (!token || typeof token !== "string") {
       throw unauthorizedError();
     }
-
-    const token = cookies.refreshToken;
 
     const isBlacklisted = await this.authService.isTokenBlacklisted(token, getServiceContext(req));
     if (isBlacklisted) {
@@ -104,19 +106,27 @@ export class AuthController {
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
       secure: this.config.isProduction,
-      sameSite: this.config.isProduction ? 'none' : 'lax',
+      sameSite: this.config.isProduction ? "none" : "lax",
       path: "/",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     res.status(200).json({
       success: true,
+      data: { accessToken, refreshToken: newRefreshToken },
     });
   });
 
   logoutHandler = asyncHandler(async (req: Request, res: Response) => {
-    const cookies = req.cookies as Record<string, unknown>;
-    const accessToken = cookies.accessToken as string | undefined;
+    let accessToken: string | undefined;
+
+    const authHeader = req.headers.authorization;
+    if (authHeader?.startsWith("Bearer ")) {
+      accessToken = authHeader.substring(7);
+    }
+
+    const cookies = (req.cookies as Record<string, unknown> | undefined) ?? {};
+    accessToken ??= cookies.accessToken as string | undefined;
     const refreshToken = cookies.refreshToken as string | undefined;
 
     await this.authService.logout(accessToken, refreshToken, getServiceContext(req));

@@ -1,17 +1,24 @@
-import { NextFunction, Response, Request as ExpressRequest } from "express";
-import { verify } from "jsonwebtoken";
-import { config } from "../config/ConfigService";
+import { NextFunction, Request as ExpressRequest } from "express";
 import { getServiceContext } from "../http/requestContext";
 import { unauthorizedError } from "../utils/apiError";
 import { IAuthService } from "../services/interfaces/auth/IAuthService";
 
 export const createAuthMiddleware = (authService: IAuthService) => {
-  return async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
+  return async (req: ExpressRequest, next: NextFunction): Promise<void> => {
     try {
-      const cookies = req.cookies as Record<string, unknown>;
-      const token = cookies.accessToken;
+      let token: string | undefined;
 
-      if (typeof token !== "string") {
+      const authHeader = req.headers.authorization;
+      if (authHeader?.startsWith("Bearer ")) {
+        token = authHeader.substring(7);
+      }
+
+      if (!token) {
+        const cookies = (req.cookies as Record<string, unknown> | undefined) ?? {};
+        token = cookies.accessToken as string | undefined;
+      }
+
+      if (!token) {
         next(unauthorizedError());
         return;
       }
@@ -22,10 +29,7 @@ export const createAuthMiddleware = (authService: IAuthService) => {
         return;
       }
 
-      const decoded = verify(token, config.jwtAccessSecret) as {
-        userId: string;
-        email: string;
-      };
+      const decoded = await authService.verifyAccessToken(token, getServiceContext(req));
 
       req.user = {
         id: decoded.userId,
@@ -36,7 +40,7 @@ export const createAuthMiddleware = (authService: IAuthService) => {
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
 
-      if (err.name === "JsonWebTokenError" || err.name === "TokenExpiredError") {
+      if (err.name === "JsonWebTokenError" || err.name === "TokenExpiredError" || err.name === "NotBeforeError") {
         next(unauthorizedError());
       } else {
         next(err);

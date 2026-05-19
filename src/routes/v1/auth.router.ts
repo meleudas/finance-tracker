@@ -39,7 +39,7 @@ router.post(
 
 router.post(
   "/logout",
-  createAuthMiddleware,
+  createAuthMiddleware(authService),
   asyncHandler(authController.logoutHandler),
 );
 

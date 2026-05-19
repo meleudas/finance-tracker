@@ -6,6 +6,7 @@ import { RegisterSchema } from "../../../validators/auth/registerSchema";
 import { UserResponse } from "../../../dtos/users/userResponseSchema";
 import { ITokenService } from "../../interfaces/auth/ITokenService";
 import { IAuthService } from "../../interfaces/auth/IAuthService";
+import { DecodedToken } from "../../../types/auth/DecodedToken";
 import { IUserRepository } from "../../../repositories/interfaces/IUserRepository";
 import { ICache } from "../../../redis";
 import * as bcrypt from "bcrypt";
@@ -80,6 +81,13 @@ export class AuthService implements IAuthService {
       throw new UnauthorizedError();
     }
 
+    if (decodedToken.exp) {
+      const ttlSeconds = decodedToken.exp - Math.floor(Date.now() / 1000);
+      if (ttlSeconds > 0) {
+        await this.cache.set(`bl:${token}`, "1", ttlSeconds);
+      }
+    }
+
     const tokens = await this._generateTokens({
       userId: user.id,
       email: user.email,
@@ -91,13 +99,8 @@ export class AuthService implements IAuthService {
     };
   }
 
-  async validateAccessToken(token: string, _ctx?: ServiceContext): Promise<boolean> {
-    try {
-      this.tokenService.verifyAccessToken(token);
-      return true;
-    } catch {
-      return Promise.resolve(false);
-    }
+  async verifyAccessToken(token: string, _ctx?: ServiceContext): Promise<DecodedToken> {
+    return Promise.resolve(this.tokenService.verifyAccessToken(token));
   }
 
   async logout(accessToken?: string, refreshToken?: string, _ctx?: ServiceContext): Promise<void> {
