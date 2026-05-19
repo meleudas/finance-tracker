@@ -1,10 +1,10 @@
 import { openApiRegistry } from "./registry";
 
-openApiRegistry.registerComponent("securitySchemes", "bearerAuth", {
-  type: "http",
-  scheme: "bearer",
-  bearerFormat: "JWT",
-  description: "JWT access token (when auth middleware is enabled)",
+openApiRegistry.registerComponent("securitySchemes", "cookieAuth", {
+  type: "apiKey",
+  in: "cookie",
+  name: "accessToken",
+  description: "JWT access token passed in HttpOnly cookie",
 });
 
 openApiRegistry.registerComponent("securitySchemes", "devUserId", {
@@ -21,3 +21,4 @@ import "./paths/health.paths";
 import "./paths/transactions.paths";
 import "./paths/transfers.paths";
 import "./paths/attachments.paths";
+import "./paths/auth.paths";

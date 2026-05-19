@@ -9,6 +9,7 @@ declare global {
       /** Set by auth middleware (or dev stub). */
       user?: {
         id: string;
+        email: string;
       };
       /** Output of validate() middleware. */
       validated?: {
