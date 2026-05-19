@@ -27,4 +27,5 @@ export interface ITransactionRepository extends IBaseRepository<Transaction> {
     options?: RequestOptions,
   ): Promise<PaginatedResult<Transaction>>;
   findByAccountId(accountId: string, options?: RequestOptions): Promise<Transaction[]>;
+  findByCategoryId(categoryId: string, options?: RequestOptions): Promise<Transaction[]>;
 }
