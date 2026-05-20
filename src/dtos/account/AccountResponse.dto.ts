@@ -7,7 +7,6 @@ export const AccountResponseSchema = z.object({
   userId: cuidSchema,
   currencyId: cuidSchema,
   name: z.string(),
-  note: z.string().nullable().optional(),
   createdAt: isoDatetimeSchema,
   updatedAt: isoDatetimeSchema,
   isDeleted: z.boolean(),

@@ -1,11 +1,18 @@
-// src/validators/budget/budget.update.schema.ts
 import { z } from "zod";
-import { CreateBudgetSchema } from "./CreateBudget.dto";
-import { isNonEmptyPatch, nonEmptyPatchRefineConfig } from "../common/schemas";
+import {
+  amountSchema,
+  isoDatetimeSchema,
+  isNonEmptyPatch,
+  nonEmptyPatchRefineConfig,
+} from "../common/schemas";
 
-export const UpdateBudgetSchema = CreateBudgetSchema
-  .omit({ accountId: true, currencyId: true, categoryId: true })
-  .partial()
+export const UpdateBudgetSchema = z
+  .object({
+    name: z.string().trim().min(1).max(200).optional(),
+    limitAmount: amountSchema.optional(),
+    periodStart: isoDatetimeSchema.optional(),
+    periodEnd: isoDatetimeSchema.optional(),
+  })
   .strict()
   .refine(isNonEmptyPatch, nonEmptyPatchRefineConfig);
 
