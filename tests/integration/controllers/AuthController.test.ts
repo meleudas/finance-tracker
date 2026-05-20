@@ -45,17 +45,21 @@ describe("AuthController (Integration)", () => {
     app.use(express.json());
     app.use(cookieParser());
     app.use(assignTestRequestId);
+    app.use((req, res, next) => {
+      if (req.method === "GET" && req.path === "/api/v1/auth/csrf") {
+        return next();
+      }
+      return csrfProtection(req, res, next);
+    });
 
     app.get("/api/v1/auth/csrf", asyncHandler(authController.csrfHandler));
     app.post(
       "/api/v1/auth/login",
-      csrfProtection,
       LoginRequestValidator,
       asyncHandler(authController.loginHandler),
     );
     app.post(
       "/api/v1/auth/register",
-      csrfProtection,
       RegisterRequestValidator,
       asyncHandler(authController.registerHandler),
     );
