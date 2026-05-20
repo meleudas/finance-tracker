@@ -1,5 +1,3 @@
-import { randomUUID } from "node:crypto";
-import { extname } from "node:path";
 import type { Readable } from "node:stream";
 import type { IFileStorage } from "./IFileStorage";
 import { minioClient, attachmentsBucket } from "../config/minioConfig";
@@ -54,13 +52,5 @@ export class FileStorage implements IFileStorage {
     expiresInSeconds = env.S3_PRESIGNED_URL_EXPIRY_SECONDS,
   ): Promise<string> {
     return this.client.presignedPutObject(this.bucket, key, expiresInSeconds);
-  }
-
-  /**
-   * Suggested object key: attachments/{userId}/{uuid}{ext}
-   */
-  static buildAttachmentKey(userId: string, originalName: string): string {
-    const extension = extname(originalName).toLowerCase();
-    return `attachments/${userId}/${randomUUID()}${extension}`;
   }
 }
