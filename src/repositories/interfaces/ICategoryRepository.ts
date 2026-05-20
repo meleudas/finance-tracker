@@ -33,6 +33,7 @@ export interface ICategoryRepository extends IBaseRepository<Category> {
     parentId: string | null,
     kind: string,
     excludeId?: string,
+    options?: RequestOptions,
   ): Promise<boolean>;
   hasActiveTransactions(categoryIds: string[], options?: RequestOptions): Promise<boolean>;
 }

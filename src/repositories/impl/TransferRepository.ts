@@ -6,7 +6,7 @@ import type {
   RequestOptions,
 } from "../interfaces/IBaseRepository";
 import { BaseRepository, type PrismaDelegate } from "./BaseRepository";
-import { withAbortSignal } from "../../utils/helpers/WithAbortSignal";
+import { withAbortSignal } from "../../utils/helpers/withAbortSignal";
 
 export class TransferRepository extends BaseRepository<Transfer> implements ITransferRepository {
   protected get delegate(): PrismaDelegate {
@@ -52,6 +52,9 @@ export class TransferRepository extends BaseRepository<Transfer> implements ITra
     const where = {
       userId: filter.userId,
       isDeleted: false,
+      ...(filter.accountId && {
+        OR: [{ fromAccountId: filter.accountId }, { toAccountId: filter.accountId }],
+      }),
       ...(filter.fromAccountId && { fromAccountId: filter.fromAccountId }),
       ...(filter.toAccountId && { toAccountId: filter.toAccountId }),
       ...(hasOccurredBounds

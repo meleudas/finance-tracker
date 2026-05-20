@@ -2,37 +2,24 @@
 import type { Category } from "../../generated/prisma/client";
 import type { CreateCategoryDto } from "../../dtos/category/CreateCategory.dto";
 import type { UpdateCategoryDto } from "../../dtos/category/UpdateCategory.dto";
-import type { RequestOptions } from "../../repositories/interfaces/IBaseRepository";
+import type { ServiceContext } from "../serviceContext";
 
 export interface CategoryNode extends Category {
   children: CategoryNode[];
 }
 
 export interface ICategoryService {
-  // 🔥 userId передається окремо
-  createCategory(
-    userId: string,
-    dto: CreateCategoryDto,
-    options?: RequestOptions,
-  ): Promise<Category>;
+  createCategory(userId: string, dto: CreateCategoryDto, ctx?: ServiceContext): Promise<Category>;
 
   updateCategory(
     userId: string,
     categoryId: string,
     dto: UpdateCategoryDto,
-    options?: RequestOptions,
+    ctx?: ServiceContext,
   ): Promise<Category>;
 
-  deleteCategory(
-    userId: string,
-    categoryId: string,
-    options?: RequestOptions,
-  ): Promise<void>;
+  deleteCategory(userId: string, categoryId: string, ctx?: ServiceContext): Promise<void>;
 
-  getCategoryTree(userId: string, options?: RequestOptions): Promise<CategoryNode[]>;
-  getCategoryById(
-    userId: string,
-    categoryId: string,
-    options?: RequestOptions,
-  ): Promise<Category | null>;
+  getCategoryTree(userId: string, ctx?: ServiceContext): Promise<CategoryNode[]>;
+  getCategoryById(userId: string, categoryId: string, ctx?: ServiceContext): Promise<Category>;
 }

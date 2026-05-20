@@ -9,7 +9,7 @@ import type {
   RequestOptions,
 } from "../interfaces/IBaseRepository";
 import { BaseRepository, type PrismaDelegate } from "./BaseRepository";
-import { withAbortSignal } from "../../utils/helpers/WithAbortSignal";
+import { withAbortSignal } from "../../utils/helpers/withAbortSignal";
 
 export class TransactionRepository
   extends BaseRepository<Transaction>
@@ -105,5 +105,40 @@ export class TransactionRepository
       }),
       options?.signal,
     );
+  }
+
+  async sumExpenseAmount(filter: TransactionFilter, options?: RequestOptions): Promise<number> {
+    const hasOccurredBounds = filter.from != null || filter.to != null;
+    const where = {
+      userId: filter.userId,
+      isDeleted: false,
+      direction: "EXPENSE" as const,
+      ...(filter.accountId && { accountId: filter.accountId }),
+      ...(filter.categoryId && { categoryId: filter.categoryId }),
+      ...(hasOccurredBounds
+        ? {
+            occurredAt: {
+              ...(filter.from != null ? { gte: filter.from } : {}),
+              ...(filter.to != null ? { lte: filter.to } : {}),
+            },
+          }
+        : {}),
+    };
+
+    const result = await withAbortSignal(
+      this.prisma.transaction.aggregate({
+        where,
+        _sum: { amount: true },
+      }),
+      options?.signal,
+    );
+
+    const sum = result._sum.amount;
+    if (sum == null) return 0;
+    if (typeof sum === "number") return sum;
+    if (typeof sum === "object" && "toNumber" in sum) {
+      return (sum as { toNumber: () => number }).toNumber();
+    }
+    return Number(sum);
   }
 }

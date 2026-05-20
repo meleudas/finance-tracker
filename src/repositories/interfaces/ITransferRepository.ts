@@ -8,6 +8,7 @@ import type {
 
 export interface TransferFilter {
   userId: string;
+  accountId?: string;
   fromAccountId?: string;
   toAccountId?: string;
   from?: Date;

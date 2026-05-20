@@ -28,4 +28,6 @@ export interface ITransactionRepository extends IBaseRepository<Transaction> {
   ): Promise<PaginatedResult<Transaction>>;
   findByAccountId(accountId: string, options?: RequestOptions): Promise<Transaction[]>;
   findByCategoryId(categoryId: string, options?: RequestOptions): Promise<Transaction[]>;
+
+  sumExpenseAmount(filter: TransactionFilter, options?: RequestOptions): Promise<number>;
 }

@@ -1,7 +1,20 @@
-// src/repositories/interfaces/IBudgetRepository.ts
 import { Decimal } from "@prisma/client/runtime/client";
 import type { Budget } from "../../generated/prisma/client";
-import type { IBaseRepository, RequestOptions } from "./IBaseRepository";
+import type {
+  IBaseRepository,
+  PaginatedResult,
+  PaginationParams,
+  RequestOptions,
+} from "./IBaseRepository";
+
+export interface BudgetFilter {
+  userId: string;
+  accountId?: string;
+  categoryId?: string;
+  activeNow?: boolean;
+  from?: Date;
+  to?: Date;
+}
 
 export interface IBudgetRepository extends IBaseRepository<Budget> {
   findOverlapping(
@@ -19,4 +32,12 @@ export interface IBudgetRepository extends IBaseRepository<Budget> {
   findActiveById(id: string, userId: string, options?: RequestOptions): Promise<Budget | null>;
 
   updateLimit(id: string, newLimit: Decimal, options?: RequestOptions): Promise<Budget>;
+
+  findByFilter(
+    filter: BudgetFilter,
+    pagination: PaginationParams,
+    options?: RequestOptions,
+  ): Promise<PaginatedResult<Budget>>;
+
+  findByUserId(userId: string, options?: RequestOptions): Promise<Budget[]>;
 }

@@ -1,5 +1,3 @@
-// src/services/impl/BudgetService.ts
-import type { Budget } from "../../generated/prisma/client"; // 🔥 Тільки типи сутностей, БЕЗ Prisma
 import type { IBudgetService } from "../interfaces/IBudgetService";
 import type { IBudgetRepository } from "../../repositories/interfaces/IBudgetRepository";
 import type { IAccountRepository } from "../../repositories/interfaces/IAccountRepository";
@@ -8,9 +6,55 @@ import type { ITransactionRepository } from "../../repositories/interfaces/ITran
 import type { ICurrencyRepository } from "../../repositories/interfaces/ICurrencyRepository";
 import type { CreateBudgetDto } from "../../dtos/budget/CreateBudget.dto";
 import type { UpdateBudgetLimitDto } from "../../dtos/budget/UpdateBudgetLimit.dto";
-import type { RequestOptions } from "../../repositories/interfaces/IBaseRepository";
-import { NotFoundError, ValidationError, ConflictError } from "../../utils/errors/СlientErrors";
+import type { UpdateBudgetDto } from "../../dtos/budget/UpdateBudget.dto";
+import type { BudgetQueryDto } from "../../dtos/budget/BudgetQuery.dto";
+import type { BudgetResponseDto } from "../../dtos/budget/BudgetResponse.dto";
+import type { DeleteResponseDto } from "../../dtos/common/DeleteResponse.dto";
+import type { PaginatedResult } from "../../repositories/interfaces/IBaseRepository";
+import { NotFoundError, ValidationError, ConflictError } from "../../utils/errors/ClientErrors";
 import type { BudgetProgressDto } from "../../dtos/budget/BudgetProgress.dto";
+import { toBudgetResponse, toBudgetResponseWithCalculations } from "../../mappers/budget.mapper";
+import { toDeleteResponse } from "../../mappers/delete-response.mapper";
+import { parseOrThrow } from "../../utils/helpers/zodParse";
+import { CreateBudgetSchema } from "../../dtos/budget/CreateBudget.dto";
+import { UpdateBudgetSchema } from "../../dtos/budget/UpdateBudget.dto";
+import { UpdateBudgetLimitSchema } from "../../dtos/budget/UpdateBudgetLimit.dto";
+import { BudgetQuerySchema } from "../../dtos/budget/BudgetQuery.dto";
+import type { ICache } from "../../redis";
+import { env } from "../../config/env";
+import type { ServiceContext } from "../serviceContext";
+import { repoOptions, withServiceSignal } from "../serviceContext";
+
+const BUDGET_LIST_CACHE_PREFIX = "budget:list";
+const BUDGET_ITEM_CACHE_PREFIX = "budget:item";
+const BUDGET_PROGRESS_CACHE_PREFIX = "budget:progress";
+
+function buildBudgetListCacheKey(userId: string, query: BudgetQueryDto): string {
+  const accountId = query.accountId ?? "";
+  const categoryId = query.categoryId ?? "";
+  const activeNow = query.activeNow === true ? "1" : query.activeNow === false ? "0" : "";
+  const from = query.from?.toISOString() ?? "";
+  const to = query.to?.toISOString() ?? "";
+  return [
+    BUDGET_LIST_CACHE_PREFIX,
+    userId,
+    accountId,
+    categoryId,
+    activeNow,
+    from,
+    to,
+    query.page,
+    query.limit,
+  ].join(":");
+}
+
+function buildBudgetItemCacheKey(userId: string, budgetId: string): string {
+  return `${BUDGET_ITEM_CACHE_PREFIX}:${userId}:${budgetId}`;
+}
+
+function buildBudgetProgressCacheKey(userId: string, targetDate: Date): string {
+  return `${BUDGET_PROGRESS_CACHE_PREFIX}:${userId}:${targetDate.toISOString()}`;
+}
 
 export class BudgetService implements IBudgetService {
   constructor(
@@ -19,121 +63,262 @@ export class BudgetService implements IBudgetService {
     private readonly categoryRepo: ICategoryRepository,
     private readonly transactionRepo: ITransactionRepository,
     private readonly currencyRepo: ICurrencyRepository,
+    private readonly cache: ICache,
   ) {}
+
+  async listBudgets(
+    userId: string,
+    query: BudgetQueryDto,
+    ctx?: ServiceContext,
+  ): Promise<PaginatedResult<BudgetResponseDto>> {
+    const validatedQuery = parseOrThrow(BudgetQuerySchema, query);
+    const cacheKey = buildBudgetListCacheKey(userId, validatedQuery);
+
+    const cached = await withServiceSignal(
+      this.cache.getJson<PaginatedResult<BudgetResponseDto>>(cacheKey),
+      ctx,
+    );
+    if (cached) {
+      return cached;
+    }
+
+    const result = await this.budgetRepo.findByFilter(
+      {
+        userId,
+        accountId: validatedQuery.accountId,
+        categoryId: validatedQuery.categoryId,
+        activeNow: validatedQuery.activeNow,
+        from: validatedQuery.from,
+        to: validatedQuery.to,
+      },
+      { page: validatedQuery.page, limit: validatedQuery.limit },
+      repoOptions(ctx),
+    );
+
+    const mapped = {
+      ...result,
+      data: result.data.map(toBudgetResponse),
+    };
+
+    await withServiceSignal(
+      this.cache.setJson(cacheKey, mapped, env.BUDGET_LIST_CACHE_TTL_SECONDS),
+      ctx,
+    );
+    return mapped;
+  }
+
+  async getBudgetById(
+    userId: string,
+    budgetId: string,
+    ctx?: ServiceContext,
+  ): Promise<BudgetResponseDto> {
+    const cacheKey = buildBudgetItemCacheKey(userId, budgetId);
+
+    const cached = await withServiceSignal(this.cache.getJson<BudgetResponseDto>(cacheKey), ctx);
+    if (cached) {
+      return cached;
+    }
+
+    const budget = await this.budgetRepo.findActiveById(budgetId, userId, repoOptions(ctx));
+    if (!budget) {
+      throw new NotFoundError("Budget not found");
+    }
+
+    const spentAmount = await this.#calculateSpentAmount(
+      userId,
+      budget.accountId,
+      budget.categoryId,
+      budget.periodStart,
+      budget.periodEnd,
+      repoOptions(ctx),
+    );
+    const limitAmount = this.#toNumber(budget.limitAmount);
+    const remainingAmount = Math.max(0, limitAmount - spentAmount);
+
+    const response = toBudgetResponseWithCalculations(budget, spentAmount, remainingAmount);
+    await withServiceSignal(
+      this.cache.setJson(cacheKey, response, env.BUDGET_ITEM_CACHE_TTL_SECONDS),
+      ctx,
+    );
+    return response;
+  }
 
   async createBudget(
     userId: string,
-    dto: CreateBudgetDto, 
-    options?: RequestOptions
-  ): Promise<Budget> {
-    this.#validatePeriods(dto.periodStart, dto.periodEnd);
-    this.#validateAmount(dto.limitAmount);
+    dto: CreateBudgetDto,
+    ctx?: ServiceContext,
+  ): Promise<BudgetResponseDto> {
+    const validated = parseOrThrow(CreateBudgetSchema, dto);
+    this.#validatePeriods(validated.periodStart, validated.periodEnd);
+    this.#validateAmount(validated.limitAmount);
 
     const account = await this.accountRepo.findByIdWithCurrency(
-      dto.accountId, 
-      userId, 
-      options
+      validated.accountId,
+      userId,
+      repoOptions(ctx),
     );
-    
+
     if (!account) {
-      throw new NotFoundError(`Account '${dto.accountId}' not found or access denied`);
+      throw new NotFoundError(`Account '${validated.accountId}' not found or access denied`);
     }
 
-    if (account.currencyId !== dto.currencyId) {
+    if (account.currencyId !== validated.currencyId) {
       throw new ValidationError("Budget currency must match the account currency");
     }
 
-    if (dto.categoryId) {
-      const category = await this.categoryRepo.findById(dto.categoryId, options);
-      
+    if (validated.categoryId) {
+      const category = await this.categoryRepo.findById(validated.categoryId, repoOptions(ctx));
+
       if (!category || category.isDeleted || category.userId !== userId) {
         throw new NotFoundError("Category");
       }
-      
+
       if (category.kind !== "EXPENSE") {
         throw new ValidationError("Budgets can only be set for expense categories");
       }
     }
 
+    const periodStart = new Date(validated.periodStart);
+    const periodEnd = new Date(validated.periodEnd);
+
     const hasOverlap = await this.budgetRepo.findOverlapping(
       userId,
-      dto.accountId,
-      dto.categoryId ?? null,
-      new Date(dto.periodStart),
-      new Date(dto.periodEnd),
+      validated.accountId,
+      validated.categoryId ?? null,
+      periodStart,
+      periodEnd,
       undefined,
-      options
+      repoOptions(ctx),
     );
 
     if (hasOverlap) {
       throw new ConflictError("An active budget already overlaps with this period");
     }
 
-    // 🔥 FIX: Створюємо об'єкт даних окремо і приводимо тип до Record<string, unknown>
-    // Це дозволяє передати number, покладаючись на репозиторій у конвертації в Decimal
     const createData: Record<string, unknown> = {
       userId,
-      accountId: dto.accountId,
-      currencyId: dto.currencyId,
-      categoryId: dto.categoryId ?? null,
-      name: dto.name.trim(),
-      periodStart: new Date(dto.periodStart),
-      periodEnd: new Date(dto.periodEnd),
-      limitAmount: dto.limitAmount, // Передаємо number, репозиторій сконвертує
+      accountId: validated.accountId,
+      currencyId: validated.currencyId,
+      categoryId: validated.categoryId ?? null,
+      name: validated.name.trim(),
+      periodStart,
+      periodEnd,
+      limitAmount: validated.limitAmount,
     };
 
-    return this.budgetRepo.create(createData, options);
+    const created = await this.budgetRepo.create(createData, repoOptions(ctx));
+    await this.invalidateUserBudgetCache(userId, undefined, ctx);
+    return toBudgetResponse(created);
+  }
+
+  async updateBudget(
+    userId: string,
+    budgetId: string,
+    dto: UpdateBudgetDto,
+    ctx?: ServiceContext,
+  ): Promise<BudgetResponseDto> {
+    const validated = parseOrThrow(UpdateBudgetSchema, dto);
+    const budget = await this.budgetRepo.findActiveById(budgetId, userId, repoOptions(ctx));
+
+    if (!budget) {
+      throw new NotFoundError("Budget not found");
+    }
+
+    const periodStart = validated.periodStart
+      ? new Date(validated.periodStart)
+      : budget.periodStart;
+    const periodEnd = validated.periodEnd ? new Date(validated.periodEnd) : budget.periodEnd;
+
+    if (validated.periodStart != null || validated.periodEnd != null) {
+      this.#validatePeriods(periodStart, periodEnd);
+      const hasOverlap = await this.budgetRepo.findOverlapping(
+        userId,
+        budget.accountId,
+        budget.categoryId,
+        periodStart,
+        periodEnd,
+        budgetId,
+        repoOptions(ctx),
+      );
+      if (hasOverlap) {
+        throw new ConflictError("An active budget already overlaps with this period");
+      }
+    }
+
+    if (validated.limitAmount != null) {
+      this.#validateAmount(validated.limitAmount);
+    }
+
+    const updateData: Record<string, unknown> = {
+      ...(validated.name != null && { name: validated.name.trim() }),
+      ...(validated.periodStart != null && { periodStart }),
+      ...(validated.periodEnd != null && { periodEnd }),
+      ...(validated.limitAmount != null && { limitAmount: validated.limitAmount }),
+    };
+
+    const updated = await this.budgetRepo.update(budgetId, updateData, repoOptions(ctx));
+    await this.invalidateUserBudgetCache(userId, budgetId, ctx);
+    return toBudgetResponse(updated);
   }
 
   async updateBudgetLimit(
     userId: string,
     budgetId: string,
     dto: UpdateBudgetLimitDto,
-    options?: RequestOptions,
-  ): Promise<Budget> {
-    this.#validateAmount(dto.limitAmount);
+    ctx?: ServiceContext,
+  ): Promise<BudgetResponseDto> {
+    const validated = parseOrThrow(UpdateBudgetLimitSchema, dto);
+    this.#validateAmount(validated.limitAmount);
 
-    const budget = await this.budgetRepo.findActiveById(budgetId, userId, options);
-    
+    const budget = await this.budgetRepo.findActiveById(budgetId, userId, repoOptions(ctx));
+
     if (!budget) {
       throw new NotFoundError("Budget not found");
     }
 
-    // 🔥 FIX: Аналогічно для оновлення - передаємо number через Record<string, unknown>
     const updateData: Record<string, unknown> = {
-      limitAmount: dto.limitAmount,
+      limitAmount: validated.limitAmount,
     };
 
-    // Якщо updateLimit приймає Record<string, unknown>:
-    return this.budgetRepo.update(budgetId, updateData, options);
-    
-    // АБО, якщо у вас є спеціальний метод updateLimit(id, amount, options):
-    // return this.budgetRepo.updateLimit(budgetId, dto.limitAmount, options);
-    // (Тоді переконайтеся, що в інтерфейсі він приймає number, а не Decimal)
+    const updated = await this.budgetRepo.update(budgetId, updateData, repoOptions(ctx));
+    await this.invalidateUserBudgetCache(userId, budgetId, ctx);
+    return toBudgetResponse(updated);
   }
 
   async deleteBudget(
     userId: string,
     budgetId: string,
-    options?: RequestOptions,
-  ): Promise<void> {
-    const budget = await this.budgetRepo.findActiveById(budgetId, userId, options);
-    
+    ctx?: ServiceContext,
+  ): Promise<DeleteResponseDto> {
+    const budget = await this.budgetRepo.findActiveById(budgetId, userId, repoOptions(ctx));
+
     if (!budget) {
       throw new NotFoundError("Budget not found");
     }
 
-    await this.budgetRepo.softDelete(budgetId, options);
+    const deleted = await this.budgetRepo.softDelete(budgetId, repoOptions(ctx));
+    await this.invalidateUserBudgetCache(userId, budgetId, ctx);
+    return toDeleteResponse(deleted);
   }
 
   async getBudgetsProgress(
     userId: string,
     targetDate: Date,
-    options?: RequestOptions,
+    ctx?: ServiceContext,
   ): Promise<BudgetProgressDto[]> {
     const queryDate = new Date(targetDate);
+    const cacheKey = buildBudgetProgressCacheKey(userId, queryDate);
 
-    const activeBudgets = await this.budgetRepo.findActiveByDateRange(userId, queryDate, options);
+    const cached = await withServiceSignal(this.cache.getJson<BudgetProgressDto[]>(cacheKey), ctx);
+    if (cached) {
+      return cached;
+    }
+
+    const activeBudgets = await this.budgetRepo.findActiveByDateRange(
+      userId,
+      queryDate,
+      repoOptions(ctx),
+    );
 
     const progressPromises = activeBudgets.map(async (budget) => {
       const spentAmount = await this.#calculateSpentAmount(
@@ -142,13 +327,13 @@ export class BudgetService implements IBudgetService {
         budget.categoryId,
         budget.periodStart,
         budget.periodEnd,
-        options
+        repoOptions(ctx),
       );
 
       const limitAmount = this.#toNumber(budget.limitAmount);
       const remainingAmount = Math.max(0, limitAmount - spentAmount);
 
-      const currency = await this.currencyRepo.findById(budget.currencyId, options);
+      const currency = await this.currencyRepo.findById(budget.currencyId, repoOptions(ctx));
       const currencyCode = currency?.code ?? "UAH";
 
       return {
@@ -166,7 +351,32 @@ export class BudgetService implements IBudgetService {
       };
     });
 
-    return Promise.all(progressPromises);
+    const result = await Promise.all(progressPromises);
+    await withServiceSignal(
+      this.cache.setJson(cacheKey, result, env.BUDGET_PROGRESS_CACHE_TTL_SECONDS),
+      ctx,
+    );
+    return result;
+  }
+
+  private async invalidateUserBudgetCache(
+    userId: string,
+    budgetId?: string,
+    ctx?: ServiceContext,
+  ): Promise<void> {
+    const prefixes = [
+      `${BUDGET_LIST_CACHE_PREFIX}:${userId}:`,
+      `${BUDGET_PROGRESS_CACHE_PREFIX}:${userId}:`,
+    ];
+
+    for (const prefix of prefixes) {
+      const keys = await withServiceSignal(this.cache.keys(`${prefix}*`), ctx);
+      await Promise.all(keys.map((key) => withServiceSignal(this.cache.delete(key), ctx)));
+    }
+
+    if (budgetId) {
+      await withServiceSignal(this.cache.delete(buildBudgetItemCacheKey(userId, budgetId)), ctx);
+    }
   }
 
   async #calculateSpentAmount(
@@ -175,52 +385,40 @@ export class BudgetService implements IBudgetService {
     categoryId: string | null,
     periodStart: Date,
     periodEnd: Date,
-    options?: RequestOptions,
+    ctx?: ServiceContext,
   ): Promise<number> {
-    const filter = {
-      userId,
-      accountId,
-      direction: "EXPENSE" as const,
-      from: periodStart,
-      to: periodEnd,
-      ...(categoryId && { categoryId }),
-    };
-
-    const LARGE_LIMIT = 10000;
-    
-    const result = await this.transactionRepo.findByFilter(
-      filter,
-      { page: 1, limit: LARGE_LIMIT },
-      options
+    return this.transactionRepo.sumExpenseAmount(
+      {
+        userId,
+        accountId,
+        direction: "EXPENSE",
+        from: periodStart,
+        to: periodEnd,
+        ...(categoryId && { categoryId }),
+      },
+      repoOptions(ctx),
     );
-
-    const total = result.data.reduce((sum, tx) => 
-      sum + this.#toNumber(tx.amount), 0);
-
-    return total;
   }
 
   #toNumber(value: unknown): number {
     if (value == null) return 0;
     if (typeof value === "number") return value;
-    
+
     if (typeof value === "string") {
       const parsed = parseFloat(value);
       return isNaN(parsed) ? 0 : parsed;
     }
-    
-    // Split type checks to satisfy ESLint no-unnecessary-condition
-    if (typeof value !== "object" || value === null) return 0;
-    
-    // Use type assertion with property check in separate step
+
+    if (typeof value !== "object") return 0;
+
     const obj = value as Record<string, unknown>;
     if (typeof obj.toNumber === "function") {
       return (obj.toNumber as () => number)();
     }
-    
+
     return 0;
   }
-  
+
   #validatePeriods(start: string | Date, end: string | Date): void {
     const s = new Date(start);
     const e = new Date(end);

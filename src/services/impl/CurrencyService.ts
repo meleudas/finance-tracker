@@ -1,39 +1,92 @@
-// src/services/impl/CurrencyService.ts
 import type { Currency } from "../../generated/prisma/client";
 import type { ICurrencyService } from "../interfaces/ICurrencyService";
 import type { ICurrencyRepository } from "../../repositories/interfaces/ICurrencyRepository";
-import type { RequestOptions } from "../../repositories/interfaces/IBaseRepository";
-import { NotFoundError } from "../../utils/errors/СlientErrors";
-import { withAbortSignal } from "../../utils/helpers/WithAbortSignal";
+import { NotFoundError } from "../../utils/errors/ClientErrors";
+import type { ICache } from "../../redis";
+import { env } from "../../config/env";
+import type { ServiceContext } from "../serviceContext";
+import { repoOptions, withServiceSignal } from "../serviceContext";
+
+const CURRENCY_LIST_CACHE_KEY = "currency:list";
+const CURRENCY_CODE_CACHE_PREFIX = "currency:code";
+const CURRENCY_ID_CACHE_PREFIX = "currency:id";
+
+function buildCurrencyCodeCacheKey(code: string): string {
+  return `${CURRENCY_CODE_CACHE_PREFIX}:${code}`;
+}
+
+function buildCurrencyIdCacheKey(id: string): string {
+  return `${CURRENCY_ID_CACHE_PREFIX}:${id}`;
+}
 
 export class CurrencyService implements ICurrencyService {
-  constructor(private readonly currencyRepo: ICurrencyRepository) {}
+  constructor(
+    private readonly currencyRepo: ICurrencyRepository,
+    private readonly cache: ICache,
+  ) {}
 
-  async getAllCurrencies(options?: RequestOptions): Promise<Currency[]> {
-    return withAbortSignal(
-      this.currencyRepo.findActive(options),
-      options?.signal
+  async getAllCurrencies(ctx?: ServiceContext): Promise<Currency[]> {
+    const options = repoOptions(ctx);
+
+    const cached = await withServiceSignal(
+      this.cache.getJson<Currency[]>(CURRENCY_LIST_CACHE_KEY),
+      ctx,
     );
+    if (cached) {
+      return cached;
+    }
+
+    const currencies = await this.currencyRepo.findActive(options);
+
+    await withServiceSignal(
+      this.cache.setJson(CURRENCY_LIST_CACHE_KEY, currencies, env.CURRENCY_LIST_CACHE_TTL_SECONDS),
+      ctx,
+    );
+    return currencies;
   }
 
-  async getCurrencyByCode(code: string, options?: RequestOptions): Promise<Currency> {
+  async getCurrencyByCode(code: string, ctx?: ServiceContext): Promise<Currency> {
     const formattedCode = code.trim().toUpperCase();
+    const options = repoOptions(ctx);
+    const cacheKey = buildCurrencyCodeCacheKey(formattedCode);
 
-    const currency = await withAbortSignal(
-      this.currencyRepo.findByCode(formattedCode, options),
-      options?.signal
+    const cached = await withServiceSignal(this.cache.getJson<Currency>(cacheKey), ctx);
+    if (cached) {
+      return this.#ensureActiveEntity(cached, `Currency with code ${formattedCode} not found`);
+    }
+
+    const currency = await this.currencyRepo.findByCode(formattedCode, options);
+
+    const active = this.#ensureActiveEntity(
+      currency,
+      `Currency with code ${formattedCode} not found`,
     );
 
-    return this.#ensureActiveEntity(currency, `Валюту з кодом ${formattedCode} не знайдено в системі`);
+    await withServiceSignal(
+      this.cache.setJson(cacheKey, active, env.CURRENCY_ITEM_CACHE_TTL_SECONDS),
+      ctx,
+    );
+    return active;
   }
 
-  async getCurrencyById(id: string, options?: RequestOptions): Promise<Currency> {
-    const currency = await withAbortSignal(
-      this.currencyRepo.findById(id, options),
-      options?.signal
-    );
+  async getCurrencyById(id: string, ctx?: ServiceContext): Promise<Currency> {
+    const options = repoOptions(ctx);
+    const cacheKey = buildCurrencyIdCacheKey(id);
 
-    return this.#ensureActiveEntity(currency, "Вказану валюту не знайдено");
+    const cached = await withServiceSignal(this.cache.getJson<Currency>(cacheKey), ctx);
+    if (cached) {
+      return this.#ensureActiveEntity(cached, "Currency not found");
+    }
+
+    const currency = await this.currencyRepo.findById(id, options);
+
+    const active = this.#ensureActiveEntity(currency, "Currency not found");
+
+    await withServiceSignal(
+      this.cache.setJson(cacheKey, active, env.CURRENCY_ITEM_CACHE_TTL_SECONDS),
+      ctx,
+    );
+    return active;
   }
 
   #ensureActiveEntity(entity: Currency | null, errorMessage: string): Currency {
