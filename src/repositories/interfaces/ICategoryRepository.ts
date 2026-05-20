@@ -22,5 +22,17 @@ export interface CategoryUpsertParams {
 export interface ICategoryRepository extends IBaseRepository<Category> {
   findByUserId(userId: string, options?: RequestOptions): Promise<Category[]>;
   findSubCategories(parentId: string, options?: RequestOptions): Promise<Category[]>;
-  //upsert(params: CategoryUpsertParams, options?: RequestOptions): Promise<Category>;
+
+  // ✅ Нові методи для складних операцій (видалення з транзакцією)
+  deleteWithHierarchy(userId: string, categoryId: string, options?: RequestOptions): Promise<void>;
+
+  // ✅ Методи для перевірок, які раніше були в сервісі
+  existsWithSameName(
+    userId: string,
+    name: string,
+    parentId: string | null,
+    kind: string,
+    excludeId?: string,
+  ): Promise<boolean>;
+  hasActiveTransactions(categoryIds: string[], options?: RequestOptions): Promise<boolean>;
 }

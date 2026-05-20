@@ -5,6 +5,28 @@ import type { RequestOptions } from "../interfaces/IBaseRepository";
 import { withAbortSignal } from "../../utils/helpers/WithAbortSignal";
 
 export class CategoryRepository extends BaseRepository<Category> implements ICategoryRepository {
+  deleteWithHierarchy(
+    _userId: string,
+    _categoryId: string,
+    _options?: RequestOptions,
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  existsWithSameName(
+    _userId: string,
+    _name: string,
+    _parentId: string | null,
+    _kind: string,
+    _excludeId?: string,
+  ): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+
+  hasActiveTransactions(_categoryIds: string[], _options?: RequestOptions): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+
   protected get delegate(): PrismaDelegate {
     return this.prisma.category as unknown as PrismaDelegate;
   }

@@ -11,8 +11,11 @@ export class CurrencyRepository extends BaseRepository<Currency> implements ICur
 
   async findByCode(code: string, options?: RequestOptions): Promise<Currency | null> {
     return withAbortSignal(
-      this.prisma.currency.findUnique({
-        where: { code },
+      this.prisma.currency.findFirst({
+        where: {
+          code,
+          isDeleted: false,
+        },
       }),
       options?.signal,
     );

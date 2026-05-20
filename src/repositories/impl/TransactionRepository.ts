@@ -96,4 +96,14 @@ export class TransactionRepository
       options?.signal,
     );
   }
+
+  async findByCategoryId(categoryId: string, options?: RequestOptions): Promise<Transaction[]> {
+    return withAbortSignal(
+      this.prisma.transaction.findMany({
+        where: { categoryId, isDeleted: false },
+        orderBy: { occurredAt: "desc" },
+      }),
+      options?.signal,
+    );
+  }
 }

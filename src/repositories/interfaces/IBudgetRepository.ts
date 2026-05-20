@@ -1,34 +1,22 @@
-import { Budget, Prisma } from "../../generated/prisma/client";
-import { IBaseRepository, RequestOptions } from "./IBaseRepository";
-
-export interface BudgetUpsertParams {
-  where: Prisma.BudgetWhereUniqueInput;
-  create: {
-    id?: string;
-    userId: string;
-    accountId: string;
-    currencyId: string;
-    categoryId?: string;
-    name: string;
-    periodStart: Date;
-    periodEnd: Date;
-    limitAmount: Prisma.Decimal | number;
-  };
-  update: {
-    accountId?: string;
-    currencyId?: string;
-    categoryId?: string | null;
-    name?: string;
-    periodStart?: Date;
-    periodEnd?: Date;
-    limitAmount?: Prisma.Decimal | number;
-    isDeleted?: boolean;
-    deletedAt?: Date | null;
-  };
-}
+// src/repositories/interfaces/IBudgetRepository.ts
+import { Decimal } from "@prisma/client/runtime/client";
+import type { Budget } from "../../generated/prisma/client";
+import type { IBaseRepository, RequestOptions } from "./IBaseRepository";
 
 export interface IBudgetRepository extends IBaseRepository<Budget> {
-  findByUserId(userId: string, options?: RequestOptions): Promise<Budget[]>;
-  findActiveByPeriod(userId: string, date: Date, options?: RequestOptions): Promise<Budget[]>;
-  //upsert(params: BudgetUpsertParams, options?: RequestOptions): Promise<Budget>;
+  findOverlapping(
+    userId: string,
+    accountId: string,
+    categoryId: string | null,
+    periodStart: Date,
+    periodEnd: Date,
+    excludeId?: string,
+    options?: RequestOptions,
+  ): Promise<Budget | null>;
+
+  findActiveByDateRange(userId: string, date: Date, options?: RequestOptions): Promise<Budget[]>;
+
+  findActiveById(id: string, userId: string, options?: RequestOptions): Promise<Budget | null>;
+
+  updateLimit(id: string, newLimit: Decimal, options?: RequestOptions): Promise<Budget>;
 }
