@@ -1,15 +1,15 @@
 import { openApiRegistry } from "../registry";
 import { z } from "../zod";
-import { registerSchema } from "../../validators/auth/registerSchema";
-import { loginSchema } from "../../validators/auth/loginSchema";
-import { userResponseSchema } from "../../dtos/users/userResponseSchema";
+import { UserResponseSchema } from "../../dtos/users/UserResponse.dto";
+import { registerSchema } from "../../validators/registerSchema";
+import { loginSchema } from "../../validators/loginSchema";
 
 const authTags = ["Auth"];
 
 const userSuccessResponse = z.object({
   success: z.boolean().openapi({ example: true }),
   data: z.object({
-    user: userResponseSchema,
+    user: UserResponseSchema,
   }),
 });
 

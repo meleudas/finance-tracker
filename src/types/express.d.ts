@@ -1,21 +1,27 @@
+import type { RegisterSchema } from "../validators/registerSchema";
+import type { LoginSchema } from "../validators/loginSchema";
+
 declare global {
   namespace Express {
     interface Request {
       /** Set by pino-http via genReqId */
-      id: string;
+      id?: string;
+
       /** Set by attachAbortSignal middleware */
-      abortController: AbortController;
-      abortSignal: AbortSignal;
-      /** Set by auth middleware (or dev stub). */
+      abortController?: AbortController;
+      abortSignal?: AbortSignal;
+
+      /** Set by auth middleware */
       user?: {
         id: string;
         email: string;
       };
-      /** Output of validate() middleware. */
+
+      /** Output of validate() middleware */
       validated?: {
-        body?: unknown;
-        query?: unknown;
-        params?: unknown;
+        body?: RegisterSchema | LoginSchema | Record<string, unknown>;
+        query?: Record<string, unknown>;
+        params?: Record<string, unknown>;
       };
     }
   }

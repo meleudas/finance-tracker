@@ -1,8 +1,8 @@
-import { ConfigService } from "../../../config/ConfigService";
-import { ITokenService } from "../../interfaces/auth/ITokenService";
-import { TokenPayload } from "../../../types/auth/TokenPayload";
+import { ITokenService } from "../interfaces/ITokenService";
+import { ConfigService } from "../../config/ConfigService";
+import { TokenPayload } from "../../types/auth/TokenPayload";
 import { sign, SignOptions, verify } from "jsonwebtoken";
-import { DecodedToken } from "../../../types/auth/DecodedToken";
+import { DecodedToken } from "../../types/auth/DecodedToken";
 
 export class TokenService implements ITokenService {
   constructor(private readonly config: ConfigService) {}
