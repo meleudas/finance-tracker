@@ -4,12 +4,13 @@ import type { IAttachmentService } from "../services/interfaces/IAttachmentServi
 import { getServiceContext } from "../http/requestContext";
 import { sendData } from "../http/response";
 import { parseOrThrow } from "../utils/helpers/zodParse";
-import { unauthorizedError, validationError } from "../utils/errors/apiError";
+import { ValidationError } from "../utils/errors/ClientErrors";
+import { UnauthorizedError } from "../utils/errors/securityErrors";
 
 function getUserId(req: Request): string {
   const userId = req.user?.id;
   if (!userId) {
-    throw unauthorizedError();
+    throw new UnauthorizedError();
   }
   return userId;
 }
@@ -72,7 +73,7 @@ export class AttachmentController {
     const file = req.file;
 
     if (!file) {
-      throw validationError("File field is required");
+      throw new ValidationError("File field is required");
     }
 
     const metadata = parseOrThrow(uploadAttachmentSchema, {
@@ -98,6 +99,20 @@ export class AttachmentController {
       body: Parameters<IAttachmentService["getPresignedUploadUrl"]>[0];
     };
     const data = await this.attachmentService.getPresignedUploadUrl(
+      body,
+      { transactionId: params.transactionId },
+      { id: getUserId(req) },
+      getServiceContext(req),
+    );
+    sendData(res, req, data, 201);
+  };
+
+  confirmPresignedUpload = async (req: Request, res: Response): Promise<void> => {
+    const { params, body } = req.validated as {
+      params: { transactionId: string };
+      body: Parameters<IAttachmentService["confirmPresignedUpload"]>[0];
+    };
+    const data = await this.attachmentService.confirmPresignedUpload(
       body,
       { transactionId: params.transactionId },
       { id: getUserId(req) },

@@ -7,7 +7,7 @@ import { randomUUID } from "node:crypto";
 import pinoHttp from "pino-http";
 import { env } from "./config/env";
 import { logger } from "./config/logger";
-//import { attachAbortSignal } from "./middleware/abortSignal";
+import { attachAbortSignal } from "./middleware/abortSignal";
 import { errorHandler } from "./middleware/errorHandler";
 import { notFoundHandler } from "./middleware/notFound";
 import { mountOpenApiRoutes } from "./routes/openapi.routes";
@@ -46,7 +46,7 @@ export function createApp(): express.Application {
   app.use(limiter);
 
   app.use(express.json({ limit: "1mb" }));
-  //app.use(attachAbortSignal);
+  app.use(attachAbortSignal);
 
   app.get("/health", (_req, res) => {
     res.status(200).json({ status: "ok" });

@@ -1,21 +1,20 @@
-import { Router } from 'express';
-import { CategoryController } from '../../controllers/CategoryController';
-import { CategoryService } from '../../services/impl/CategoryService';
-import { CategoryRepository } from '../../repositories/impl/CategoryRepository';
-import { authenticateJWT } from '../../middleware/amdms';
-import { validate } from '../../middleware/validate';
-import { CreateCategorySchema, UpdateCategorySchema } from '../../validators/category.validator';
+import { Router } from "express";
+import { asyncHandler } from "../../middleware/asyncHandler";
+import {
+  CreateCategoryRequestValidator,
+  DeleteCategoryRequestValidator,
+  GetCategoryRequestValidator,
+  ListCategoriesRequestValidator,
+  UpdateCategoryRequestValidator,
+} from "../../validators/category.validator";
+import { categoryController } from "../../container";
 
 const router = Router();
 
-const categoryRepo = new CategoryRepository();
-const categoryService = new CategoryService(categoryRepo);
-const categoryCtrl = new CategoryController(categoryService);
-
-router.post('/', authenticateJWT, validate(CreateCategorySchema), categoryCtrl.createCategory);
-router.get('/', authenticateJWT, categoryCtrl.getCategoryTree);
-router.get('/:id', authenticateJWT, categoryCtrl.getCategoryById);
-router.put('/:id', authenticateJWT, validate(UpdateCategorySchema), categoryCtrl.updateCategory);
-router.delete('/:id', authenticateJWT, categoryCtrl.deleteCategory);
+router.get("/", ListCategoriesRequestValidator, asyncHandler(categoryController.list));
+router.post("/", CreateCategoryRequestValidator, asyncHandler(categoryController.create));
+router.get("/:id", GetCategoryRequestValidator, asyncHandler(categoryController.getById));
+router.patch("/:id", UpdateCategoryRequestValidator, asyncHandler(categoryController.update));
+router.delete("/:id", DeleteCategoryRequestValidator, asyncHandler(categoryController.remove));
 
 export default router;

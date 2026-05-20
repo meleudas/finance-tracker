@@ -1,13 +1,28 @@
-import { Router } from 'express';
-import { BudgetController } from '../../controllers/BudgetController';
-import { authenticateJWT } from '../../middleware/amdms'; 
+import { Router } from "express";
+import { asyncHandler } from "../../middleware/asyncHandler";
+import {
+  BudgetProgressQueryValidator,
+  CreateBudgetRequestValidator,
+  DeleteBudgetRequestValidator,
+  GetBudgetRequestValidator,
+  ListBudgetsRequestValidator,
+  UpdateBudgetLimitRequestValidator,
+  UpdateBudgetRequestValidator,
+} from "../../validators/budget.validator";
+import { budgetController } from "../../container";
 
 const router = Router();
-const budgetCtrl = new BudgetController();
 
-router.post('/', authenticateJWT, budgetCtrl.createBudget);
-router.get('/progress', authenticateJWT, budgetCtrl.getBudgetsProgress);
-router.put('/:id/limit', authenticateJWT, budgetCtrl.updateBudgetLimit);
-router.delete('/:id', authenticateJWT, budgetCtrl.deleteBudget);
+router.get("/", ListBudgetsRequestValidator, asyncHandler(budgetController.list));
+router.get("/progress", BudgetProgressQueryValidator, asyncHandler(budgetController.getProgress));
+router.post("/", CreateBudgetRequestValidator, asyncHandler(budgetController.create));
+router.get("/:id", GetBudgetRequestValidator, asyncHandler(budgetController.getById));
+router.patch("/:id", UpdateBudgetRequestValidator, asyncHandler(budgetController.update));
+router.put(
+  "/:id/limit",
+  UpdateBudgetLimitRequestValidator,
+  asyncHandler(budgetController.updateLimit),
+);
+router.delete("/:id", DeleteBudgetRequestValidator, asyncHandler(budgetController.remove));
 
 export default router;

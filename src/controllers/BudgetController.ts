@@ -1,89 +1,100 @@
-import { Request, Response, NextFunction } from 'express';
-import { BudgetService } from '../services/impl/BudgetService';
-import type { CreateBudgetDto } from '../dtos/budget/CreateBudget.dto';
+import type { Request, Response } from "express";
+import type { IBudgetService } from "../services/interfaces/IBudgetService";
+import { getServiceContext } from "../http/requestContext";
+import { sendData, sendPaginated } from "../http/response";
+import { UnauthorizedError } from "../utils/errors/securityErrors";
+
+function getUserId(req: Request): string {
+  const userId = req.user?.id;
+  if (!userId) {
+    throw new UnauthorizedError();
+  }
+  return userId;
+}
 
 export class BudgetController {
-  private readonly budgetService: BudgetService;
+  constructor(private readonly budgetService: IBudgetService) {}
 
-  constructor(budgetService?: BudgetService) {
-    this.budgetService = budgetService ?? new BudgetService();
-  }
-
-  /** POST /api/v1/budgets */
-  createBudget = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const userId = req.user?.id;
-      if (!userId) return next({ status: 401, message: 'Unauthorized' });
-
-      const dto: CreateBudgetDto = {
-        userId,
-        accountId: String(req.body.accountId),
-        currencyId: String(req.body.currencyId),
-        categoryId: req.body.categoryId ? String(req.body.categoryId) : null,
-        name: String(req.body.name).trim(),
-        periodStart: new Date(req.body.periodStart),
-        periodEnd: new Date(req.body.periodEnd),
-        limitAmount: Number(req.body.limitAmount),
-      };
-
-      if (isNaN(dto.periodStart.getTime()) || isNaN(dto.periodEnd.getTime())) {
-        return next({ status: 400, message: 'Invalid date format for periodStart or periodEnd' });
-      }
-
-      const budget = await this.budgetService.createBudget(dto);
-      res.status(201).json(budget);
-    } catch (error) {
-      next(error);
-    }
+  list = async (req: Request, res: Response): Promise<void> => {
+    const { query } = req.validated as {
+      query: Parameters<IBudgetService["listBudgets"]>[1];
+    };
+    const result = await this.budgetService.listBudgets(
+      getUserId(req),
+      query,
+      getServiceContext(req),
+    );
+    sendPaginated(res, req, result);
   };
 
-  /** PUT /api/v1/budgets/:id/limit */
-  updateBudgetLimit = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const userId = req.user?.id;
-      if (!userId) return next({ status: 401, message: 'Unauthorized' });
-
-      const budgetId = String(req.params.id);
-      const dto: UpdateBudgetLimitDTO = { limitAmount: Number(req.body.limitAmount) };
-
-      const updated = await this.budgetService.updateBudgetLimit(userId, budgetId, dto);
-      res.status(200).json(updated);
-    } catch (error) {
-      next(error);
-    }
+  getById = async (req: Request, res: Response): Promise<void> => {
+    const { params } = req.validated as { params: { id: string } };
+    const data = await this.budgetService.getBudgetById(
+      getUserId(req),
+      params.id,
+      getServiceContext(req),
+    );
+    sendData(res, req, data);
   };
 
-  /** DELETE /api/v1/budgets/:id */
-  deleteBudget = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const userId = req.user?.id;
-      if (!userId) return next({ status: 401, message: 'Unauthorized' });
-
-      await this.budgetService.deleteBudget(userId, String(req.params.id));
-      res.status(204).send();
-    } catch (error) {
-      next(error);
-    }
+  create = async (req: Request, res: Response): Promise<void> => {
+    const { body } = req.validated as {
+      body: Parameters<IBudgetService["createBudget"]>[1];
+    };
+    const data = await this.budgetService.createBudget(
+      getUserId(req),
+      body,
+      getServiceContext(req),
+    );
+    sendData(res, req, data, 201);
   };
 
-  /** GET /api/v1/budgets/progress */
-  getBudgetsProgress = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const userId = req.user?.id;
-      if (!userId) return next({ status: 401, message: 'Unauthorized' });
+  update = async (req: Request, res: Response): Promise<void> => {
+    const { params, body } = req.validated as {
+      params: { id: string };
+      body: Parameters<IBudgetService["updateBudget"]>[2];
+    };
+    const data = await this.budgetService.updateBudget(
+      getUserId(req),
+      params.id,
+      body,
+      getServiceContext(req),
+    );
+    sendData(res, req, data);
+  };
 
-      const targetDate = req.query.date 
-        ? new Date(String(req.query.date)) 
-        : new Date();
+  updateLimit = async (req: Request, res: Response): Promise<void> => {
+    const { params, body } = req.validated as {
+      params: { id: string };
+      body: Parameters<IBudgetService["updateBudgetLimit"]>[2];
+    };
+    const data = await this.budgetService.updateBudgetLimit(
+      getUserId(req),
+      params.id,
+      body,
+      getServiceContext(req),
+    );
+    sendData(res, req, data);
+  };
 
-      if (isNaN(targetDate.getTime())) {
-        return next({ status: 400, message: 'Invalid query parameter: date' });
-      }
+  remove = async (req: Request, res: Response): Promise<void> => {
+    const { params } = req.validated as { params: { id: string } };
+    const data = await this.budgetService.deleteBudget(
+      getUserId(req),
+      params.id,
+      getServiceContext(req),
+    );
+    sendData(res, req, data);
+  };
 
-      const progress = await this.budgetService.getBudgetsProgress(userId, targetDate);
-      res.status(200).json(progress);
-    } catch (error) {
-      next(error);
-    }
+  getProgress = async (req: Request, res: Response): Promise<void> => {
+    const { query } = req.validated as { query?: { date?: Date } };
+    const targetDate = query?.date ?? new Date();
+    const data = await this.budgetService.getBudgetsProgress(
+      getUserId(req),
+      targetDate,
+      getServiceContext(req),
+    );
+    sendData(res, req, data);
   };
 }
