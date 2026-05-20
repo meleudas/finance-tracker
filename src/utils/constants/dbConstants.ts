@@ -1,0 +1,5 @@
+export const DB_CONSTANTS = {
+  DEFAULT_CURRENCY: "UAH",
+  MIN_DECIMAL_VALUE: 0.0001,
+  MAX_PAGE_SIZE: 100,
+} as const;

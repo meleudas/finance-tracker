@@ -4,7 +4,7 @@ import { ConfigService } from "../config/ConfigService";
 import { RegisterSchema } from "../validators/auth/registerSchema";
 import { getServiceContext } from "../http/requestContext";
 import { asyncHandler } from "../middleware/asyncHandler";
-import { unauthorizedError } from "../utils/apiError";
+import { unauthorizedError } from "../utils/errors/apiError";
 
 export class AuthController {
   constructor(

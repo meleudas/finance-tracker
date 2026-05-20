@@ -1,6 +1,6 @@
 import { NextFunction, Request as ExpressRequest } from "express";
 import { getServiceContext } from "../http/requestContext";
-import { unauthorizedError } from "../utils/apiError";
+import { unauthorizedError } from "../utils/errors/apiError";
 import { IAuthService } from "../services/interfaces/auth/IAuthService";
 
 export const createAuthMiddleware = (authService: IAuthService) => {

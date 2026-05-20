@@ -27,6 +27,11 @@ import {
 import { z } from "../zod";
 import { openApiRegistry } from "../registry";
 import { dataEnvelopeSchema, paginatedEnvelopeSchema } from "./envelope";
+import { CreateBudgetDto, CreateBudgetSchema } from "../../dtos/budget/CreateBudget.dto";
+import { BudgetResponseDto, BudgetResponseSchema } from "../../dtos/budget/BudgetResponse.dto";
+import { CurrencyResponseSchema } from "../../dtos/currency/CurrencyResponse.dto";
+import { CreateCategorySchema } from "../../dtos/category/CreateCategory.dto";
+import { CategoryResponseSchema } from "../../dtos/category/CategoryResponse.dto";
 
 export const IdParamsSchema = openApiRegistry.register("IdParams", idDtoSchema);
 export const TransactionIdParamsSchema = openApiRegistry.register(
@@ -173,4 +178,70 @@ export const PresignedUploadUrlEnvelopeSchema = dataEnvelopeSchema(
 export const DeleteResponseEnvelopeSchema = dataEnvelopeSchema(
   DeleteResponseSchemaRef,
   "DeleteResponseEnvelope",
+);
+
+// Budget schemas
+export const CreateBudgetBodySchema = openApiRegistry.register(
+  "CreateBudget",
+  CreateBudgetSchema,
+);
+
+export const UpdateBudgetBodySchema = openApiRegistry.register(
+  "UpdateBudget",
+  CreateBudgetSchema.partial(),
+);
+
+export const BudgetResponseSchemaRef = openApiRegistry.register(
+  "BudgetResponse",
+  BudgetResponseSchema,
+);
+
+// Currency schemas
+export const CurrencyResponseSchemaRef = openApiRegistry.register(
+  "CurrencyResponse",
+  CurrencyResponseSchema,
+);
+
+export const CreateCategoryBodySchema = openApiRegistry.register(
+  "CreateCategory",
+  CreateCategorySchema,
+);
+
+export const UpdateCategoryBodySchema = openApiRegistry.register(
+  "UpdateCategory",
+  CreateCategorySchema.partial(),
+);
+
+export const CategoryResponseSchemaRef = openApiRegistry.register(
+  "CategoryResponse",
+  CategoryResponseSchema,
+);
+
+export const BudgetResponseEnvelopeSchema = dataEnvelopeSchema(
+  BudgetResponseSchemaRef,
+  "BudgetResponseEnvelope",
+);
+export const BudgetListEnvelopeSchema = paginatedEnvelopeSchema(
+  BudgetResponseSchemaRef,
+  "BudgetListEnvelope",
+);
+
+// Currency envelopes
+export const CurrencyResponseEnvelopeSchema = dataEnvelopeSchema(
+  CurrencyResponseSchemaRef,
+  "CurrencyResponseEnvelope",
+);
+export const CurrencyListEnvelopeSchema = paginatedEnvelopeSchema(
+  CurrencyResponseSchemaRef,
+  "CurrencyListEnvelope",
+);
+
+// Category envelopes
+export const CategoryResponseEnvelopeSchema = dataEnvelopeSchema(
+  CategoryResponseSchemaRef,
+  "CategoryResponseEnvelope",
+);
+export const CategoryListEnvelopeSchema = paginatedEnvelopeSchema(
+  CategoryResponseSchemaRef,
+  "CategoryListEnvelope",
 );

@@ -1,5 +1,5 @@
 import type { ZodType } from "zod";
-import { validationError } from "./apiError";
+import { validationError } from "../errors/apiError";
 
 export function parseOrThrow<T>(schema: ZodType<T>, data: unknown): T {
   const result = schema.safeParse(data);

@@ -3,8 +3,8 @@ import { uploadAttachmentSchema } from "../dtos/attachment/UploadAttachment.dto"
 import type { IAttachmentService } from "../services/interfaces/IAttachmentService";
 import { getServiceContext } from "../http/requestContext";
 import { sendData } from "../http/response";
-import { parseOrThrow } from "../utils/zodParse";
-import { unauthorizedError, validationError } from "../utils/apiError";
+import { parseOrThrow } from "../utils/helpers/zodParse";
+import { unauthorizedError, validationError } from "../utils/errors/apiError";
 
 function getUserId(req: Request): string {
   const userId = req.user?.id;

@@ -30,8 +30,8 @@ import {
 import { env } from "../../config/env";
 import { toAttachmentResponse, toAttachmentWithDownloadUrl } from "../../mappers/attachment.mapper";
 import { toDeleteResponse } from "../../mappers/delete-response.mapper";
-import { parseOrThrow } from "../../utils/zodParse";
-import { notFoundError, validationError } from "../../utils/apiError";
+import { parseOrThrow } from "../../utils/helpers/zodParse";
+import { notFoundError, validationError } from "../../utils/errors/apiError";
 import type { IFileStorage } from "../../storage/IFileStorage";
 import { FileStorage } from "../../storage/FileStorage";
 import { IAttachmentService } from "../interfaces/IAttachmentService";

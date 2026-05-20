@@ -1,7 +1,7 @@
 import { IUserRepository } from "../interfaces/IUserRepository";
 import { BaseRepository, PrismaDelegate } from "./BaseRepository";
 import { User } from "../../generated/prisma/client";
-import { withAbortSignal } from "../../utils/withAbortSignal";
+import { withAbortSignal } from "../../utils/helpers/WithAbortSignal";
 import { UserWithRelations } from "../../types/user/UserWithRelations";
 import { UserWithAccounts } from "../../types/user/UserWithAccounts";
 import { UserWithTransactions } from "../../types/user/UserWithTransactions";

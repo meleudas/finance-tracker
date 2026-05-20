@@ -17,8 +17,8 @@ import type {
 import { DeleteResponseDto, IdDto, idDtoSchema } from "../../dtos/common";
 import { toTransferResponse } from "../../mappers/transfer.mapper";
 import { toDeleteResponse } from "../../mappers/delete-response.mapper";
-import { parseOrThrow } from "../../utils/zodParse";
-import { notFoundError } from "../../utils/apiError";
+import { parseOrThrow } from "../../utils/helpers/zodParse";
+import { notFoundError } from "../../utils/errors/apiError";
 import { paginateArray } from "../../utils/paginateArray";
 import { ITransferService } from "../interfaces/ITransferService";
 import type { ICache } from "../../redis/ICache";

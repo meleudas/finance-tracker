@@ -20,8 +20,8 @@ import { TransactionListQueryDto } from "../../dtos/transaction/TransactionListQ
 import { DeleteResponseDto } from "../../dtos/common/DeleteResponse.dto";
 import { toDeleteResponse } from "../../mappers/delete-response.mapper";
 import { toTransactionResponse } from "../../mappers/transaction.mapper";
-import { parseOrThrow } from "../../utils/zodParse";
-import { notFoundError } from "../../utils/apiError";
+import { parseOrThrow } from "../../utils/helpers/zodParse";
+import { notFoundError } from "../../utils/errors/apiError";
 import { ITransactionService } from "../interfaces/ITransactionService";
 import type { ICache } from "../../redis/ICache";
 import { env } from "../../config/env";

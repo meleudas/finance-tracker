@@ -1,12 +1,5 @@
-export class AbortError extends Error {
-  public readonly code = "REQUEST_ABORTED";
-  public readonly statusCode = 499;
-
-  constructor(message = "Request was aborted") {
-    super(message);
-    this.name = "AbortError";
-  }
-}
+//../src\utils\helpers\withAbortSignal.ts
+import { AbortError } from "../errors/СlientErrors";
 
 /**
  * Races a promise against an AbortSignal.

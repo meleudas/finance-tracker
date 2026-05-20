@@ -6,7 +6,7 @@ import type {
   RequestOptions,
 } from "../interfaces/IBaseRepository";
 import { BaseRepository, type PrismaDelegate } from "./BaseRepository";
-import { withAbortSignal } from "../../utils/withAbortSignal";
+import { withAbortSignal } from "../../utils/helpers/WithAbortSignal";
 
 export class TransferRepository extends BaseRepository<Transfer> implements ITransferRepository {
   protected get delegate(): PrismaDelegate {

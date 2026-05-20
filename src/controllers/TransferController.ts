@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import type { ITransferService } from "../services/interfaces/ITransferService";
 import { getServiceContext } from "../http/requestContext";
 import { sendData, sendPaginated } from "../http/response";
-import { unauthorizedError } from "../utils/apiError";
+import { unauthorizedError } from "../utils/errors/apiError";
 
 function getUserId(req: Request): string {
   const userId = req.user?.id;

@@ -1,6 +1,6 @@
 import multer from "multer";
 import { env } from "../config/env";
-import { validationError } from "../utils/apiError";
+import { validationError } from "../utils/errors/apiError";
 
 const storage = multer.memoryStorage();
 

@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { env } from "../config/env";
-import { unauthorizedError } from "../utils/apiError";
+import { unauthorizedError } from "../utils/errors/apiError";
 
 const DEV_USER_HEADER = "x-user-id";
 
