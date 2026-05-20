@@ -2,7 +2,7 @@ jest.mock("../../../src/config/prismaClient");
 
 import { prisma } from "../../../src/config/prismaClient";
 import { TransactionRepository } from "../../../src/repositories/impl/TransactionRepository";
-import { AbortError } from "../../../src/utils/errors/СlientErrors";
+import { AbortError } from "../../../src/utils/errors/ClientErrors";
 
 describe("TransactionRepository", () => {
   let repo: TransactionRepository;

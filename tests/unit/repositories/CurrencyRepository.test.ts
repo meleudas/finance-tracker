@@ -1,8 +1,9 @@
 jest.mock("../../../src/config/prismaClient", () => ({
   prisma: {
     currency: {
-      findUnique: jest.fn(),
+      findFirst: jest.fn(),
       findMany: jest.fn(),
+      findUnique: jest.fn(),
       upsert: jest.fn(),
     },
   },
@@ -10,7 +11,6 @@ jest.mock("../../../src/config/prismaClient", () => ({
 
 import { prisma } from "../../../src/config/prismaClient";
 import { CurrencyRepository } from "../../../src/repositories/impl/CurrencyRepository";
-//import { AbortError } from "../../../src/utils/errors/СlientErrors";
 
 describe("CurrencyRepository", () => {
   let repo: CurrencyRepository;
@@ -20,24 +20,28 @@ describe("CurrencyRepository", () => {
     repo = new CurrencyRepository();
   });
 
-  describe("коректність", () => {
-    it("findByCode: findUnique з кодом валюти", async () => {
-      (prisma.currency.findUnique as jest.Mock).mockResolvedValue(null);
+  describe("findByCode", () => {
+    it("findFirst з code та isDeleted: false", async () => {
+      (prisma.currency.findFirst as jest.Mock).mockResolvedValue(null);
+
       await repo.findByCode("USD");
-      expect(prisma.currency.findUnique).toHaveBeenCalledWith({
-        where: { code: "USD" },
+
+      expect(prisma.currency.findFirst).toHaveBeenCalledWith({
+        where: { code: "USD", isDeleted: false },
       });
     });
+  });
 
-    it("findAll: повертає список усіх валют", async () => {
-      const mockCurrencies = [
-        { id: "1", code: "USD", name: "Dollar" },
-        { id: "2", code: "UAH", name: "Hryvnia" },
-      ];
-      (prisma.currency.findMany as jest.Mock).mockResolvedValue(mockCurrencies);
-      const result = await repo.findAll();
-      expect(prisma.currency.findMany).toHaveBeenCalled();
-      expect(result).toEqual(mockCurrencies);
+  describe("findActive", () => {
+    it("findMany з isDeleted: false та orderBy code asc", async () => {
+      (prisma.currency.findMany as jest.Mock).mockResolvedValue([]);
+
+      await repo.findActive();
+
+      expect(prisma.currency.findMany).toHaveBeenCalledWith({
+        where: { isDeleted: false },
+        orderBy: { code: "asc" },
+      });
     });
   });
 });

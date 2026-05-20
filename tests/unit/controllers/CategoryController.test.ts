@@ -7,11 +7,12 @@ import {
   CreateCategoryRequestValidator,
   DeleteCategoryRequestValidator,
   GetCategoryRequestValidator,
+  UpdateCategoryRequestValidator,
 } from "../../../src/validators/category.validator";
 import { AppError } from "../../../src/utils/errors/appError";
 import { ConflictError } from "../../../src/utils/errors/ClientErrors";
 
-describe("CategoryController (Integration)", () => {
+describe("CategoryController - Unit Tests", () => {
   let app: express.Application;
   let mockService: jest.Mocked<ICategoryService>;
 
@@ -49,6 +50,11 @@ describe("CategoryController (Integration)", () => {
       GetCategoryRequestValidator,
       asyncHandler(controller.getById),
     );
+    app.patch(
+      "/api/v1/categories/:id",
+      UpdateCategoryRequestValidator,
+      asyncHandler(controller.update),
+    );
     app.delete(
       "/api/v1/categories/:id",
       DeleteCategoryRequestValidator,
@@ -74,7 +80,7 @@ describe("CategoryController (Integration)", () => {
   });
 
   describe("POST /api/v1/categories", () => {
-    it("should create category and return 201", async () => {
+    it("should create category and return 201 with envelope", async () => {
       mockService.createCategory.mockResolvedValue({
         id: categoryId,
         userId,
@@ -92,10 +98,11 @@ describe("CategoryController (Integration)", () => {
         .send({ name: "Food", kind: "EXPENSE" });
 
       expect(res.status).toBe(201);
+      expect(res.body.data.name).toBe("Food");
       expect(mockService.createCategory).toHaveBeenCalledWith(
         userId,
         { name: "Food", kind: "EXPENSE" },
-        expect.any(Object),
+        expect.objectContaining({ signal: undefined }),
       );
     });
   });
@@ -110,8 +117,8 @@ describe("CategoryController (Integration)", () => {
           kind: "EXPENSE",
           parentId: null,
           isDeleted: false,
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          createdAt: new Date("2026-05-01T00:00:00.000Z"),
+          updatedAt: new Date("2026-05-01T00:00:00.000Z"),
           deletedAt: null,
           children: [],
         },
@@ -121,6 +128,36 @@ describe("CategoryController (Integration)", () => {
 
       expect(res.status).toBe(200);
       expect(res.body.data).toHaveLength(1);
+      expect(res.body.data[0].children).toEqual([]);
+    });
+  });
+
+  describe("PATCH /api/v1/categories/:id", () => {
+    it("should update category via validated body", async () => {
+      mockService.updateCategory.mockResolvedValue({
+        id: categoryId,
+        userId,
+        name: "Groceries",
+        kind: "EXPENSE",
+        parentId: null,
+        isDeleted: false,
+        createdAt: new Date("2026-05-01T00:00:00.000Z"),
+        updatedAt: new Date("2026-05-02T00:00:00.000Z"),
+        deletedAt: null,
+      });
+
+      const res = await request(app)
+        .patch(`/api/v1/categories/${categoryId}`)
+        .send({ name: "Groceries" });
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.name).toBe("Groceries");
+      expect(mockService.updateCategory).toHaveBeenCalledWith(
+        userId,
+        categoryId,
+        { name: "Groceries" },
+        expect.any(Object),
+      );
     });
   });
 
@@ -131,11 +168,16 @@ describe("CategoryController (Integration)", () => {
       const res = await request(app).delete(`/api/v1/categories/${categoryId}`);
 
       expect(res.status).toBe(200);
+      expect(res.body.data.id).toBe(categoryId);
       expect(res.body.data.isDeleted).toBe(true);
     });
 
     it("should forward ConflictError as 409", async () => {
-      mockService.deleteCategory.mockRejectedValue(new ConflictError("Has transactions"));
+      mockService.deleteCategory.mockRejectedValue(
+        new ConflictError(
+          "Cannot delete category with active financial history. Reassign transactions first.",
+        ),
+      );
 
       const res = await request(app).delete(`/api/v1/categories/${categoryId}`);
 

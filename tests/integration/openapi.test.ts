@@ -18,7 +18,7 @@ describe("OpenAPI / Swagger", () => {
     expect(body.info.title).toBe("Finance Tracker API");
     expect(body.paths["/api/v1/transactions"]).toBeDefined();
     expect(body.paths["/health"]).toBeDefined();
-    expect(body.components.securitySchemes.bearerAuth).toBeDefined();
+    expect(body.components.securitySchemes.cookieAuth).toBeDefined();
     expect(body.components.securitySchemes.devUserId).toBeDefined();
   });
 
