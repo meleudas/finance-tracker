@@ -1,10 +1,10 @@
-import { NextFunction, Request as ExpressRequest } from "express";
+import type { NextFunction, Request as ExpressRequest, Response } from "express";
 import { getServiceContext } from "../http/requestContext";
-import { unauthorizedError } from "../utils/errors/apiError";
-import { IAuthService } from "../services/interfaces/auth/IAuthService";
+import { UnauthorizedError } from "../utils/errors/securityErrors";
+import type { IAuthService } from "../services/interfaces/IAuthService";
 
 export const createAuthMiddleware = (authService: IAuthService) => {
-  return async (req: ExpressRequest, next: NextFunction): Promise<void> => {
+  return async (req: ExpressRequest, _res: Response, next: NextFunction): Promise<void> => {
     try {
       let token: string | undefined;
 
@@ -19,20 +19,20 @@ export const createAuthMiddleware = (authService: IAuthService) => {
       }
 
       if (!token) {
-        next(unauthorizedError());
+        next(new UnauthorizedError());
         return;
       }
 
       const isBlacklisted = await authService.isTokenBlacklisted(token, getServiceContext(req));
       if (isBlacklisted) {
-        next(unauthorizedError());
+        next(new UnauthorizedError());
         return;
       }
 
       const decoded = await authService.verifyAccessToken(token, getServiceContext(req));
 
       req.user = {
-        id: decoded.userId,
+        id: decoded.id,
         email: decoded.email,
       };
 
@@ -40,8 +40,12 @@ export const createAuthMiddleware = (authService: IAuthService) => {
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
 
-      if (err.name === "JsonWebTokenError" || err.name === "TokenExpiredError" || err.name === "NotBeforeError") {
-        next(unauthorizedError());
+      if (
+        err.name === "JsonWebTokenError" ||
+        err.name === "TokenExpiredError" ||
+        err.name === "NotBeforeError"
+      ) {
+        next(new UnauthorizedError());
       } else {
         next(err);
       }

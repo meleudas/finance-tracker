@@ -49,6 +49,13 @@ const envSchema = z.object({
   ATTACHMENT_DOWNLOAD_URL_CACHE_TTL_SECONDS: z.coerce.number().int().min(30).max(3600).default(240),
   ACCOUNT_LIST_CACHE_TTL_SECONDS: z.coerce.number().int().min(30).max(3600).default(300),
   ACCOUNT_ITEM_CACHE_TTL_SECONDS: z.coerce.number().int().min(30).max(3600).default(600),
+  CATEGORY_TREE_CACHE_TTL_SECONDS: z.coerce.number().int().min(30).max(3600).default(300),
+  CATEGORY_ITEM_CACHE_TTL_SECONDS: z.coerce.number().int().min(30).max(3600).default(600),
+  BUDGET_LIST_CACHE_TTL_SECONDS: z.coerce.number().int().min(30).max(3600).default(300),
+  BUDGET_ITEM_CACHE_TTL_SECONDS: z.coerce.number().int().min(30).max(3600).default(120),
+  BUDGET_PROGRESS_CACHE_TTL_SECONDS: z.coerce.number().int().min(30).max(3600).default(60),
+  CURRENCY_LIST_CACHE_TTL_SECONDS: z.coerce.number().int().min(30).max(86400).default(3600),
+  CURRENCY_ITEM_CACHE_TTL_SECONDS: z.coerce.number().int().min(30).max(86400).default(3600),
   /** Dev/test only: default acting user when auth middleware is not wired yet. */
   DEV_USER_ID: cuidSchema.optional(),
   JWT_ACCESS_TTL: z.string().default("15m"),

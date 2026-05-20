@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "../openapi/zod";
 
 export const registerSchema = z.object({
   email: z
