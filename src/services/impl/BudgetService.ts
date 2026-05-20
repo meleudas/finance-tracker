@@ -1,5 +1,5 @@
 // src/services/impl/BudgetService.ts
-import type { Budget, Currency } from "../../generated/prisma/client"; // 🔥 Тільки типи сутностей, БЕЗ Prisma
+import type { Budget } from "../../generated/prisma/client"; // 🔥 Тільки типи сутностей, БЕЗ Prisma
 import type { IBudgetService } from "../interfaces/IBudgetService";
 import type { IBudgetRepository } from "../../repositories/interfaces/IBudgetRepository";
 import type { IAccountRepository } from "../../repositories/interfaces/IAccountRepository";
