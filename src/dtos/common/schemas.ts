@@ -8,12 +8,24 @@ export const amountSchema = z
   });
 
 export const noteSchema = z.string().trim().max(500);
-export const optionalNoteSchema = noteSchema.optional();
 export const nullableNoteSchema = noteSchema.nullable().optional();
 
 export const transactionDirectionSchema = z.enum(["INCOME", "EXPENSE"]);
 
-export const isoDatetimeSchema = z.iso.datetime();
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+export const isoDatetimeSchema = z.string().datetime({ offset: true }).or(z.string().datetime());
+export const dateToIsoString = (date: Date | null | undefined): string | null => {
+  if (!date) return null;
+  return date.toISOString();
+};
+
+export const optionalNoteSchema = z
+  .string()
+  .max(500)
+  .optional()
+  .or(z.literal(""))
+  .or(z.null())
+  .optional();
 
 export function hasValidDateRange(data: { from?: Date; to?: Date }): boolean {
   return !data.from || !data.to || data.from <= data.to;

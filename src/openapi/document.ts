@@ -16,7 +16,7 @@ export function generateOpenApiDocument() {
     },
     servers: [
       {
-        url: `http://localhost:${String(env.PORT)}`,
+        url: `http://localhost:${String(env.PORT)}/api/v1`,
         description: "Local development",
       },
     ],

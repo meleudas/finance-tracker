@@ -1,5 +1,5 @@
-import { DecodedToken } from "../../../types/auth/DecodedToken";
-import { TokenPayload } from "../../../types/auth/TokenPayload";
+import { TokenPayload } from "../../types/auth/TokenPayload";
+import { DecodedToken } from "../../types/auth/DecodedToken";
 
 export interface ITokenService {
   generateAccessToken(payload: TokenPayload): string;
