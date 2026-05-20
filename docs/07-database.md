@@ -1,6 +1,6 @@
 # База даних
 
-**Пов’язано:** [04-tech-stack.md](04-tech-stack.md) · [08-api-design.md](08-api-design.md) · [adr/0004-recurring-frequency-and-s3-attachments.md](adr/0004-recurring-frequency-and-s3-attachments.md)
+**Пов’язано:** [04-tech-stack.md](04-tech-stack.md) · [08-api-design.md](08-api-design.md) · [recurring-rules.md](recurring-rules.md) · [adr/0004-recurring-frequency-and-s3-attachments.md](adr/0004-recurring-frequency-and-s3-attachments.md)
 
 СУБД: **PostgreSQL**. ORM і міграції: **Prisma**.
 

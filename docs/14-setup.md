@@ -74,13 +74,14 @@ S3_FORCE_PATH_STYLE=true
 2. `DATABASE_URL` у `.env` → `localhost:5432` (або інший `POSTGRES_PORT`, якщо змінили мапінг).
 3. Міграції та seed локально, потім `npm run dev` на порту **`PORT`** (за замовчуванням `3000`).
 
-### B. Повний стек у Docker (API + Postgres + Redis + MinIO)
+### B. Повний стек у Docker (API + Postgres + Redis + MinIO + report worker)
 
 ```bash
 docker compose up --build
 ```
 
-- Сервіси: **postgres**, **redis**, **minio**, **app** (образ з [docker/Dockerfile](../docker/Dockerfile)).
+- Сервіси: **postgres**, **redis**, **minio**, **app**, **worker** (образ з [docker/Dockerfile](../docker/Dockerfile); worker — `node dist/workers/index.js`, черга BullMQ для PDF/JSON звітів).
+- Для фронтенду на `http://localhost:5173` у compose за замовчуванням `NODE_ENV=development` і `COOKIE_SECURE=false` (інакше CSRF-cookie з `Secure` не зберігається на HTTP).
 - Порти за замовчуванням: API **`APP_PORT` → 3000**, Postgres **5432**, Redis **6379**, MinIO **9000** (API), **9001** (консоль).
 - Логи всіх сервісів у поточному терміналі. У фоні: `docker compose up --build -d`, перегляд: `docker compose logs -f`.
 

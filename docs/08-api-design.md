@@ -1,6 +1,6 @@
 # Дизайн API
 
-**Пов’язано:** [02-architecture.md](02-architecture.md) · [07-database.md](07-database.md) · [10-error-handling.md](10-error-handling.md)
+**Пов’язано:** [02-architecture.md](02-architecture.md) · [07-database.md](07-database.md) · [10-error-handling.md](10-error-handling.md) · [recurring-rules.md](recurring-rules.md) · [financial-reports.md](financial-reports.md)
 
 ## Загальні принципи
 
@@ -54,18 +54,18 @@
 
 ## Приклад карти ендпоінтів (MVP)
 
-| Метод | Шлях | Опис |
-|-------|------|------|
-| POST | `/api/v1/auth/register` | Реєстрація |
-| POST | `/api/v1/auth/login` | Логін |
-| POST | `/api/v1/auth/refresh` | Оновлення access |
-| POST | `/api/v1/auth/logout` | Вихід (інвалідація refresh — за наявності стореджу) |
-| GET/PATCH | `/api/v1/users/me` | Профіль |
-| CRUD | `/api/v1/accounts` | Рахунки |
-| CRUD | `/api/v1/categories` | Категорії |
-| CRUD | `/api/v1/transactions` | Транзакції |
-| CRUD | `/api/v1/budgets` | Бюджети |
-| GET | `/api/v1/reports/summary` | Зведення за період |
+| Метод     | Шлях                      | Опис                                                |
+| --------- | ------------------------- | --------------------------------------------------- |
+| POST      | `/api/v1/auth/register`   | Реєстрація                                          |
+| POST      | `/api/v1/auth/login`      | Логін                                               |
+| POST      | `/api/v1/auth/refresh`    | Оновлення access                                    |
+| POST      | `/api/v1/auth/logout`     | Вихід (інвалідація refresh — за наявності стореджу) |
+| GET/PATCH | `/api/v1/users/me`        | Профіль                                             |
+| CRUD      | `/api/v1/accounts`        | Рахунки                                             |
+| CRUD      | `/api/v1/categories`      | Категорії                                           |
+| CRUD      | `/api/v1/transactions`    | Транзакції                                          |
+| CRUD      | `/api/v1/budgets`         | Бюджети                                             |
+| GET       | `/api/v1/reports/summary` | Зведення за період                                  |
 
 Точні схеми body/query — у **Zod** у `src/validators/` і в OpenAPI.
 
