@@ -16,7 +16,8 @@ export function generateOpenApiDocument() {
     },
     servers: [
       {
-        url: `http://localhost:${String(env.PORT)}/api/v1`,
+        // Host only — paths in spec already include `/api/v1/...` (see API_V1_PREFIX).
+        url: `http://localhost:${String(env.PORT)}`,
         description: "Local development",
       },
     ],

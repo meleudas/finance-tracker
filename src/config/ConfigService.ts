@@ -1,6 +1,6 @@
-import {env, type Env} from "./env";
+import { env, type Env } from "./env";
 
-export type LogLevel = 'info' | 'debug' | 'error' | 'warn' | 'fatal' | 'trace' | 'silent';
+export type LogLevel = "info" | "debug" | "error" | "warn" | "fatal" | "trace" | "silent";
 
 export class ConfigService {
   private readonly config: Env;
@@ -9,7 +9,7 @@ export class ConfigService {
     this.config = env;
   }
 
-  get nodeEnv(): 'development' | 'production' | 'test' {
+  get nodeEnv(): "development" | "production" | "test" {
     return this.config.NODE_ENV;
   }
 
@@ -18,15 +18,15 @@ export class ConfigService {
   }
 
   get isDevelopment(): boolean {
-    return this.nodeEnv === 'development';
+    return this.nodeEnv === "development";
   }
 
   get isTest(): boolean {
-    return this.nodeEnv === 'test';
+    return this.nodeEnv === "test";
   }
 
   get isProduction(): boolean {
-    return this.nodeEnv === 'production';
+    return this.nodeEnv === "production";
   }
 
   get databaseUrl(): string {
@@ -59,10 +59,18 @@ export class ConfigService {
 
   get corsOrigin(): string | string[] {
     const origin = this.config.CORS_ORIGIN;
-    if (origin.includes(',')) {
-      return origin.split(',').map((o) => o.trim());
+    if (origin.includes(",")) {
+      return origin.split(",").map((o) => o.trim());
     }
     return origin;
+  }
+
+  /** Secure cookies; default true in production unless COOKIE_SECURE is set. */
+  get cookieSecure(): boolean {
+    if (this.config.COOKIE_SECURE !== undefined) {
+      return this.config.COOKIE_SECURE;
+    }
+    return this.isProduction;
   }
 
   get logLevel(): LogLevel {
@@ -70,4 +78,4 @@ export class ConfigService {
   }
 }
 
-export const config = new ConfigService(env)
+export const config = new ConfigService(env);

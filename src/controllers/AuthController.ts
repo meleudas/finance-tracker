@@ -6,6 +6,7 @@ import type { RegisterSchema } from "../validators/registerSchema";
 import { getServiceContext } from "../http/requestContext";
 import { UnauthorizedError } from "../utils/errors/securityErrors";
 import { jwtTtlToMs } from "../utils/jwtTtl";
+import { getAuthCookieOptions } from "../config/authCookieOptions";
 import { issueCsrfToken } from "../middleware/csrfProtection";
 
 export class AuthController {
@@ -15,12 +16,7 @@ export class AuthController {
   ) {}
 
   private get cookieOptions(): Pick<CookieOptions, "secure" | "sameSite" | "path"> {
-    const sameSite: CookieOptions["sameSite"] = this.config.isProduction ? "none" : "lax";
-    return {
-      secure: this.config.isProduction,
-      sameSite,
-      path: "/",
-    };
+    return getAuthCookieOptions(this.config);
   }
 
   private setAuthCookies(res: Response, accessToken: string, refreshToken: string): void {
@@ -38,7 +34,7 @@ export class AuthController {
   }
 
   csrfHandler = (_req: Request, res: Response): void => {
-    const csrfToken = issueCsrfToken(res, this.config.isProduction);
+    const csrfToken = issueCsrfToken(res, getAuthCookieOptions(this.config));
     res.status(200).json({
       success: true,
       data: { csrfToken },

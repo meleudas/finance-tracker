@@ -1,18 +1,19 @@
 import { randomBytes } from "node:crypto";
-import type { NextFunction, Request, Response } from "express";
+import type { CookieOptions, NextFunction, Request, Response } from "express";
 import { ForbiddenError } from "../utils/errors/securityErrors";
 
 export const CSRF_COOKIE_NAME = "csrfToken";
 export const CSRF_HEADER_NAME = "x-csrf-token";
 
-export function issueCsrfToken(res: Response, secure: boolean): string {
+export function issueCsrfToken(
+  res: Response,
+  cookieOptions: Pick<CookieOptions, "secure" | "sameSite" | "path">,
+): string {
   const token = randomBytes(32).toString("hex");
 
   res.cookie(CSRF_COOKIE_NAME, token, {
     httpOnly: false,
-    secure,
-    sameSite: secure ? "none" : "lax",
-    path: "/",
+    ...cookieOptions,
     maxAge: 24 * 60 * 60 * 1000,
   });
 

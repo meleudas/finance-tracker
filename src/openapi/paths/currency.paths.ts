@@ -1,5 +1,5 @@
 import { API_V1_PREFIX } from "../constants";
-import { errorResponses, protectedSecurity } from "../helpers";
+import { errorResponses } from "../helpers";
 import { openApiRegistry } from "../registry";
 import {
   CurrencyResponseEnvelopeSchema,
@@ -18,7 +18,6 @@ openApiRegistry.registerPath({
   summary: "List currencies",
   description:
     "Returns all active currencies sorted by ISO code. Reference data for accounts, budgets, and transactions.",
-  security: protectedSecurity,
   responses: {
     200: {
       description: "List of currencies",
@@ -34,7 +33,6 @@ openApiRegistry.registerPath({
   tags: [tag],
   summary: "Get currency by ISO code",
   description: "Lookup currency by ISO 4217 code (e.g. UAH, USD). Code is case-insensitive.",
-  security: protectedSecurity,
   request: {
     params: CurrencyCodeParamsSchema,
   },
@@ -52,7 +50,6 @@ openApiRegistry.registerPath({
   path: `${basePath}/{id}`,
   tags: [tag],
   summary: "Get currency by ID",
-  security: protectedSecurity,
   request: {
     params: IdParamsSchema,
   },

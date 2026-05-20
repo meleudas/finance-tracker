@@ -27,6 +27,11 @@ function tryDevUserFallback(req: Request): boolean {
 
 export function createRequireAuth(authService: IAuthService) {
   return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
+    if (req.method === "OPTIONS") {
+      next();
+      return;
+    }
+
     if (req.user?.id) {
       next();
       return;

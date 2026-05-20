@@ -21,7 +21,13 @@ function requestIdFrom(req: { id?: unknown }): string {
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next): void => {
   if (isAbortError(err)) {
     if (!res.headersSent) {
-      res.status(499).end();
+      res.status(499).json({
+        error: {
+          code: "ABORTED",
+          message: "Request was cancelled",
+          requestId: requestIdFrom(req),
+        },
+      });
     }
     return;
   }

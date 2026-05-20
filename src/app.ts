@@ -5,8 +5,9 @@ import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import { randomUUID } from "node:crypto";
 import pinoHttp from "pino-http";
-import { env } from "./config/env";
+import { config } from "./config/ConfigService";
 import { logger } from "./config/logger";
+import { CSRF_HEADER_NAME } from "./middleware/csrfProtection";
 import { attachAbortSignal } from "./middleware/abortSignal";
 import { errorHandler } from "./middleware/errorHandler";
 import { notFoundHandler } from "./middleware/notFound";
@@ -21,8 +22,10 @@ export function createApp(): express.Application {
   app.use(helmet());
   app.use(
     cors({
-      origin: env.CORS_ORIGIN,
+      origin: config.corsOrigin,
       credentials: true,
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization", CSRF_HEADER_NAME, "X-User-Id"],
     }),
   );
   app.use(cookieParser());

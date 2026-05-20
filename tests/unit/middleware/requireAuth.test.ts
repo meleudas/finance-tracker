@@ -55,6 +55,16 @@ describe("createRequireAuth", () => {
     expect(next).toHaveBeenCalledWith();
   });
 
+  it("пропускає OPTIONS без перевірки JWT", async () => {
+    req.method = "OPTIONS";
+
+    const middleware = createRequireAuth(mockAuthService);
+    await middleware(req as Request, res as Response, next);
+
+    expect(mockAuthService.verifyAccessToken).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledWith();
+  });
+
   it("має викликати UnauthorizedError, якщо токена немає", async () => {
     const middleware = createRequireAuth(mockAuthService);
     await middleware(req as Request, res as Response, next);
