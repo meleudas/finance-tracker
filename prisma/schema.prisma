@@ -24,6 +24,18 @@ enum RecurringIntervalUnit {
   YEAR
 }
 
+enum ReportJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum ReportFormat {
+  JSON
+  PDF
+}
+
 model User {
   id           String    @id @default(cuid())
   email        String    @unique
@@ -40,6 +52,7 @@ model User {
   recurringRules       RecurringRule[]
   recurringFrequencies RecurringFrequency[]
   transfers            Transfer[]
+  reportJobs           ReportJob[]
 
   @@map("users")
 }
@@ -108,29 +121,32 @@ model Category {
 }
 
 model Transaction {
-  id         String               @id @default(cuid())
-  userId     String               @map("user_id")
-  accountId  String               @map("account_id")
-  currencyId String               @map("currency_id")
-  categoryId String?              @map("category_id")
-  amount     Decimal              @db.Decimal(19, 4)
-  direction  TransactionDirection
-  occurredAt DateTime             @map("occurred_at")
-  note       String?
-  createdAt  DateTime             @default(now()) @map("created_at")
-  updatedAt  DateTime             @updatedAt @map("updated_at")
-  deletedAt  DateTime?            @map("deleted_at")
-  isDeleted  Boolean              @default(false) @map("is_deleted")
+  id              String               @id @default(cuid())
+  userId          String               @map("user_id")
+  accountId       String               @map("account_id")
+  currencyId      String               @map("currency_id")
+  categoryId      String?              @map("category_id")
+  recurringRuleId String?              @map("recurring_rule_id")
+  amount          Decimal              @db.Decimal(19, 4)
+  direction       TransactionDirection
+  occurredAt      DateTime             @map("occurred_at")
+  note            String?
+  createdAt       DateTime             @default(now()) @map("created_at")
+  updatedAt       DateTime             @updatedAt @map("updated_at")
+  deletedAt       DateTime?            @map("deleted_at")
+  isDeleted       Boolean              @default(false) @map("is_deleted")
 
-  user        User         @relation(fields: [userId], references: [id], onDelete: Restrict)
-  account     Account      @relation(fields: [accountId], references: [id], onDelete: Restrict)
-  currency    Currency     @relation(fields: [currencyId], references: [id], onDelete: Restrict)
-  category    Category?    @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  attachments Attachment[]
+  user          User           @relation(fields: [userId], references: [id], onDelete: Restrict)
+  account       Account        @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  currency      Currency       @relation(fields: [currencyId], references: [id], onDelete: Restrict)
+  category      Category?      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  recurringRule RecurringRule? @relation(fields: [recurringRuleId], references: [id], onDelete: Restrict)
+  attachments   Attachment[]
 
   @@index([userId, isDeleted, occurredAt])
   @@index([accountId])
   @@index([currencyId])
+  @@index([recurringRuleId])
   @@map("transactions")
 }
 
@@ -196,8 +212,9 @@ model RecurringRule {
   direction      TransactionDirection
   nextRunAt      DateTime             @map("next_run_at")
   endsAt         DateTime?            @map("ends_at")
-  maxOccurrences Int?                 @map("max_occurrences")
-  createdAt      DateTime             @default(now()) @map("created_at")
+  maxOccurrences  Int?                 @map("max_occurrences")
+  occurrenceCount Int                  @default(0) @map("occurrence_count")
+  createdAt       DateTime             @default(now()) @map("created_at")
   updatedAt      DateTime             @updatedAt @map("updated_at")
   deletedAt      DateTime?            @map("deleted_at")
   isDeleted      Boolean              @default(false) @map("is_deleted")
@@ -206,7 +223,8 @@ model RecurringRule {
   account   Account            @relation(fields: [accountId], references: [id], onDelete: Restrict)
   currency  Currency           @relation(fields: [currencyId], references: [id], onDelete: Restrict)
   category  Category?          @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  frequency RecurringFrequency @relation(fields: [frequencyId], references: [id], onDelete: Restrict)
+  frequency    RecurringFrequency @relation(fields: [frequencyId], references: [id], onDelete: Restrict)
+  transactions Transaction[]
 
   @@index([userId, isDeleted])
   @@index([currencyId])
@@ -248,4 +266,25 @@ model Attachment {
 
   @@index([transactionId])
   @@map("attachments")
+}
+
+model ReportJob {
+  id           String          @id @default(cuid())
+  userId       String          @map("user_id")
+  status       ReportJobStatus @default(PENDING)
+  format       ReportFormat
+  from         DateTime        @map("period_from")
+  to           DateTime        @map("period_to")
+  accountId    String?         @map("account_id")
+  includeRecurring Boolean     @default(true) @map("include_recurring")
+  resultJson   Json?           @map("result_json")
+  storageKey   String?         @map("storage_key")
+  errorMessage String?         @map("error_message")
+  createdAt    DateTime        @default(now()) @map("created_at")
+  completedAt  DateTime?       @map("completed_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId, status])
+  @@map("report_jobs")
 }

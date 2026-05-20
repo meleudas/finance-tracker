@@ -9,6 +9,8 @@ export const prisma = {
     update: jest.fn(),
     delete: jest.fn(),
     count: jest.fn(),
+    aggregate: jest.fn(),
+    groupBy: jest.fn(),
   },
   transaction: {
     findUnique: jest.fn(),
@@ -17,6 +19,8 @@ export const prisma = {
     update: jest.fn(),
     delete: jest.fn(),
     count: jest.fn(),
+    aggregate: jest.fn(),
+    groupBy: jest.fn(),
   },
   attachment: {
     findUnique: jest.fn(),
@@ -27,4 +31,30 @@ export const prisma = {
     count: jest.fn(),
     upsert: jest.fn(),
   },
+  recurringFrequency: {
+    findUnique: jest.fn(),
+    findFirst: jest.fn(),
+    findMany: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn(),
+  },
+  recurringRule: {
+    findUnique: jest.fn(),
+    findFirst: jest.fn(),
+    findMany: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn(),
+  },
+  reportJob: {
+    findFirst: jest.fn(),
+    findMany: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    count: jest.fn(),
+  },
+  $transaction: jest.fn(),
 };

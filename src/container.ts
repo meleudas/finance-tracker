@@ -42,6 +42,23 @@ import { CategoryController } from "./controllers/CategoryController";
 import { BudgetController } from "./controllers/BudgetController";
 import { CurrencyController } from "./controllers/CurrencyController";
 import { AuthController } from "./controllers/AuthController";
+import { ReportController } from "./controllers/ReportController";
+import { ReportJobController } from "./controllers/ReportJobController";
+import { ReportService } from "./services/impl/ReportService";
+import { ReportJobService } from "./services/impl/ReportJobService";
+import type { IReportService } from "./services/interfaces/IReportService";
+import type { IReportJobService } from "./services/interfaces/IReportJobService";
+import { ReportJobRepository } from "./repositories/impl/ReportJobRepository";
+import { RecurringFrequencyRepository } from "./repositories/impl/RecurringFrequencyRepository";
+import { RecurringRuleRepository } from "./repositories/impl/RecurringRuleRepository";
+import { RecurringFrequencyService } from "./services/impl/RecurringFrequencyService";
+import { RecurringRuleService } from "./services/impl/RecurringRuleService";
+import { RecurringRuleRunnerService } from "./services/impl/RecurringRuleRunnerService";
+import { RecurringFrequencyController } from "./controllers/RecurringFrequencyController";
+import { RecurringRuleController } from "./controllers/RecurringRuleController";
+import type { IRecurringFrequencyService } from "./services/interfaces/IRecurringFrequencyService";
+import type { IRecurringRuleService } from "./services/interfaces/IRecurringRuleService";
+import type { IRecurringRuleRunnerService } from "./services/interfaces/IRecurringRuleRunnerService";
 
 let cache: ICache | undefined;
 let fileStorage: IFileStorage | undefined;
@@ -56,6 +73,11 @@ let budgetService: IBudgetService | undefined;
 let currencyService: ICurrencyService | undefined;
 let authService: IAuthService | undefined;
 let authController: AuthController | undefined;
+let reportService: IReportService | undefined;
+let reportJobService: IReportJobService | undefined;
+let recurringFrequencyService: IRecurringFrequencyService | undefined;
+let recurringRuleService: IRecurringRuleService | undefined;
+let recurringRuleRunnerService: IRecurringRuleRunnerService | undefined;
 
 export function getCache(): ICache {
   cache ??= new Cache();
@@ -143,6 +165,59 @@ export function getCurrencyService(): ICurrencyService {
   currencyService ??= new CurrencyService(new CurrencyRepository(), getCache());
   return currencyService;
 }
+
+export function getReportService(): IReportService {
+  reportService ??= new ReportService(
+    new AccountRepository(),
+    new TransactionRepository(),
+    new TransferRepository(),
+    new BudgetRepository(),
+    new CategoryRepository(),
+    new CurrencyRepository(),
+    new RecurringRuleRepository(),
+  );
+  return reportService;
+}
+
+export function getReportJobService(): IReportJobService {
+  reportJobService ??= new ReportJobService(new ReportJobRepository(), getFileStorage());
+  return reportJobService;
+}
+
+export function getRecurringFrequencyService(): IRecurringFrequencyService {
+  recurringFrequencyService ??= new RecurringFrequencyService(
+    new RecurringFrequencyRepository(),
+    getCache(),
+  );
+  return recurringFrequencyService;
+}
+
+export function getRecurringRuleService(): IRecurringRuleService {
+  recurringRuleService ??= new RecurringRuleService(
+    new RecurringRuleRepository(),
+    new RecurringFrequencyRepository(),
+    new AccountRepository(),
+    new CategoryRepository(),
+    getCache(),
+  );
+  return recurringRuleService;
+}
+
+export function getRecurringRuleRunnerService(): IRecurringRuleRunnerService {
+  recurringRuleRunnerService ??= new RecurringRuleRunnerService(
+    new RecurringRuleRepository(),
+    new AccountRepository(),
+    getCache(),
+  );
+  return recurringRuleRunnerService;
+}
+
+export const reportController = new ReportController(getReportService());
+export const reportJobController = new ReportJobController(getReportJobService());
+export const recurringFrequencyController = new RecurringFrequencyController(
+  getRecurringFrequencyService(),
+);
+export const recurringRuleController = new RecurringRuleController(getRecurringRuleService());
 
 export const transactionController = new TransactionController(getTransactionService());
 export const transferController = new TransferController(getTransferService());

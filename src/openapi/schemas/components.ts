@@ -43,6 +43,24 @@ import { CreateAccountSchema } from "../../dtos/account/CreateAccount.dto";
 import { UpdateAccountSchema } from "../../dtos/account/UpdateAccount.dto";
 import { AccountResponseSchema } from "../../dtos/account/AccountResponse.dto";
 import { accountListQuerySchema } from "../../dtos/account/AccountListQuery.dto";
+import {
+  reportQuerySchema,
+  financialReportSchema,
+  createReportJobSchema,
+  reportJobResponseSchema,
+} from "../../dtos/report";
+import {
+  CreateRecurringFrequencySchema,
+  UpdateRecurringFrequencySchema,
+  RecurringFrequencyResponseSchema,
+  recurringFrequencyListQuerySchema,
+} from "../../dtos/recurring-frequency";
+import {
+  CreateRecurringRuleSchema,
+  UpdateRecurringRuleSchema,
+  RecurringRuleResponseSchema,
+  recurringRuleListQuerySchema,
+} from "../../dtos/recurring-rule";
 
 // === AUTH IMPORTS ===
 import { AuthResponseSchema } from "../../dtos/auth/AuthResponse.dto";
@@ -386,4 +404,94 @@ export const CategoryResponseEnvelopeSchema = dataEnvelopeSchema(
 export const CategoryTreeListEnvelopeSchema = dataEnvelopeSchema(
   z.array(CategoryTreeNodeSchemaRef),
   "CategoryTreeListEnvelope",
+);
+
+// Reports
+export const ReportQuerySchemaRef = openApiRegistry.register("ReportQuery", reportQuerySchema);
+
+export const FinancialReportSchemaRef = openApiRegistry.register(
+  "FinancialReport",
+  financialReportSchema,
+);
+
+export const FinancialReportEnvelopeSchema = dataEnvelopeSchema(
+  FinancialReportSchemaRef,
+  "FinancialReportEnvelope",
+);
+
+export const CreateReportJobBodySchema = openApiRegistry.register(
+  "CreateReportJob",
+  createReportJobSchema,
+);
+
+export const ReportJobResponseSchemaRef = openApiRegistry.register(
+  "ReportJobResponse",
+  reportJobResponseSchema,
+);
+
+export const ReportJobResponseEnvelopeSchema = dataEnvelopeSchema(
+  ReportJobResponseSchemaRef,
+  "ReportJobResponseEnvelope",
+);
+
+// Recurring frequency
+export const CreateRecurringFrequencyBodySchema = openApiRegistry.register(
+  "CreateRecurringFrequency",
+  CreateRecurringFrequencySchema,
+);
+
+export const UpdateRecurringFrequencyBodySchema = openApiRegistry.register(
+  "UpdateRecurringFrequency",
+  UpdateRecurringFrequencySchema,
+);
+
+export const RecurringFrequencyResponseSchemaRef = openApiRegistry.register(
+  "RecurringFrequencyResponse",
+  RecurringFrequencyResponseSchema,
+);
+
+export const RecurringFrequencyListQuerySchemaRef = openApiRegistry.register(
+  "RecurringFrequencyListQuery",
+  recurringFrequencyListQuerySchema,
+);
+
+export const RecurringFrequencyResponseEnvelopeSchema = dataEnvelopeSchema(
+  RecurringFrequencyResponseSchemaRef,
+  "RecurringFrequencyResponseEnvelope",
+);
+
+export const RecurringFrequencyListEnvelopeSchema = paginatedEnvelopeSchema(
+  RecurringFrequencyResponseSchemaRef,
+  "RecurringFrequencyListEnvelope",
+);
+
+// Recurring rules
+export const CreateRecurringRuleBodySchema = openApiRegistry.register(
+  "CreateRecurringRule",
+  CreateRecurringRuleSchema,
+);
+
+export const UpdateRecurringRuleBodySchema = openApiRegistry.register(
+  "UpdateRecurringRule",
+  UpdateRecurringRuleSchema,
+);
+
+export const RecurringRuleResponseSchemaRef = openApiRegistry.register(
+  "RecurringRuleResponse",
+  RecurringRuleResponseSchema,
+);
+
+export const RecurringRuleListQuerySchemaRef = openApiRegistry.register(
+  "RecurringRuleListQuery",
+  recurringRuleListQuerySchema,
+);
+
+export const RecurringRuleResponseEnvelopeSchema = dataEnvelopeSchema(
+  RecurringRuleResponseSchemaRef,
+  "RecurringRuleResponseEnvelope",
+);
+
+export const RecurringRuleListEnvelopeSchema = paginatedEnvelopeSchema(
+  RecurringRuleResponseSchemaRef,
+  "RecurringRuleListEnvelope",
 );

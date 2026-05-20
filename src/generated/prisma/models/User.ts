@@ -205,6 +205,7 @@ export type UserWhereInput = {
   recurringRules?: Prisma.RecurringRuleListRelationFilter
   recurringFrequencies?: Prisma.RecurringFrequencyListRelationFilter
   transfers?: Prisma.TransferListRelationFilter
+  reportJobs?: Prisma.ReportJobListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -222,6 +223,7 @@ export type UserOrderByWithRelationInput = {
   recurringRules?: Prisma.RecurringRuleOrderByRelationAggregateInput
   recurringFrequencies?: Prisma.RecurringFrequencyOrderByRelationAggregateInput
   transfers?: Prisma.TransferOrderByRelationAggregateInput
+  reportJobs?: Prisma.ReportJobOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -242,6 +244,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   recurringRules?: Prisma.RecurringRuleListRelationFilter
   recurringFrequencies?: Prisma.RecurringFrequencyListRelationFilter
   transfers?: Prisma.TransferListRelationFilter
+  reportJobs?: Prisma.ReportJobListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -285,6 +288,7 @@ export type UserCreateInput = {
   recurringRules?: Prisma.RecurringRuleCreateNestedManyWithoutUserInput
   recurringFrequencies?: Prisma.RecurringFrequencyCreateNestedManyWithoutUserInput
   transfers?: Prisma.TransferCreateNestedManyWithoutUserInput
+  reportJobs?: Prisma.ReportJobCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -302,6 +306,7 @@ export type UserUncheckedCreateInput = {
   recurringRules?: Prisma.RecurringRuleUncheckedCreateNestedManyWithoutUserInput
   recurringFrequencies?: Prisma.RecurringFrequencyUncheckedCreateNestedManyWithoutUserInput
   transfers?: Prisma.TransferUncheckedCreateNestedManyWithoutUserInput
+  reportJobs?: Prisma.ReportJobUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -319,6 +324,7 @@ export type UserUpdateInput = {
   recurringRules?: Prisma.RecurringRuleUpdateManyWithoutUserNestedInput
   recurringFrequencies?: Prisma.RecurringFrequencyUpdateManyWithoutUserNestedInput
   transfers?: Prisma.TransferUpdateManyWithoutUserNestedInput
+  reportJobs?: Prisma.ReportJobUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -336,6 +342,7 @@ export type UserUncheckedUpdateInput = {
   recurringRules?: Prisma.RecurringRuleUncheckedUpdateManyWithoutUserNestedInput
   recurringFrequencies?: Prisma.RecurringFrequencyUncheckedUpdateManyWithoutUserNestedInput
   transfers?: Prisma.TransferUncheckedUpdateManyWithoutUserNestedInput
+  reportJobs?: Prisma.ReportJobUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -517,6 +524,20 @@ export type UserUpdateOneRequiredWithoutRecurringFrequenciesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutRecurringFrequenciesInput, Prisma.UserUpdateWithoutRecurringFrequenciesInput>, Prisma.UserUncheckedUpdateWithoutRecurringFrequenciesInput>
 }
 
+export type UserCreateNestedOneWithoutReportJobsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutReportJobsInput, Prisma.UserUncheckedCreateWithoutReportJobsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutReportJobsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutReportJobsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutReportJobsInput, Prisma.UserUncheckedCreateWithoutReportJobsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutReportJobsInput
+  upsert?: Prisma.UserUpsertWithoutReportJobsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutReportJobsInput, Prisma.UserUpdateWithoutReportJobsInput>, Prisma.UserUncheckedUpdateWithoutReportJobsInput>
+}
+
 export type UserCreateWithoutAccountsInput = {
   id?: string
   email: string
@@ -531,6 +552,7 @@ export type UserCreateWithoutAccountsInput = {
   recurringRules?: Prisma.RecurringRuleCreateNestedManyWithoutUserInput
   recurringFrequencies?: Prisma.RecurringFrequencyCreateNestedManyWithoutUserInput
   transfers?: Prisma.TransferCreateNestedManyWithoutUserInput
+  reportJobs?: Prisma.ReportJobCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -547,6 +569,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   recurringRules?: Prisma.RecurringRuleUncheckedCreateNestedManyWithoutUserInput
   recurringFrequencies?: Prisma.RecurringFrequencyUncheckedCreateNestedManyWithoutUserInput
   transfers?: Prisma.TransferUncheckedCreateNestedManyWithoutUserInput
+  reportJobs?: Prisma.ReportJobUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -579,6 +602,7 @@ export type UserUpdateWithoutAccountsInput = {
   recurringRules?: Prisma.RecurringRuleUpdateManyWithoutUserNestedInput
   recurringFrequencies?: Prisma.RecurringFrequencyUpdateManyWithoutUserNestedInput
   transfers?: Prisma.TransferUpdateManyWithoutUserNestedInput
+  reportJobs?: Prisma.ReportJobUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -595,6 +619,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   recurringRules?: Prisma.RecurringRuleUncheckedUpdateManyWithoutUserNestedInput
   recurringFrequencies?: Prisma.RecurringFrequencyUncheckedUpdateManyWithoutUserNestedInput
   transfers?: Prisma.TransferUncheckedUpdateManyWithoutUserNestedInput
+  reportJobs?: Prisma.ReportJobUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCategoriesInput = {
@@ -611,6 +636,7 @@ export type UserCreateWithoutCategoriesInput = {
   recurringRules?: Prisma.RecurringRuleCreateNestedManyWithoutUserInput
   recurringFrequencies?: Prisma.RecurringFrequencyCreateNestedManyWithoutUserInput
   transfers?: Prisma.TransferCreateNestedManyWithoutUserInput
+  reportJobs?: Prisma.ReportJobCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCategoriesInput = {
@@ -627,6 +653,7 @@ export type UserUncheckedCreateWithoutCategoriesInput = {
   recurringRules?: Prisma.RecurringRuleUncheckedCreateNestedManyWithoutUserInput
   recurringFrequencies?: Prisma.RecurringFrequencyUncheckedCreateNestedManyWithoutUserInput
   transfers?: Prisma.TransferUncheckedCreateNestedManyWithoutUserInput
+  reportJobs?: Prisma.ReportJobUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCategoriesInput = {
@@ -659,6 +686,7 @@ export type UserUpdateWithoutCategoriesInput = {
   recurringRules?: Prisma.RecurringRuleUpdateManyWithoutUserNestedInput
   recurringFrequencies?: Prisma.RecurringFrequencyUpdateManyWithoutUserNestedInput
   transfers?: Prisma.TransferUpdateManyWithoutUserNestedInput
+  reportJobs?: Prisma.ReportJobUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCategoriesInput = {
@@ -675,6 +703,7 @@ export type UserUncheckedUpdateWithoutCategoriesInput = {
   recurringRules?: Prisma.RecurringRuleUncheckedUpdateManyWithoutUserNestedInput
   recurringFrequencies?: Prisma.RecurringFrequencyUncheckedUpdateManyWithoutUserNestedInput
   transfers?: Prisma.TransferUncheckedUpdateManyWithoutUserNestedInput
+  reportJobs?: Prisma.ReportJobUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutTransactionsInput = {
@@ -691,6 +720,7 @@ export type UserCreateWithoutTransactionsInput = {
   recurringRules?: Prisma.RecurringRuleCreateNestedManyWithoutUserInput
   recurringFrequencies?: Prisma.RecurringFrequencyCreateNestedManyWithoutUserInput
   transfers?: Prisma.TransferCreateNestedManyWithoutUserInput
+  reportJobs?: Prisma.ReportJobCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTransactionsInput = {
@@ -707,6 +737,7 @@ export type UserUncheckedCreateWithoutTransactionsInput = {
   recurringRules?: Prisma.RecurringRuleUncheckedCreateNestedManyWithoutUserInput
   recurringFrequencies?: Prisma.RecurringFrequencyUncheckedCreateNestedManyWithoutUserInput
   transfers?: Prisma.TransferUncheckedCreateNestedManyWithoutUserInput
+  reportJobs?: Prisma.ReportJobUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTransactionsInput = {
@@ -739,6 +770,7 @@ export type UserUpdateWithoutTransactionsInput = {
   recurringRules?: Prisma.RecurringRuleUpdateManyWithoutUserNestedInput
   recurringFrequencies?: Prisma.RecurringFrequencyUpdateManyWithoutUserNestedInput
   transfers?: Prisma.TransferUpdateManyWithoutUserNestedInput
+  reportJobs?: Prisma.ReportJobUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTransactionsInput = {
@@ -755,6 +787,7 @@ export type UserUncheckedUpdateWithoutTransactionsInput = {
   recurringRules?: Prisma.RecurringRuleUncheckedUpdateManyWithoutUserNestedInput
   recurringFrequencies?: Prisma.RecurringFrequencyUncheckedUpdateManyWithoutUserNestedInput
   transfers?: Prisma.TransferUncheckedUpdateManyWithoutUserNestedInput
+  reportJobs?: Prisma.ReportJobUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutTransfersInput = {
@@ -771,6 +804,7 @@ export type UserCreateWithoutTransfersInput = {
   budgets?: Prisma.BudgetCreateNestedManyWithoutUserInput
   recurringRules?: Prisma.RecurringRuleCreateNestedManyWithoutUserInput
   recurringFrequencies?: Prisma.RecurringFrequencyCreateNestedManyWithoutUserInput
+  reportJobs?: Prisma.ReportJobCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTransfersInput = {
@@ -787,6 +821,7 @@ export type UserUncheckedCreateWithoutTransfersInput = {
   budgets?: Prisma.BudgetUncheckedCreateNestedManyWithoutUserInput
   recurringRules?: Prisma.RecurringRuleUncheckedCreateNestedManyWithoutUserInput
   recurringFrequencies?: Prisma.RecurringFrequencyUncheckedCreateNestedManyWithoutUserInput
+  reportJobs?: Prisma.ReportJobUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTransfersInput = {
@@ -819,6 +854,7 @@ export type UserUpdateWithoutTransfersInput = {
   budgets?: Prisma.BudgetUpdateManyWithoutUserNestedInput
   recurringRules?: Prisma.RecurringRuleUpdateManyWithoutUserNestedInput
   recurringFrequencies?: Prisma.RecurringFrequencyUpdateManyWithoutUserNestedInput
+  reportJobs?: Prisma.ReportJobUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTransfersInput = {
@@ -835,6 +871,7 @@ export type UserUncheckedUpdateWithoutTransfersInput = {
   budgets?: Prisma.BudgetUncheckedUpdateManyWithoutUserNestedInput
   recurringRules?: Prisma.RecurringRuleUncheckedUpdateManyWithoutUserNestedInput
   recurringFrequencies?: Prisma.RecurringFrequencyUncheckedUpdateManyWithoutUserNestedInput
+  reportJobs?: Prisma.ReportJobUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutBudgetsInput = {
@@ -851,6 +888,7 @@ export type UserCreateWithoutBudgetsInput = {
   recurringRules?: Prisma.RecurringRuleCreateNestedManyWithoutUserInput
   recurringFrequencies?: Prisma.RecurringFrequencyCreateNestedManyWithoutUserInput
   transfers?: Prisma.TransferCreateNestedManyWithoutUserInput
+  reportJobs?: Prisma.ReportJobCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutBudgetsInput = {
@@ -867,6 +905,7 @@ export type UserUncheckedCreateWithoutBudgetsInput = {
   recurringRules?: Prisma.RecurringRuleUncheckedCreateNestedManyWithoutUserInput
   recurringFrequencies?: Prisma.RecurringFrequencyUncheckedCreateNestedManyWithoutUserInput
   transfers?: Prisma.TransferUncheckedCreateNestedManyWithoutUserInput
+  reportJobs?: Prisma.ReportJobUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutBudgetsInput = {
@@ -899,6 +938,7 @@ export type UserUpdateWithoutBudgetsInput = {
   recurringRules?: Prisma.RecurringRuleUpdateManyWithoutUserNestedInput
   recurringFrequencies?: Prisma.RecurringFrequencyUpdateManyWithoutUserNestedInput
   transfers?: Prisma.TransferUpdateManyWithoutUserNestedInput
+  reportJobs?: Prisma.ReportJobUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutBudgetsInput = {
@@ -915,6 +955,7 @@ export type UserUncheckedUpdateWithoutBudgetsInput = {
   recurringRules?: Prisma.RecurringRuleUncheckedUpdateManyWithoutUserNestedInput
   recurringFrequencies?: Prisma.RecurringFrequencyUncheckedUpdateManyWithoutUserNestedInput
   transfers?: Prisma.TransferUncheckedUpdateManyWithoutUserNestedInput
+  reportJobs?: Prisma.ReportJobUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutRecurringRulesInput = {
@@ -931,6 +972,7 @@ export type UserCreateWithoutRecurringRulesInput = {
   budgets?: Prisma.BudgetCreateNestedManyWithoutUserInput
   recurringFrequencies?: Prisma.RecurringFrequencyCreateNestedManyWithoutUserInput
   transfers?: Prisma.TransferCreateNestedManyWithoutUserInput
+  reportJobs?: Prisma.ReportJobCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutRecurringRulesInput = {
@@ -947,6 +989,7 @@ export type UserUncheckedCreateWithoutRecurringRulesInput = {
   budgets?: Prisma.BudgetUncheckedCreateNestedManyWithoutUserInput
   recurringFrequencies?: Prisma.RecurringFrequencyUncheckedCreateNestedManyWithoutUserInput
   transfers?: Prisma.TransferUncheckedCreateNestedManyWithoutUserInput
+  reportJobs?: Prisma.ReportJobUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutRecurringRulesInput = {
@@ -979,6 +1022,7 @@ export type UserUpdateWithoutRecurringRulesInput = {
   budgets?: Prisma.BudgetUpdateManyWithoutUserNestedInput
   recurringFrequencies?: Prisma.RecurringFrequencyUpdateManyWithoutUserNestedInput
   transfers?: Prisma.TransferUpdateManyWithoutUserNestedInput
+  reportJobs?: Prisma.ReportJobUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRecurringRulesInput = {
@@ -995,6 +1039,7 @@ export type UserUncheckedUpdateWithoutRecurringRulesInput = {
   budgets?: Prisma.BudgetUncheckedUpdateManyWithoutUserNestedInput
   recurringFrequencies?: Prisma.RecurringFrequencyUncheckedUpdateManyWithoutUserNestedInput
   transfers?: Prisma.TransferUncheckedUpdateManyWithoutUserNestedInput
+  reportJobs?: Prisma.ReportJobUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutRecurringFrequenciesInput = {
@@ -1011,6 +1056,7 @@ export type UserCreateWithoutRecurringFrequenciesInput = {
   budgets?: Prisma.BudgetCreateNestedManyWithoutUserInput
   recurringRules?: Prisma.RecurringRuleCreateNestedManyWithoutUserInput
   transfers?: Prisma.TransferCreateNestedManyWithoutUserInput
+  reportJobs?: Prisma.ReportJobCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutRecurringFrequenciesInput = {
@@ -1027,6 +1073,7 @@ export type UserUncheckedCreateWithoutRecurringFrequenciesInput = {
   budgets?: Prisma.BudgetUncheckedCreateNestedManyWithoutUserInput
   recurringRules?: Prisma.RecurringRuleUncheckedCreateNestedManyWithoutUserInput
   transfers?: Prisma.TransferUncheckedCreateNestedManyWithoutUserInput
+  reportJobs?: Prisma.ReportJobUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutRecurringFrequenciesInput = {
@@ -1059,6 +1106,7 @@ export type UserUpdateWithoutRecurringFrequenciesInput = {
   budgets?: Prisma.BudgetUpdateManyWithoutUserNestedInput
   recurringRules?: Prisma.RecurringRuleUpdateManyWithoutUserNestedInput
   transfers?: Prisma.TransferUpdateManyWithoutUserNestedInput
+  reportJobs?: Prisma.ReportJobUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRecurringFrequenciesInput = {
@@ -1075,6 +1123,91 @@ export type UserUncheckedUpdateWithoutRecurringFrequenciesInput = {
   budgets?: Prisma.BudgetUncheckedUpdateManyWithoutUserNestedInput
   recurringRules?: Prisma.RecurringRuleUncheckedUpdateManyWithoutUserNestedInput
   transfers?: Prisma.TransferUncheckedUpdateManyWithoutUserNestedInput
+  reportJobs?: Prisma.ReportJobUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutReportJobsInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  isDeleted?: boolean
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  categories?: Prisma.CategoryCreateNestedManyWithoutUserInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  budgets?: Prisma.BudgetCreateNestedManyWithoutUserInput
+  recurringRules?: Prisma.RecurringRuleCreateNestedManyWithoutUserInput
+  recurringFrequencies?: Prisma.RecurringFrequencyCreateNestedManyWithoutUserInput
+  transfers?: Prisma.TransferCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutReportJobsInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  isDeleted?: boolean
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  categories?: Prisma.CategoryUncheckedCreateNestedManyWithoutUserInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  budgets?: Prisma.BudgetUncheckedCreateNestedManyWithoutUserInput
+  recurringRules?: Prisma.RecurringRuleUncheckedCreateNestedManyWithoutUserInput
+  recurringFrequencies?: Prisma.RecurringFrequencyUncheckedCreateNestedManyWithoutUserInput
+  transfers?: Prisma.TransferUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutReportJobsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutReportJobsInput, Prisma.UserUncheckedCreateWithoutReportJobsInput>
+}
+
+export type UserUpsertWithoutReportJobsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutReportJobsInput, Prisma.UserUncheckedUpdateWithoutReportJobsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutReportJobsInput, Prisma.UserUncheckedCreateWithoutReportJobsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutReportJobsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutReportJobsInput, Prisma.UserUncheckedUpdateWithoutReportJobsInput>
+}
+
+export type UserUpdateWithoutReportJobsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  categories?: Prisma.CategoryUpdateManyWithoutUserNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  budgets?: Prisma.BudgetUpdateManyWithoutUserNestedInput
+  recurringRules?: Prisma.RecurringRuleUpdateManyWithoutUserNestedInput
+  recurringFrequencies?: Prisma.RecurringFrequencyUpdateManyWithoutUserNestedInput
+  transfers?: Prisma.TransferUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutReportJobsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  categories?: Prisma.CategoryUncheckedUpdateManyWithoutUserNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  budgets?: Prisma.BudgetUncheckedUpdateManyWithoutUserNestedInput
+  recurringRules?: Prisma.RecurringRuleUncheckedUpdateManyWithoutUserNestedInput
+  recurringFrequencies?: Prisma.RecurringFrequencyUncheckedUpdateManyWithoutUserNestedInput
+  transfers?: Prisma.TransferUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -1090,6 +1223,7 @@ export type UserCountOutputType = {
   recurringRules: number
   recurringFrequencies: number
   transfers: number
+  reportJobs: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1100,6 +1234,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   recurringRules?: boolean | UserCountOutputTypeCountRecurringRulesArgs
   recurringFrequencies?: boolean | UserCountOutputTypeCountRecurringFrequenciesArgs
   transfers?: boolean | UserCountOutputTypeCountTransfersArgs
+  reportJobs?: boolean | UserCountOutputTypeCountReportJobsArgs
 }
 
 /**
@@ -1161,6 +1296,13 @@ export type UserCountOutputTypeCountTransfersArgs<ExtArgs extends runtime.Types.
   where?: Prisma.TransferWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountReportJobsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ReportJobWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1177,6 +1319,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   recurringRules?: boolean | Prisma.User$recurringRulesArgs<ExtArgs>
   recurringFrequencies?: boolean | Prisma.User$recurringFrequenciesArgs<ExtArgs>
   transfers?: boolean | Prisma.User$transfersArgs<ExtArgs>
+  reportJobs?: boolean | Prisma.User$reportJobsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1219,6 +1362,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   recurringRules?: boolean | Prisma.User$recurringRulesArgs<ExtArgs>
   recurringFrequencies?: boolean | Prisma.User$recurringFrequenciesArgs<ExtArgs>
   transfers?: boolean | Prisma.User$transfersArgs<ExtArgs>
+  reportJobs?: boolean | Prisma.User$reportJobsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1234,6 +1378,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     recurringRules: Prisma.$RecurringRulePayload<ExtArgs>[]
     recurringFrequencies: Prisma.$RecurringFrequencyPayload<ExtArgs>[]
     transfers: Prisma.$TransferPayload<ExtArgs>[]
+    reportJobs: Prisma.$ReportJobPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1644,6 +1789,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   recurringRules<T extends Prisma.User$recurringRulesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$recurringRulesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RecurringRulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   recurringFrequencies<T extends Prisma.User$recurringFrequenciesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$recurringFrequenciesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RecurringFrequencyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   transfers<T extends Prisma.User$transfersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$transfersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransferPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  reportJobs<T extends Prisma.User$reportJobsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reportJobsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReportJobPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2238,6 +2384,30 @@ export type User$transfersArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.TransferScalarFieldEnum | Prisma.TransferScalarFieldEnum[]
+}
+
+/**
+ * User.reportJobs
+ */
+export type User$reportJobsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ReportJob
+   */
+  select?: Prisma.ReportJobSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ReportJob
+   */
+  omit?: Prisma.ReportJobOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ReportJobInclude<ExtArgs> | null
+  where?: Prisma.ReportJobWhereInput
+  orderBy?: Prisma.ReportJobOrderByWithRelationInput | Prisma.ReportJobOrderByWithRelationInput[]
+  cursor?: Prisma.ReportJobWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ReportJobScalarFieldEnum | Prisma.ReportJobScalarFieldEnum[]
 }
 
 /**

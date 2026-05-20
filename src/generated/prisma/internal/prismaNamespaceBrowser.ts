@@ -60,7 +60,8 @@ export const ModelName = {
   Budget: 'Budget',
   RecurringRule: 'RecurringRule',
   RecurringFrequency: 'RecurringFrequency',
-  Attachment: 'Attachment'
+  Attachment: 'Attachment',
+  ReportJob: 'ReportJob'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -141,6 +142,7 @@ export const TransactionScalarFieldEnum = {
   accountId: 'accountId',
   currencyId: 'currencyId',
   categoryId: 'categoryId',
+  recurringRuleId: 'recurringRuleId',
   amount: 'amount',
   direction: 'direction',
   occurredAt: 'occurredAt',
@@ -204,6 +206,7 @@ export const RecurringRuleScalarFieldEnum = {
   nextRunAt: 'nextRunAt',
   endsAt: 'endsAt',
   maxOccurrences: 'maxOccurrences',
+  occurrenceCount: 'occurrenceCount',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt',
@@ -243,12 +246,39 @@ export const AttachmentScalarFieldEnum = {
 export type AttachmentScalarFieldEnum = (typeof AttachmentScalarFieldEnum)[keyof typeof AttachmentScalarFieldEnum]
 
 
+export const ReportJobScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  status: 'status',
+  format: 'format',
+  from: 'from',
+  to: 'to',
+  accountId: 'accountId',
+  includeRecurring: 'includeRecurring',
+  resultJson: 'resultJson',
+  storageKey: 'storageKey',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt',
+  completedAt: 'completedAt'
+} as const
+
+export type ReportJobScalarFieldEnum = (typeof ReportJobScalarFieldEnum)[keyof typeof ReportJobScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const QueryMode = {
@@ -265,4 +295,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

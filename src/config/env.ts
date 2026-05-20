@@ -11,7 +11,13 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1),
   JWT_ACCESS_SECRET: z.string().min(32),
   JWT_REFRESH_SECRET: z.string().min(32),
-  CORS_ORIGIN: z.string().min(1),
+  /** Used by HTTP API only; worker loads the same schema — default avoids Docker env gaps. */
+  CORS_ORIGIN: z.string().min(1).default("http://localhost:5173"),
+  /** Override cookie Secure flag (e.g. false for http://localhost:5173 → Docker API on :3000). */
+  COOKIE_SECURE: z
+    .enum(["true", "false"])
+    .optional()
+    .transform((v) => (v === undefined ? undefined : v === "true")),
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]),
   REDIS_URL: z
     .string()
@@ -54,6 +60,31 @@ const envSchema = z.object({
   BUDGET_LIST_CACHE_TTL_SECONDS: z.coerce.number().int().min(30).max(3600).default(300),
   BUDGET_ITEM_CACHE_TTL_SECONDS: z.coerce.number().int().min(30).max(3600).default(120),
   BUDGET_PROGRESS_CACHE_TTL_SECONDS: z.coerce.number().int().min(30).max(3600).default(60),
+  RECURRING_FREQUENCY_LIST_CACHE_TTL_SECONDS: z.coerce
+    .number()
+    .int()
+    .min(30)
+    .max(3600)
+    .default(300),
+  RECURRING_FREQUENCY_ITEM_CACHE_TTL_SECONDS: z.coerce
+    .number()
+    .int()
+    .min(30)
+    .max(3600)
+    .default(600),
+  RECURRING_RULE_LIST_CACHE_TTL_SECONDS: z.coerce.number().int().min(30).max(3600).default(300),
+  RECURRING_RULE_ITEM_CACHE_TTL_SECONDS: z.coerce.number().int().min(30).max(3600).default(600),
+  RECURRING_SCHEDULER_ENABLED: z
+    .enum(["true", "false"])
+    .default("true")
+    .transform((value) => value === "true"),
+  RECURRING_SCHEDULER_CRON: z.string().min(9).max(100).default("* * * * *"),
+  RECURRING_SCHEDULER_BATCH_SIZE: z.coerce.number().int().min(1).max(500).default(50),
+  REPORT_QUEUE_NAME: z.string().min(1).max(100).default("financial-reports"),
+  REPORT_JOB_ATTEMPTS: z.coerce.number().int().min(1).max(10).default(3),
+  REPORT_JOB_BACKOFF_MS: z.coerce.number().int().min(100).max(600_000).default(2000),
+  REPORT_PDF_PRESIGNED_TTL_SECONDS: z.coerce.number().int().min(60).max(86400).default(3600),
+  REPORT_WORKER_CONCURRENCY: z.coerce.number().int().min(1).max(20).default(2),
   CURRENCY_LIST_CACHE_TTL_SECONDS: z.coerce.number().int().min(30).max(86400).default(3600),
   CURRENCY_ITEM_CACHE_TTL_SECONDS: z.coerce.number().int().min(30).max(86400).default(3600),
   /** Dev/test only: default acting user when auth middleware is not wired yet. */

@@ -67,3 +67,8 @@ export type RecurringFrequency = Prisma.RecurringFrequencyModel
  * 
  */
 export type Attachment = Prisma.AttachmentModel
+/**
+ * Model ReportJob
+ * 
+ */
+export type ReportJob = Prisma.ReportJobModel

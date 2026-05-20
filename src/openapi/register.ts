@@ -26,3 +26,6 @@ import "./paths/accounts.path";
 import "./paths/budget.paths";
 import "./paths/category.paths";
 import "./paths/currency.paths";
+import "./paths/reports.paths";
+import "./paths/recurring-frequencies.paths";
+import "./paths/recurring-rules.paths";

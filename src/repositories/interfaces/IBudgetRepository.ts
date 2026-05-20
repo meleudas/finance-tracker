@@ -29,6 +29,14 @@ export interface IBudgetRepository extends IBaseRepository<Budget> {
 
   findActiveByDateRange(userId: string, date: Date, options?: RequestOptions): Promise<Budget[]>;
 
+  findIntersectingPeriod(
+    userId: string,
+    periodStart: Date,
+    periodEnd: Date,
+    accountId?: string,
+    options?: RequestOptions,
+  ): Promise<Budget[]>;
+
   findActiveById(id: string, userId: string, options?: RequestOptions): Promise<Budget | null>;
 
   updateLimit(id: string, newLimit: Decimal, options?: RequestOptions): Promise<Budget>;

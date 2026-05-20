@@ -70,6 +70,27 @@ export class BudgetRepository extends BaseRepository<Budget> implements IBudgetR
     );
   }
 
+  async findIntersectingPeriod(
+    userId: string,
+    periodStart: Date,
+    periodEnd: Date,
+    accountId?: string,
+    options?: RequestOptions,
+  ): Promise<Budget[]> {
+    return withAbortSignal(
+      this.prisma.budget.findMany({
+        where: {
+          userId,
+          isDeleted: false,
+          periodStart: { lte: periodEnd },
+          periodEnd: { gte: periodStart },
+          ...(accountId && { accountId }),
+        },
+      }),
+      options?.signal,
+    );
+  }
+
   async findActiveById(
     id: string,
     userId: string,
