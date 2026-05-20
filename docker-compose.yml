@@ -1,4 +1,4 @@
-# Повний стек (PostgreSQL + Redis + MinIO + API): docker compose up --build
+# Повний стек (PostgreSQL + Redis + MinIO + API + report worker): docker compose up --build
 #
 # Змінні для сервісу `app` беруться з `.env` у цій теці (підстановка у compose).
 # DATABASE_URL для контейнера завжди на сервіс `postgres` (не localhost).
@@ -54,7 +54,8 @@ services:
       dockerfile: docker/Dockerfile
     restart: unless-stopped
     environment:
-      NODE_ENV: production
+      NODE_ENV: ${NODE_ENV:-development}
+      COOKIE_SECURE: "${COOKIE_SECURE:-false}"
       PORT: "3000"
       DATABASE_URL: postgresql://${POSTGRES_USER:-finance}:${POSTGRES_PASSWORD:-finance}@postgres:5432/${POSTGRES_DB:-finance_tracker}?schema=public
       JWT_ACCESS_SECRET: "${JWT_ACCESS_SECRET}"
@@ -74,6 +75,44 @@ services:
     ports:
       - "${APP_PORT:-3000}:3000"
     depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_started
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    command: ["node", "dist/workers/index.js"]
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      COOKIE_SECURE: "${COOKIE_SECURE:-false}"
+      DATABASE_URL: postgresql://${POSTGRES_USER:-finance}:${POSTGRES_PASSWORD:-finance}@postgres:5432/${POSTGRES_DB:-finance_tracker}?schema=public
+      JWT_ACCESS_SECRET: "${JWT_ACCESS_SECRET}"
+      JWT_REFRESH_SECRET: "${JWT_REFRESH_SECRET}"
+      CORS_ORIGIN: "${CORS_ORIGIN:-http://localhost:5173}"
+      LOG_LEVEL: "${LOG_LEVEL:-info}"
+      REDIS_URL: redis://redis:6379
+      S3_ENDPOINT: http://minio:9000
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_BUCKET: ${S3_BUCKET:-finance-tracker}
+      S3_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      S3_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      S3_FORCE_PATH_STYLE: "true"
+      S3_PRESIGNED_URL_EXPIRY_SECONDS: "${S3_PRESIGNED_URL_EXPIRY_SECONDS:-900}"
+      RECURRING_SCHEDULER_ENABLED: "false"
+      REPORT_QUEUE_NAME: "${REPORT_QUEUE_NAME:-financial-reports}"
+      REPORT_JOB_ATTEMPTS: "${REPORT_JOB_ATTEMPTS:-3}"
+      REPORT_JOB_BACKOFF_MS: "${REPORT_JOB_BACKOFF_MS:-2000}"
+      REPORT_PDF_PRESIGNED_TTL_SECONDS: "${REPORT_PDF_PRESIGNED_TTL_SECONDS:-3600}"
+      REPORT_WORKER_CONCURRENCY: "${REPORT_WORKER_CONCURRENCY:-2}"
+    depends_on:
+      app:
+        condition: service_started
       postgres:
         condition: service_healthy
       redis:

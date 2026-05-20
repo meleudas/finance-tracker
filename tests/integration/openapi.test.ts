@@ -12,11 +12,14 @@ describe("OpenAPI / Swagger", () => {
       openapi: string;
       info: { title: string };
       paths: Record<string, unknown>;
+      servers: { url: string }[];
       components: { securitySchemes: Record<string, unknown> };
     };
     expect(body.openapi).toMatch(/^3\.0\./);
     expect(body.info.title).toBe("Finance Tracker API");
+    expect(body.servers[0]?.url).not.toMatch(/\/api\/v1\/?$/);
     expect(body.paths["/api/v1/transactions"]).toBeDefined();
+    expect(body.paths["/api/v1/auth/csrf"]).toBeDefined();
     expect(body.paths["/health"]).toBeDefined();
     expect(body.components.securitySchemes.cookieAuth).toBeDefined();
     expect(body.components.securitySchemes.devUserId).toBeDefined();

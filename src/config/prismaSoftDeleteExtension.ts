@@ -54,6 +54,12 @@ export function withSoftDeleteExtension(base: PrismaClient) {
         deleteMany: ({ args }) =>
           base.recurringRule.updateMany({ where: args.where, data: { ...softDeleteData } }),
       },
+      recurringFrequency: {
+        delete: ({ args }) =>
+          base.recurringFrequency.update({ where: args.where, data: { ...softDeleteData } }),
+        deleteMany: ({ args }) =>
+          base.recurringFrequency.updateMany({ where: args.where, data: { ...softDeleteData } }),
+      },
       attachment: {
         delete: ({ args }) =>
           base.attachment.update({ where: args.where, data: { ...softDeleteData } }),

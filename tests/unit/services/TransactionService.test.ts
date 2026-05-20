@@ -36,6 +36,7 @@ describe("TransactionService", () => {
     direction: "EXPENSE",
     occurredAt: new Date("2026-05-01T12:00:00.000Z"),
     note: null,
+    recurringRuleId: null,
     createdAt: new Date("2026-05-01T00:00:00.000Z"),
     updatedAt: new Date("2026-05-01T00:00:00.000Z"),
     deletedAt: null,
