@@ -1,6 +1,7 @@
 import { API_V1_PREFIX } from "../constants";
 import { errorResponses, protectedSecurity } from "../helpers";
 import { openApiRegistry } from "../registry";
+import { ApiErrorResponseSchema } from "../schemas/envelope";
 import {
   AccountIdParamsSchema,
   CategoryIdParamsSchema,
@@ -131,12 +132,22 @@ openApiRegistry.registerPath({
   path: `${basePath}/{id}`,
   tags: [tag],
   summary: "Delete transaction",
+  description:
+    "Soft-deletes the transaction. Returns 409 if the transaction still has attachments.",
   security: protectedSecurity,
   request: { params: IdParamsSchema },
   responses: {
     200: {
       description: "Soft-deleted transaction",
       content: { "application/json": { schema: DeleteResponseEnvelopeSchema } },
+    },
+    409: {
+      description: "Cannot delete (has attachments)",
+      content: {
+        "application/json": {
+          schema: ApiErrorResponseSchema,
+        },
+      },
     },
     ...errorResponses,
   },

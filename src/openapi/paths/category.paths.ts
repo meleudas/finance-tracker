@@ -3,7 +3,7 @@ import { errorResponses, protectedSecurity } from "../helpers";
 import { openApiRegistry } from "../registry";
 import {
   CategoryResponseEnvelopeSchema,
-  CategoryListEnvelopeSchema,
+  CategoryTreeListEnvelopeSchema,
   CreateCategoryBodySchema,
   UpdateCategoryBodySchema,
   IdParamsSchema,
@@ -17,13 +17,14 @@ openApiRegistry.registerPath({
   method: "get",
   path: basePath,
   tags: [tag],
-  summary: "List categories",
-  description: "Returns a paginated list of categories. Supports filtering by `kind` (INCOME/EXPENSE) and `parentId` for tree structure.",
+  summary: "List categories as tree",
+  description:
+    "Returns the user's category hierarchy as a nested tree (`children` on each node). Optional query `kind` filters by INCOME or EXPENSE.",
   security: protectedSecurity,
   responses: {
     200: {
-      description: "Paginated list of categories",
-      content: { "application/json": { schema: CategoryListEnvelopeSchema } },
+      description: "Category tree",
+      content: { "application/json": { schema: CategoryTreeListEnvelopeSchema } },
     },
     ...errorResponses,
   },
@@ -77,7 +78,8 @@ openApiRegistry.registerPath({
   path: `${basePath}/{id}`,
   tags: [tag],
   summary: "Update category",
-  description: "Partially updates category fields. All fields are optional.",
+  description:
+    "Partially updates category fields (`name`, `parentId`). At least one field is required. Moving `parentId` validates ownership, matching `kind`, and prevents cycles.",
   security: protectedSecurity,
   request: {
     params: IdParamsSchema,
@@ -103,14 +105,15 @@ openApiRegistry.registerPath({
   path: `${basePath}/{id}`,
   tags: [tag],
   summary: "Delete category",
-  description: "Soft-deletes a category. Child categories are NOT automatically deleted.",
+  description:
+    "Soft-deletes the category and all descendants in the subtree. Returns 409 if any node in the subtree has active (non-deleted) transactions. Budgets linked to deleted categories have `categoryId` set to null.",
   security: protectedSecurity,
   request: {
     params: IdParamsSchema,
   },
   responses: {
     200: {
-      description: "Category soft-deleted",
+      description: "Category subtree soft-deleted",
       content: { "application/json": { schema: DeleteResponseEnvelopeSchema } },
     },
     ...errorResponses,

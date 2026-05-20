@@ -23,3 +23,6 @@ import "./paths/transfers.paths";
 import "./paths/attachments.paths";
 import "./paths/auth.paths";
 import "./paths/accounts.path";
+import "./paths/budget.paths";
+import "./paths/category.paths";
+import "./paths/currency.paths";

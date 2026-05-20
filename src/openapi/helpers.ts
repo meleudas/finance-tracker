@@ -3,7 +3,7 @@ import type { SecurityRequirementObject } from "openapi3-ts/oas30";
 import { ApiErrorResponseSchema } from "./schemas/envelope";
 
 export const protectedSecurity: SecurityRequirementObject[] = [
-  { bearerAuth: [] },
+  { cookieAuth: [] },
   { devUserId: [] },
 ];
 

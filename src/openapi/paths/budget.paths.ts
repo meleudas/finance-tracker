@@ -4,8 +4,12 @@ import { openApiRegistry } from "../registry";
 import {
   BudgetResponseEnvelopeSchema,
   BudgetListEnvelopeSchema,
+  BudgetProgressListEnvelopeSchema,
+  BudgetQuerySchemaRef,
+  BudgetProgressQuerySchema,
   CreateBudgetBodySchema,
   UpdateBudgetBodySchema,
+  UpdateBudgetLimitBodySchema,
   IdParamsSchema,
   DeleteResponseEnvelopeSchema,
 } from "../schemas/components";
@@ -18,12 +22,36 @@ openApiRegistry.registerPath({
   path: basePath,
   tags: [tag],
   summary: "List budgets",
-  description: "Returns a paginated list of budgets for the authenticated user. Supports filtering by account, category, and date range.",
+  description:
+    "Returns a paginated list of budgets for the authenticated user. Supports filtering by account, category, and date range.",
   security: protectedSecurity,
+  request: {
+    query: BudgetQuerySchemaRef,
+  },
   responses: {
     200: {
       description: "Paginated list of budgets",
       content: { "application/json": { schema: BudgetListEnvelopeSchema } },
+    },
+    ...errorResponses,
+  },
+});
+
+openApiRegistry.registerPath({
+  method: "get",
+  path: `${basePath}/progress`,
+  tags: [tag],
+  summary: "Get budgets progress",
+  description:
+    "Returns spending progress for all active budgets on the given date (defaults to today).",
+  security: protectedSecurity,
+  request: {
+    query: BudgetProgressQuerySchema,
+  },
+  responses: {
+    200: {
+      description: "Budget progress list",
+      content: { "application/json": { schema: BudgetProgressListEnvelopeSchema } },
     },
     ...errorResponses,
   },
@@ -65,7 +93,7 @@ openApiRegistry.registerPath({
   },
   responses: {
     200: {
-      description: "Budget details with optional calculated fields (spentAmount, remainingAmount)",
+      description: "Budget details with calculated fields (spentAmount, remainingAmount)",
       content: { "application/json": { schema: BudgetResponseEnvelopeSchema } },
     },
     ...errorResponses,
@@ -77,7 +105,8 @@ openApiRegistry.registerPath({
   path: `${basePath}/{id}`,
   tags: [tag],
   summary: "Update budget",
-  description: "Partially updates budget fields. All fields are optional.",
+  description:
+    "Partially updates budget name, period, or limit. Account and currency cannot be changed.",
   security: protectedSecurity,
   request: {
     params: IdParamsSchema,
@@ -99,11 +128,36 @@ openApiRegistry.registerPath({
 });
 
 openApiRegistry.registerPath({
+  method: "put",
+  path: `${basePath}/{id}/limit`,
+  tags: [tag],
+  summary: "Update budget limit",
+  security: protectedSecurity,
+  request: {
+    params: IdParamsSchema,
+    body: {
+      content: {
+        "application/json": {
+          schema: UpdateBudgetLimitBodySchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Budget limit updated",
+      content: { "application/json": { schema: BudgetResponseEnvelopeSchema } },
+    },
+    ...errorResponses,
+  },
+});
+
+openApiRegistry.registerPath({
   method: "delete",
   path: `${basePath}/{id}`,
   tags: [tag],
   summary: "Delete budget",
-  description: "Soft-deletes a budget. The record remains in DB with isDeleted=true.",
+  description: "Soft-deletes a budget.",
   security: protectedSecurity,
   request: {
     params: IdParamsSchema,
