@@ -12,13 +12,13 @@ export function requireUser(req: Request, _res: Response, next: NextFunction): v
 
   const headerUserId = req.header(DEV_USER_HEADER);
   if (headerUserId && (env.NODE_ENV === "development" || env.NODE_ENV === "test")) {
-    req.user = { id: headerUserId };
+    req.user = { email: "", id: headerUserId };
     next();
     return;
   }
 
   if (env.DEV_USER_ID && env.NODE_ENV !== "production") {
-    req.user = { id: env.DEV_USER_ID };
+    req.user = { email: "", id: env.DEV_USER_ID };
     next();
     return;
   }

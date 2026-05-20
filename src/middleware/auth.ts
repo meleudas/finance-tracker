@@ -1,10 +1,10 @@
-import { NextFunction, Request as ExpressRequest } from "express";
+import { NextFunction, Response, Request as ExpressRequest } from "express";
 import { getServiceContext } from "../http/requestContext";
 import { unauthorizedError } from "../utils/apiError";
-import { IAuthService } from "../services/interfaces/auth/IAuthService";
+import { IAuthService } from "../services/interfaces/IAuthService";
 
 export const createAuthMiddleware = (authService: IAuthService) => {
-  return async (req: ExpressRequest, next: NextFunction): Promise<void> => {
+  return async (req: ExpressRequest, _res: Response, next: NextFunction): Promise<void> => {
     try {
       let token: string | undefined;
 
@@ -32,7 +32,7 @@ export const createAuthMiddleware = (authService: IAuthService) => {
       const decoded = await authService.verifyAccessToken(token, getServiceContext(req));
 
       req.user = {
-        id: decoded.userId,
+        id: decoded.id,
         email: decoded.email,
       };
 
@@ -40,7 +40,11 @@ export const createAuthMiddleware = (authService: IAuthService) => {
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
 
-      if (err.name === "JsonWebTokenError" || err.name === "TokenExpiredError" || err.name === "NotBeforeError") {
+      if (
+        err.name === "JsonWebTokenError" ||
+        err.name === "TokenExpiredError" ||
+        err.name === "NotBeforeError"
+      ) {
         next(unauthorizedError());
       } else {
         next(err);
