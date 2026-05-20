@@ -1,72 +1,45 @@
-import { prisma as globalPrisma } from "../../config/prismaClient";
+// src/services/impl/CurrencyService.ts
 import type { Currency } from "../../generated/prisma/client";
 import type { ICurrencyService } from "../interfaces/ICurrencyService";
+import type { ICurrencyRepository } from "../../repositories/interfaces/ICurrencyRepository";
 import type { RequestOptions } from "../../repositories/interfaces/IBaseRepository";
-import type { Prisma } from "../../generated/prisma/client";
 import { NotFoundError } from "../../utils/errors/СlientErrors";
+import { withAbortSignal } from "../../utils/helpers/WithAbortSignal";
 
-interface CurrencyRequestOptions extends RequestOptions {
-  tx?: Prisma.TransactionClient;
-}
-
-/**
- * ============================================================================
- * БІЗНЕС-ПРАВИЛА ТА ІНВАРІАНТИ ДЛЯ СУТНОСТІ "CURRENCY" (ВАЛЮТА)
- * ============================================================================
- *
- * 1. ГЛОБАЛЬНІСТЬ ТА ДОСТУПНІСТЬ (ДОВІДНИК):
- *    Валюти є загальносистемними довідковими даними. Вони не мають прив'язки до
- *    конкретного `userId`. Будь-який автентифікований користувач має право на
- *    читання повного списку підтримуваних валют.
- *
- * 2. СТАТИЧНІСТЬ MVP (ЗАБОРОНА ЗМІН КЛІЄНТАМИ):
- *    У межах поточного скоупу MVP клієнтам (web/mobile) заборонено створювати,
- *    редагувати або видаляти системні валюти через API. Довідник наповнюється
- *    виключно через міграції бази даних або демо-seed (`prisma/seed.ts`).
- *
- * 3. СУВОРЕ ВАЛІДУВАННЯ КОДІВ (ISO 4217):
- *    Пошук та перевірка валют здійснюються за трилітерними кодами (наприклад,
- *    "UAH", "USD", "EUR"). Пошук є незалежним від регістру букв (case-insensitive).
- */
 export class CurrencyService implements ICurrencyService {
-  async getAllCurrencies(options?: CurrencyRequestOptions): Promise<Currency[]> {
-    const tx = options?.tx ?? globalPrisma;
+  constructor(private readonly currencyRepo: ICurrencyRepository) {}
 
-    return tx.currency.findMany({
-      where: { isDeleted: false },
-      orderBy: { code: "asc" },
-    });
+  async getAllCurrencies(options?: RequestOptions): Promise<Currency[]> {
+    return withAbortSignal(
+      this.currencyRepo.findActive(options),
+      options?.signal
+    );
   }
 
-  async getCurrencyByCode(
-    code: string,
-    options?: CurrencyRequestOptions,
-  ): Promise<Currency | null> {
-    const tx = options?.tx ?? globalPrisma;
+  async getCurrencyByCode(code: string, options?: RequestOptions): Promise<Currency> {
     const formattedCode = code.trim().toUpperCase();
 
-    const currency = await tx.currency.findUnique({
-      where: { code: formattedCode },
-    });
+    const currency = await withAbortSignal(
+      this.currencyRepo.findByCode(formattedCode, options),
+      options?.signal
+    );
 
-    if (!currency || currency.isDeleted) {
-      throw new NotFoundError(`Валюту з кодом ${formattedCode} не знайдено в системі`);
-    }
-
-    return currency;
+    return this.#ensureActiveEntity(currency, `Валюту з кодом ${formattedCode} не знайдено в системі`);
   }
 
-  async getCurrencyById(id: string, options?: CurrencyRequestOptions): Promise<Currency | null> {
-    const tx = options?.tx ?? globalPrisma;
+  async getCurrencyById(id: string, options?: RequestOptions): Promise<Currency> {
+    const currency = await withAbortSignal(
+      this.currencyRepo.findById(id, options),
+      options?.signal
+    );
 
-    const currency = await tx.currency.findUnique({
-      where: { id },
-    });
+    return this.#ensureActiveEntity(currency, "Вказану валюту не знайдено");
+  }
 
-    if (!currency || currency.isDeleted) {
-      throw new NotFoundError("Вказану валюту не знайдено");
+  #ensureActiveEntity(entity: Currency | null, errorMessage: string): Currency {
+    if (!entity || entity.isDeleted) {
+      throw new NotFoundError(errorMessage);
     }
-
-    return currency;
+    return entity;
   }
 }
