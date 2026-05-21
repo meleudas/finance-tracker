@@ -2,7 +2,7 @@ jest.mock("../../../src/config/prismaClient");
 
 import { prisma } from "../../../src/config/prismaClient";
 import { TransferRepository } from "../../../src/repositories/impl/TransferRepository";
-import { AbortError } from "../../../src/utils/errors/СlientErrors";
+import { AbortError } from "../../../src/utils/errors/ClientErrors";
 
 describe("TransferRepository", () => {
   let repo: TransferRepository;
@@ -55,6 +55,23 @@ describe("TransferRepository", () => {
             fromAccountId: "acc-from",
             toAccountId: "acc-to",
             occurredAt: { gte: from, lte: to },
+          },
+        }),
+      );
+    });
+
+    it("findByFilter: accountId додає OR між from та to", async () => {
+      (prisma.transfer.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.transfer.count as jest.Mock).mockResolvedValue(0);
+
+      await repo.findByFilter({ userId: "u1", accountId: "acc-x" }, { page: 1, limit: 20 });
+
+      expect(prisma.transfer.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            userId: "u1",
+            isDeleted: false,
+            OR: [{ fromAccountId: "acc-x" }, { toAccountId: "acc-x" }],
           },
         }),
       );

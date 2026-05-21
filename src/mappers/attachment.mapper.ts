@@ -13,7 +13,6 @@ function toAttachmentFields(attachment: Attachment) {
   return {
     id: attachment.id,
     transactionId: attachment.transactionId,
-    storageKey: attachment.storageKey,
     mimeType: attachment.mimeType,
     originalName: attachment.originalName,
     createdAt: toIsoString(attachment.createdAt),

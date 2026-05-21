@@ -33,3 +33,21 @@ export const RecurringIntervalUnit = {
 } as const
 
 export type RecurringIntervalUnit = (typeof RecurringIntervalUnit)[keyof typeof RecurringIntervalUnit]
+
+
+export const ReportJobStatus = {
+  PENDING: 'PENDING',
+  PROCESSING: 'PROCESSING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED'
+} as const
+
+export type ReportJobStatus = (typeof ReportJobStatus)[keyof typeof ReportJobStatus]
+
+
+export const ReportFormat = {
+  JSON: 'JSON',
+  PDF: 'PDF'
+} as const
+
+export type ReportFormat = (typeof ReportFormat)[keyof typeof ReportFormat]

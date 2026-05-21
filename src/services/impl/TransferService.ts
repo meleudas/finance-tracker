@@ -10,6 +10,7 @@ import {
   ITransferRepository,
   type TransferFilter,
 } from "../../repositories/interfaces/ITransferRepository";
+import type { IAccountRepository } from "../../repositories/interfaces/IAccountRepository";
 import type {
   PaginatedResult,
   PaginationParams,
@@ -18,8 +19,7 @@ import { DeleteResponseDto, IdDto, idDtoSchema } from "../../dtos/common";
 import { toTransferResponse } from "../../mappers/transfer.mapper";
 import { toDeleteResponse } from "../../mappers/delete-response.mapper";
 import { parseOrThrow } from "../../utils/helpers/zodParse";
-import { notFoundError } from "../../utils/errors/apiError";
-import { paginateArray } from "../../utils/paginateArray";
+import { NotFoundError, ValidationError } from "../../utils/errors/ClientErrors";
 import { ITransferService } from "../interfaces/ITransferService";
 import type { ICache } from "../../redis/ICache";
 import { env } from "../../config/env";
@@ -31,6 +31,12 @@ const TRANSFER_ITEM_CACHE_PREFIX = "transfer";
 
 interface ListCacheScope {
   accountId?: string;
+}
+
+interface TransferRefs {
+  fromAccountId: string;
+  toAccountId: string;
+  currencyId: string;
 }
 
 function buildTransferListCacheKey(
@@ -64,6 +70,7 @@ function buildTransferCacheKey(userId: string, transferId: string): string {
 export class TransferService implements ITransferService {
   constructor(
     private readonly transferRepository: ITransferRepository,
+    private readonly accountRepository: IAccountRepository,
     private readonly cache: ICache,
   ) {}
 
@@ -75,6 +82,17 @@ export class TransferService implements ITransferService {
     const validatedTransfer = parseOrThrow(CreateTransferSchema, transfer);
     const validatedUserId = parseOrThrow(idDtoSchema, userId);
     const options = repoOptions(ctx);
+
+    await this.validateTransferRefs(
+      validatedUserId.id,
+      {
+        fromAccountId: validatedTransfer.fromAccountId,
+        toAccountId: validatedTransfer.toAccountId,
+        currencyId: validatedTransfer.currencyId,
+      },
+      ctx,
+    );
+
     const createdTransfer = await this.transferRepository.create(
       {
         ...validatedTransfer,
@@ -97,7 +115,15 @@ export class TransferService implements ITransferService {
     const validatedUserId = parseOrThrow(idDtoSchema, userId);
     const options = repoOptions(ctx);
 
-    await this.findOwnedTransfer(validatedTransferId.id, validatedUserId.id, ctx);
+    const existing = await this.findOwnedTransfer(validatedTransferId.id, validatedUserId.id, ctx);
+
+    const effective: TransferRefs = {
+      fromAccountId: validatedTransfer.fromAccountId ?? existing.fromAccountId,
+      toAccountId: validatedTransfer.toAccountId ?? existing.toAccountId,
+      currencyId: validatedTransfer.currencyId ?? existing.currencyId,
+    };
+
+    await this.validateTransferRefs(validatedUserId.id, effective, ctx);
 
     const updatedTransfer = await this.transferRepository.update(
       validatedTransferId.id,
@@ -209,17 +235,16 @@ export class TransferService implements ITransferService {
       return cachedTransfers;
     }
 
-    const transfers = await this.transferRepository.findByAccountId(
-      validatedAccountId.id,
-      repoOptions(ctx),
+    const result = await this.listTransfers(
+      {
+        userId: validatedUserId.id,
+        accountId: validatedAccountId.id,
+        from: validatedQuery.from,
+        to: validatedQuery.to,
+      },
+      { page: validatedQuery.page, limit: validatedQuery.limit },
+      ctx,
     );
-    const owned = transfers.filter((transfer) => transfer.userId === validatedUserId.id);
-
-    const paged = paginateArray(owned, validatedQuery.page, validatedQuery.limit);
-    const result = {
-      ...paged,
-      data: paged.data.map(toTransferResponse),
-    };
     await withServiceSignal(
       this.cache.setJson(cacheKey, result, env.TRANSFER_LIST_CACHE_TTL_SECONDS),
       ctx,
@@ -247,6 +272,44 @@ export class TransferService implements ITransferService {
     };
   }
 
+  private async validateTransferRefs(
+    userId: string,
+    refs: TransferRefs,
+    ctx?: ServiceContext,
+  ): Promise<void> {
+    if (refs.fromAccountId === refs.toAccountId) {
+      throw new ValidationError("From and to accounts must be different");
+    }
+
+    const options = repoOptions(ctx);
+
+    const fromAccount = await this.accountRepository.findByIdWithCurrency(
+      refs.fromAccountId,
+      userId,
+      options,
+    );
+    if (!fromAccount) {
+      throw new NotFoundError("Account");
+    }
+
+    const toAccount = await this.accountRepository.findByIdWithCurrency(
+      refs.toAccountId,
+      userId,
+      options,
+    );
+    if (!toAccount) {
+      throw new NotFoundError("Account");
+    }
+
+    if (fromAccount.currencyId !== refs.currencyId) {
+      throw new ValidationError("Transfer currency must match the from account currency");
+    }
+
+    if (toAccount.currencyId !== refs.currencyId) {
+      throw new ValidationError("Transfer currency must match the to account currency");
+    }
+  }
+
   private async invalidateUserTransferCache(
     userId: string,
     transferId?: string,
@@ -270,7 +333,7 @@ export class TransferService implements ITransferService {
   ): Promise<Transfer> {
     const transfer = await this.transferRepository.findById(transferId, repoOptions(ctx));
     if (transfer?.userId !== userId) {
-      throw notFoundError("TRANSFER_NOT_FOUND");
+      throw new NotFoundError("Transfer");
     }
     return transfer;
   }

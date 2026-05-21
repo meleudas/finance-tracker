@@ -1,34 +1,47 @@
-// src/services/interfaces/IBudgetService.ts
-import type { Budget } from "../../generated/prisma/client";
 import type { CreateBudgetDto } from "../../dtos/budget/CreateBudget.dto";
 import type { UpdateBudgetLimitDto } from "../../dtos/budget/UpdateBudgetLimit.dto";
-import type { RequestOptions } from "../../repositories/interfaces/IBaseRepository";
+import type { UpdateBudgetDto } from "../../dtos/budget/UpdateBudget.dto";
+import type { BudgetQueryDto } from "../../dtos/budget/BudgetQuery.dto";
+import type { BudgetResponseDto } from "../../dtos/budget/BudgetResponse.dto";
+import type { DeleteResponseDto } from "../../dtos/common/DeleteResponse.dto";
+import type { PaginatedResult } from "../../repositories/interfaces/IBaseRepository";
 import type { BudgetProgressDto } from "../../dtos/budget/BudgetProgress.dto";
+import type { ServiceContext } from "../serviceContext";
 
 export interface IBudgetService {
-  // 🔥 userId передається окремо (з auth-контексту), НЕ з DTO
+  listBudgets(
+    userId: string,
+    query: BudgetQueryDto,
+    ctx?: ServiceContext,
+  ): Promise<PaginatedResult<BudgetResponseDto>>;
+
+  getBudgetById(userId: string, budgetId: string, ctx?: ServiceContext): Promise<BudgetResponseDto>;
+
   createBudget(
     userId: string,
-    dto: CreateBudgetDto, 
-    options?: RequestOptions
-  ): Promise<Budget>;
-  
+    dto: CreateBudgetDto,
+    ctx?: ServiceContext,
+  ): Promise<BudgetResponseDto>;
+
+  updateBudget(
+    userId: string,
+    budgetId: string,
+    dto: UpdateBudgetDto,
+    ctx?: ServiceContext,
+  ): Promise<BudgetResponseDto>;
+
   updateBudgetLimit(
     userId: string,
     budgetId: string,
     dto: UpdateBudgetLimitDto,
-    options?: RequestOptions,
-  ): Promise<Budget>;
-  
-  deleteBudget(
-    userId: string,
-    budgetId: string,
-    options?: RequestOptions,
-  ): Promise<void>;
-  
+    ctx?: ServiceContext,
+  ): Promise<BudgetResponseDto>;
+
+  deleteBudget(userId: string, budgetId: string, ctx?: ServiceContext): Promise<DeleteResponseDto>;
+
   getBudgetsProgress(
     userId: string,
     targetDate: Date,
-    options?: RequestOptions,
+    ctx?: ServiceContext,
   ): Promise<BudgetProgressDto[]>;
 }

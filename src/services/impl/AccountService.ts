@@ -8,12 +8,13 @@ import type { AccountResponseDto } from "../../dtos/account/AccountResponse.dto"
 import { DeleteResponseDto, IdDto, idDtoSchema } from "../../dtos/common";
 import { toAccountResponse } from "../../mappers/account.mapper";
 import { toDeleteResponse } from "../../mappers/delete-response.mapper";
-import { parseOrThrow } from "../../utils/zodParse";
-import { notFoundError } from "../../utils/apiError";
+import { parseOrThrow } from "../../utils/helpers/zodParse";
+import { ConflictError, NotFoundError } from "../../utils/errors/ClientErrors";
 import type { IAccountRepository } from "../../repositories/interfaces/IAccountRepository";
 import type { PaginatedResult } from "../../repositories/interfaces/IBaseRepository";
 import type { IAccountService } from "../interfaces/IAccountService";
 import type { ICache } from "../../redis";
+import { env } from "../../config/env";
 import type { ServiceContext } from "../serviceContext";
 import { repoOptions, withServiceSignal } from "../serviceContext";
 
@@ -74,7 +75,10 @@ export class AccountService implements IAccountService {
     const account = await this.findOwnedAccount(validatedAccountId.id, validatedUserId.id, ctx);
     const response = toAccountResponse(account);
 
-    await withServiceSignal(this.cache.setJson(cacheKey, response, 600), ctx);
+    await withServiceSignal(
+      this.cache.setJson(cacheKey, response, env.ACCOUNT_ITEM_CACHE_TTL_SECONDS),
+      ctx,
+    );
     return response;
   }
 
@@ -97,7 +101,7 @@ export class AccountService implements IAccountService {
       {
         userId: validatedUserId.id,
         currencyId: validatedQuery.currencyId,
-        isDeleted: validatedQuery.includeDeleted,
+        isDeleted: validatedQuery.includeDeleted ? undefined : false,
       },
       { page: validatedQuery.page, limit: validatedQuery.limit },
       repoOptions(ctx),
@@ -108,7 +112,10 @@ export class AccountService implements IAccountService {
       data: result.data.map(toAccountResponse),
     };
 
-    await withServiceSignal(this.cache.setJson(cacheKey, mappedResult, 300), ctx);
+    await withServiceSignal(
+      this.cache.setJson(cacheKey, mappedResult, env.ACCOUNT_LIST_CACHE_TTL_SECONDS),
+      ctx,
+    );
     return mappedResult;
   }
 
@@ -148,6 +155,14 @@ export class AccountService implements IAccountService {
 
     await this.findOwnedAccount(validatedAccountId.id, validatedUserId.id, ctx);
 
+    const hasDeps = await this.accountRepository.hasActiveDependencies(
+      validatedAccountId.id,
+      options,
+    );
+    if (hasDeps) {
+      throw new ConflictError("Account has related records");
+    }
+
     const deleted = await this.accountRepository.softDelete(validatedAccountId.id, options);
 
     await this.invalidateUserAccountCache(validatedUserId.id, validatedAccountId.id, ctx);
@@ -157,7 +172,7 @@ export class AccountService implements IAccountService {
   private async findOwnedAccount(accountId: string, userId: string, ctx?: ServiceContext) {
     const account = await this.accountRepository.findById(accountId, repoOptions(ctx));
     if (account?.userId !== userId || account.isDeleted) {
-      throw notFoundError("ACCOUNT_NOT_FOUND");
+      throw new NotFoundError("Account");
     }
     return account;
   }

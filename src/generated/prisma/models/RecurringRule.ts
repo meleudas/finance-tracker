@@ -29,11 +29,13 @@ export type AggregateRecurringRule = {
 export type RecurringRuleAvgAggregateOutputType = {
   amount: runtime.Decimal | null
   maxOccurrences: number | null
+  occurrenceCount: number | null
 }
 
 export type RecurringRuleSumAggregateOutputType = {
   amount: runtime.Decimal | null
   maxOccurrences: number | null
+  occurrenceCount: number | null
 }
 
 export type RecurringRuleMinAggregateOutputType = {
@@ -49,6 +51,7 @@ export type RecurringRuleMinAggregateOutputType = {
   nextRunAt: Date | null
   endsAt: Date | null
   maxOccurrences: number | null
+  occurrenceCount: number | null
   createdAt: Date | null
   updatedAt: Date | null
   deletedAt: Date | null
@@ -68,6 +71,7 @@ export type RecurringRuleMaxAggregateOutputType = {
   nextRunAt: Date | null
   endsAt: Date | null
   maxOccurrences: number | null
+  occurrenceCount: number | null
   createdAt: Date | null
   updatedAt: Date | null
   deletedAt: Date | null
@@ -87,6 +91,7 @@ export type RecurringRuleCountAggregateOutputType = {
   nextRunAt: number
   endsAt: number
   maxOccurrences: number
+  occurrenceCount: number
   createdAt: number
   updatedAt: number
   deletedAt: number
@@ -98,11 +103,13 @@ export type RecurringRuleCountAggregateOutputType = {
 export type RecurringRuleAvgAggregateInputType = {
   amount?: true
   maxOccurrences?: true
+  occurrenceCount?: true
 }
 
 export type RecurringRuleSumAggregateInputType = {
   amount?: true
   maxOccurrences?: true
+  occurrenceCount?: true
 }
 
 export type RecurringRuleMinAggregateInputType = {
@@ -118,6 +125,7 @@ export type RecurringRuleMinAggregateInputType = {
   nextRunAt?: true
   endsAt?: true
   maxOccurrences?: true
+  occurrenceCount?: true
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
@@ -137,6 +145,7 @@ export type RecurringRuleMaxAggregateInputType = {
   nextRunAt?: true
   endsAt?: true
   maxOccurrences?: true
+  occurrenceCount?: true
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
@@ -156,6 +165,7 @@ export type RecurringRuleCountAggregateInputType = {
   nextRunAt?: true
   endsAt?: true
   maxOccurrences?: true
+  occurrenceCount?: true
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
@@ -262,6 +272,7 @@ export type RecurringRuleGroupByOutputType = {
   nextRunAt: Date
   endsAt: Date | null
   maxOccurrences: number | null
+  occurrenceCount: number
   createdAt: Date
   updatedAt: Date
   deletedAt: Date | null
@@ -304,6 +315,7 @@ export type RecurringRuleWhereInput = {
   nextRunAt?: Prisma.DateTimeFilter<"RecurringRule"> | Date | string
   endsAt?: Prisma.DateTimeNullableFilter<"RecurringRule"> | Date | string | null
   maxOccurrences?: Prisma.IntNullableFilter<"RecurringRule"> | number | null
+  occurrenceCount?: Prisma.IntFilter<"RecurringRule"> | number
   createdAt?: Prisma.DateTimeFilter<"RecurringRule"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RecurringRule"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"RecurringRule"> | Date | string | null
@@ -313,6 +325,7 @@ export type RecurringRuleWhereInput = {
   currency?: Prisma.XOR<Prisma.CurrencyScalarRelationFilter, Prisma.CurrencyWhereInput>
   category?: Prisma.XOR<Prisma.CategoryNullableScalarRelationFilter, Prisma.CategoryWhereInput> | null
   frequency?: Prisma.XOR<Prisma.RecurringFrequencyScalarRelationFilter, Prisma.RecurringFrequencyWhereInput>
+  transactions?: Prisma.TransactionListRelationFilter
 }
 
 export type RecurringRuleOrderByWithRelationInput = {
@@ -328,6 +341,7 @@ export type RecurringRuleOrderByWithRelationInput = {
   nextRunAt?: Prisma.SortOrder
   endsAt?: Prisma.SortOrderInput | Prisma.SortOrder
   maxOccurrences?: Prisma.SortOrderInput | Prisma.SortOrder
+  occurrenceCount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -337,6 +351,7 @@ export type RecurringRuleOrderByWithRelationInput = {
   currency?: Prisma.CurrencyOrderByWithRelationInput
   category?: Prisma.CategoryOrderByWithRelationInput
   frequency?: Prisma.RecurringFrequencyOrderByWithRelationInput
+  transactions?: Prisma.TransactionOrderByRelationAggregateInput
 }
 
 export type RecurringRuleWhereUniqueInput = Prisma.AtLeast<{
@@ -355,6 +370,7 @@ export type RecurringRuleWhereUniqueInput = Prisma.AtLeast<{
   nextRunAt?: Prisma.DateTimeFilter<"RecurringRule"> | Date | string
   endsAt?: Prisma.DateTimeNullableFilter<"RecurringRule"> | Date | string | null
   maxOccurrences?: Prisma.IntNullableFilter<"RecurringRule"> | number | null
+  occurrenceCount?: Prisma.IntFilter<"RecurringRule"> | number
   createdAt?: Prisma.DateTimeFilter<"RecurringRule"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RecurringRule"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"RecurringRule"> | Date | string | null
@@ -364,6 +380,7 @@ export type RecurringRuleWhereUniqueInput = Prisma.AtLeast<{
   currency?: Prisma.XOR<Prisma.CurrencyScalarRelationFilter, Prisma.CurrencyWhereInput>
   category?: Prisma.XOR<Prisma.CategoryNullableScalarRelationFilter, Prisma.CategoryWhereInput> | null
   frequency?: Prisma.XOR<Prisma.RecurringFrequencyScalarRelationFilter, Prisma.RecurringFrequencyWhereInput>
+  transactions?: Prisma.TransactionListRelationFilter
 }, "id">
 
 export type RecurringRuleOrderByWithAggregationInput = {
@@ -379,6 +396,7 @@ export type RecurringRuleOrderByWithAggregationInput = {
   nextRunAt?: Prisma.SortOrder
   endsAt?: Prisma.SortOrderInput | Prisma.SortOrder
   maxOccurrences?: Prisma.SortOrderInput | Prisma.SortOrder
+  occurrenceCount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -406,6 +424,7 @@ export type RecurringRuleScalarWhereWithAggregatesInput = {
   nextRunAt?: Prisma.DateTimeWithAggregatesFilter<"RecurringRule"> | Date | string
   endsAt?: Prisma.DateTimeNullableWithAggregatesFilter<"RecurringRule"> | Date | string | null
   maxOccurrences?: Prisma.IntNullableWithAggregatesFilter<"RecurringRule"> | number | null
+  occurrenceCount?: Prisma.IntWithAggregatesFilter<"RecurringRule"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"RecurringRule"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"RecurringRule"> | Date | string
   deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"RecurringRule"> | Date | string | null
@@ -420,6 +439,7 @@ export type RecurringRuleCreateInput = {
   nextRunAt: Date | string
   endsAt?: Date | string | null
   maxOccurrences?: number | null
+  occurrenceCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -429,6 +449,7 @@ export type RecurringRuleCreateInput = {
   currency: Prisma.CurrencyCreateNestedOneWithoutRecurringRulesInput
   category?: Prisma.CategoryCreateNestedOneWithoutRecurringRulesInput
   frequency: Prisma.RecurringFrequencyCreateNestedOneWithoutRecurringRulesInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutRecurringRuleInput
 }
 
 export type RecurringRuleUncheckedCreateInput = {
@@ -444,10 +465,12 @@ export type RecurringRuleUncheckedCreateInput = {
   nextRunAt: Date | string
   endsAt?: Date | string | null
   maxOccurrences?: number | null
+  occurrenceCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   isDeleted?: boolean
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutRecurringRuleInput
 }
 
 export type RecurringRuleUpdateInput = {
@@ -458,6 +481,7 @@ export type RecurringRuleUpdateInput = {
   nextRunAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   maxOccurrences?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  occurrenceCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -467,6 +491,7 @@ export type RecurringRuleUpdateInput = {
   currency?: Prisma.CurrencyUpdateOneRequiredWithoutRecurringRulesNestedInput
   category?: Prisma.CategoryUpdateOneWithoutRecurringRulesNestedInput
   frequency?: Prisma.RecurringFrequencyUpdateOneRequiredWithoutRecurringRulesNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutRecurringRuleNestedInput
 }
 
 export type RecurringRuleUncheckedUpdateInput = {
@@ -482,10 +507,12 @@ export type RecurringRuleUncheckedUpdateInput = {
   nextRunAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   maxOccurrences?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  occurrenceCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutRecurringRuleNestedInput
 }
 
 export type RecurringRuleCreateManyInput = {
@@ -501,6 +528,7 @@ export type RecurringRuleCreateManyInput = {
   nextRunAt: Date | string
   endsAt?: Date | string | null
   maxOccurrences?: number | null
+  occurrenceCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -515,6 +543,7 @@ export type RecurringRuleUpdateManyMutationInput = {
   nextRunAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   maxOccurrences?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  occurrenceCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -534,6 +563,7 @@ export type RecurringRuleUncheckedUpdateManyInput = {
   nextRunAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   maxOccurrences?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  occurrenceCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -550,6 +580,11 @@ export type RecurringRuleOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type RecurringRuleNullableScalarRelationFilter = {
+  is?: Prisma.RecurringRuleWhereInput | null
+  isNot?: Prisma.RecurringRuleWhereInput | null
+}
+
 export type RecurringRuleCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
@@ -563,6 +598,7 @@ export type RecurringRuleCountOrderByAggregateInput = {
   nextRunAt?: Prisma.SortOrder
   endsAt?: Prisma.SortOrder
   maxOccurrences?: Prisma.SortOrder
+  occurrenceCount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
@@ -572,6 +608,7 @@ export type RecurringRuleCountOrderByAggregateInput = {
 export type RecurringRuleAvgOrderByAggregateInput = {
   amount?: Prisma.SortOrder
   maxOccurrences?: Prisma.SortOrder
+  occurrenceCount?: Prisma.SortOrder
 }
 
 export type RecurringRuleMaxOrderByAggregateInput = {
@@ -587,6 +624,7 @@ export type RecurringRuleMaxOrderByAggregateInput = {
   nextRunAt?: Prisma.SortOrder
   endsAt?: Prisma.SortOrder
   maxOccurrences?: Prisma.SortOrder
+  occurrenceCount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
@@ -606,6 +644,7 @@ export type RecurringRuleMinOrderByAggregateInput = {
   nextRunAt?: Prisma.SortOrder
   endsAt?: Prisma.SortOrder
   maxOccurrences?: Prisma.SortOrder
+  occurrenceCount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
@@ -615,6 +654,7 @@ export type RecurringRuleMinOrderByAggregateInput = {
 export type RecurringRuleSumOrderByAggregateInput = {
   amount?: Prisma.SortOrder
   maxOccurrences?: Prisma.SortOrder
+  occurrenceCount?: Prisma.SortOrder
 }
 
 export type RecurringRuleCreateNestedManyWithoutUserInput = {
@@ -785,6 +825,22 @@ export type RecurringRuleUncheckedUpdateManyWithoutCategoryNestedInput = {
   deleteMany?: Prisma.RecurringRuleScalarWhereInput | Prisma.RecurringRuleScalarWhereInput[]
 }
 
+export type RecurringRuleCreateNestedOneWithoutTransactionsInput = {
+  create?: Prisma.XOR<Prisma.RecurringRuleCreateWithoutTransactionsInput, Prisma.RecurringRuleUncheckedCreateWithoutTransactionsInput>
+  connectOrCreate?: Prisma.RecurringRuleCreateOrConnectWithoutTransactionsInput
+  connect?: Prisma.RecurringRuleWhereUniqueInput
+}
+
+export type RecurringRuleUpdateOneWithoutTransactionsNestedInput = {
+  create?: Prisma.XOR<Prisma.RecurringRuleCreateWithoutTransactionsInput, Prisma.RecurringRuleUncheckedCreateWithoutTransactionsInput>
+  connectOrCreate?: Prisma.RecurringRuleCreateOrConnectWithoutTransactionsInput
+  upsert?: Prisma.RecurringRuleUpsertWithoutTransactionsInput
+  disconnect?: Prisma.RecurringRuleWhereInput | boolean
+  delete?: Prisma.RecurringRuleWhereInput | boolean
+  connect?: Prisma.RecurringRuleWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.RecurringRuleUpdateToOneWithWhereWithoutTransactionsInput, Prisma.RecurringRuleUpdateWithoutTransactionsInput>, Prisma.RecurringRuleUncheckedUpdateWithoutTransactionsInput>
+}
+
 export type NullableIntFieldUpdateOperationsInput = {
   set?: number | null
   increment?: number
@@ -843,6 +899,7 @@ export type RecurringRuleCreateWithoutUserInput = {
   nextRunAt: Date | string
   endsAt?: Date | string | null
   maxOccurrences?: number | null
+  occurrenceCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -851,6 +908,7 @@ export type RecurringRuleCreateWithoutUserInput = {
   currency: Prisma.CurrencyCreateNestedOneWithoutRecurringRulesInput
   category?: Prisma.CategoryCreateNestedOneWithoutRecurringRulesInput
   frequency: Prisma.RecurringFrequencyCreateNestedOneWithoutRecurringRulesInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutRecurringRuleInput
 }
 
 export type RecurringRuleUncheckedCreateWithoutUserInput = {
@@ -865,10 +923,12 @@ export type RecurringRuleUncheckedCreateWithoutUserInput = {
   nextRunAt: Date | string
   endsAt?: Date | string | null
   maxOccurrences?: number | null
+  occurrenceCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   isDeleted?: boolean
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutRecurringRuleInput
 }
 
 export type RecurringRuleCreateOrConnectWithoutUserInput = {
@@ -913,6 +973,7 @@ export type RecurringRuleScalarWhereInput = {
   nextRunAt?: Prisma.DateTimeFilter<"RecurringRule"> | Date | string
   endsAt?: Prisma.DateTimeNullableFilter<"RecurringRule"> | Date | string | null
   maxOccurrences?: Prisma.IntNullableFilter<"RecurringRule"> | number | null
+  occurrenceCount?: Prisma.IntFilter<"RecurringRule"> | number
   createdAt?: Prisma.DateTimeFilter<"RecurringRule"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RecurringRule"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"RecurringRule"> | Date | string | null
@@ -927,6 +988,7 @@ export type RecurringRuleCreateWithoutCurrencyInput = {
   nextRunAt: Date | string
   endsAt?: Date | string | null
   maxOccurrences?: number | null
+  occurrenceCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -935,6 +997,7 @@ export type RecurringRuleCreateWithoutCurrencyInput = {
   account: Prisma.AccountCreateNestedOneWithoutRecurringRulesInput
   category?: Prisma.CategoryCreateNestedOneWithoutRecurringRulesInput
   frequency: Prisma.RecurringFrequencyCreateNestedOneWithoutRecurringRulesInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutRecurringRuleInput
 }
 
 export type RecurringRuleUncheckedCreateWithoutCurrencyInput = {
@@ -949,10 +1012,12 @@ export type RecurringRuleUncheckedCreateWithoutCurrencyInput = {
   nextRunAt: Date | string
   endsAt?: Date | string | null
   maxOccurrences?: number | null
+  occurrenceCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   isDeleted?: boolean
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutRecurringRuleInput
 }
 
 export type RecurringRuleCreateOrConnectWithoutCurrencyInput = {
@@ -989,6 +1054,7 @@ export type RecurringRuleCreateWithoutAccountInput = {
   nextRunAt: Date | string
   endsAt?: Date | string | null
   maxOccurrences?: number | null
+  occurrenceCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -997,6 +1063,7 @@ export type RecurringRuleCreateWithoutAccountInput = {
   currency: Prisma.CurrencyCreateNestedOneWithoutRecurringRulesInput
   category?: Prisma.CategoryCreateNestedOneWithoutRecurringRulesInput
   frequency: Prisma.RecurringFrequencyCreateNestedOneWithoutRecurringRulesInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutRecurringRuleInput
 }
 
 export type RecurringRuleUncheckedCreateWithoutAccountInput = {
@@ -1011,10 +1078,12 @@ export type RecurringRuleUncheckedCreateWithoutAccountInput = {
   nextRunAt: Date | string
   endsAt?: Date | string | null
   maxOccurrences?: number | null
+  occurrenceCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   isDeleted?: boolean
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutRecurringRuleInput
 }
 
 export type RecurringRuleCreateOrConnectWithoutAccountInput = {
@@ -1051,6 +1120,7 @@ export type RecurringRuleCreateWithoutCategoryInput = {
   nextRunAt: Date | string
   endsAt?: Date | string | null
   maxOccurrences?: number | null
+  occurrenceCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1059,6 +1129,7 @@ export type RecurringRuleCreateWithoutCategoryInput = {
   account: Prisma.AccountCreateNestedOneWithoutRecurringRulesInput
   currency: Prisma.CurrencyCreateNestedOneWithoutRecurringRulesInput
   frequency: Prisma.RecurringFrequencyCreateNestedOneWithoutRecurringRulesInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutRecurringRuleInput
 }
 
 export type RecurringRuleUncheckedCreateWithoutCategoryInput = {
@@ -1073,10 +1144,12 @@ export type RecurringRuleUncheckedCreateWithoutCategoryInput = {
   nextRunAt: Date | string
   endsAt?: Date | string | null
   maxOccurrences?: number | null
+  occurrenceCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   isDeleted?: boolean
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutRecurringRuleInput
 }
 
 export type RecurringRuleCreateOrConnectWithoutCategoryInput = {
@@ -1105,7 +1178,7 @@ export type RecurringRuleUpdateManyWithWhereWithoutCategoryInput = {
   data: Prisma.XOR<Prisma.RecurringRuleUpdateManyMutationInput, Prisma.RecurringRuleUncheckedUpdateManyWithoutCategoryInput>
 }
 
-export type RecurringRuleCreateWithoutFrequencyInput = {
+export type RecurringRuleCreateWithoutTransactionsInput = {
   id?: string
   name: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1113,6 +1186,7 @@ export type RecurringRuleCreateWithoutFrequencyInput = {
   nextRunAt: Date | string
   endsAt?: Date | string | null
   maxOccurrences?: number | null
+  occurrenceCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1121,6 +1195,103 @@ export type RecurringRuleCreateWithoutFrequencyInput = {
   account: Prisma.AccountCreateNestedOneWithoutRecurringRulesInput
   currency: Prisma.CurrencyCreateNestedOneWithoutRecurringRulesInput
   category?: Prisma.CategoryCreateNestedOneWithoutRecurringRulesInput
+  frequency: Prisma.RecurringFrequencyCreateNestedOneWithoutRecurringRulesInput
+}
+
+export type RecurringRuleUncheckedCreateWithoutTransactionsInput = {
+  id?: string
+  userId: string
+  accountId: string
+  currencyId: string
+  categoryId?: string | null
+  frequencyId: string
+  name: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  direction: $Enums.TransactionDirection
+  nextRunAt: Date | string
+  endsAt?: Date | string | null
+  maxOccurrences?: number | null
+  occurrenceCount?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  isDeleted?: boolean
+}
+
+export type RecurringRuleCreateOrConnectWithoutTransactionsInput = {
+  where: Prisma.RecurringRuleWhereUniqueInput
+  create: Prisma.XOR<Prisma.RecurringRuleCreateWithoutTransactionsInput, Prisma.RecurringRuleUncheckedCreateWithoutTransactionsInput>
+}
+
+export type RecurringRuleUpsertWithoutTransactionsInput = {
+  update: Prisma.XOR<Prisma.RecurringRuleUpdateWithoutTransactionsInput, Prisma.RecurringRuleUncheckedUpdateWithoutTransactionsInput>
+  create: Prisma.XOR<Prisma.RecurringRuleCreateWithoutTransactionsInput, Prisma.RecurringRuleUncheckedCreateWithoutTransactionsInput>
+  where?: Prisma.RecurringRuleWhereInput
+}
+
+export type RecurringRuleUpdateToOneWithWhereWithoutTransactionsInput = {
+  where?: Prisma.RecurringRuleWhereInput
+  data: Prisma.XOR<Prisma.RecurringRuleUpdateWithoutTransactionsInput, Prisma.RecurringRuleUncheckedUpdateWithoutTransactionsInput>
+}
+
+export type RecurringRuleUpdateWithoutTransactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  direction?: Prisma.EnumTransactionDirectionFieldUpdateOperationsInput | $Enums.TransactionDirection
+  nextRunAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maxOccurrences?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  occurrenceCount?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  user?: Prisma.UserUpdateOneRequiredWithoutRecurringRulesNestedInput
+  account?: Prisma.AccountUpdateOneRequiredWithoutRecurringRulesNestedInput
+  currency?: Prisma.CurrencyUpdateOneRequiredWithoutRecurringRulesNestedInput
+  category?: Prisma.CategoryUpdateOneWithoutRecurringRulesNestedInput
+  frequency?: Prisma.RecurringFrequencyUpdateOneRequiredWithoutRecurringRulesNestedInput
+}
+
+export type RecurringRuleUncheckedUpdateWithoutTransactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  accountId?: Prisma.StringFieldUpdateOperationsInput | string
+  currencyId?: Prisma.StringFieldUpdateOperationsInput | string
+  categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  frequencyId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  direction?: Prisma.EnumTransactionDirectionFieldUpdateOperationsInput | $Enums.TransactionDirection
+  nextRunAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maxOccurrences?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  occurrenceCount?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+}
+
+export type RecurringRuleCreateWithoutFrequencyInput = {
+  id?: string
+  name: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  direction: $Enums.TransactionDirection
+  nextRunAt: Date | string
+  endsAt?: Date | string | null
+  maxOccurrences?: number | null
+  occurrenceCount?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  isDeleted?: boolean
+  user: Prisma.UserCreateNestedOneWithoutRecurringRulesInput
+  account: Prisma.AccountCreateNestedOneWithoutRecurringRulesInput
+  currency: Prisma.CurrencyCreateNestedOneWithoutRecurringRulesInput
+  category?: Prisma.CategoryCreateNestedOneWithoutRecurringRulesInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutRecurringRuleInput
 }
 
 export type RecurringRuleUncheckedCreateWithoutFrequencyInput = {
@@ -1135,10 +1306,12 @@ export type RecurringRuleUncheckedCreateWithoutFrequencyInput = {
   nextRunAt: Date | string
   endsAt?: Date | string | null
   maxOccurrences?: number | null
+  occurrenceCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   isDeleted?: boolean
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutRecurringRuleInput
 }
 
 export type RecurringRuleCreateOrConnectWithoutFrequencyInput = {
@@ -1179,6 +1352,7 @@ export type RecurringRuleCreateManyUserInput = {
   nextRunAt: Date | string
   endsAt?: Date | string | null
   maxOccurrences?: number | null
+  occurrenceCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1193,6 +1367,7 @@ export type RecurringRuleUpdateWithoutUserInput = {
   nextRunAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   maxOccurrences?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  occurrenceCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1201,6 +1376,7 @@ export type RecurringRuleUpdateWithoutUserInput = {
   currency?: Prisma.CurrencyUpdateOneRequiredWithoutRecurringRulesNestedInput
   category?: Prisma.CategoryUpdateOneWithoutRecurringRulesNestedInput
   frequency?: Prisma.RecurringFrequencyUpdateOneRequiredWithoutRecurringRulesNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutRecurringRuleNestedInput
 }
 
 export type RecurringRuleUncheckedUpdateWithoutUserInput = {
@@ -1215,10 +1391,12 @@ export type RecurringRuleUncheckedUpdateWithoutUserInput = {
   nextRunAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   maxOccurrences?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  occurrenceCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutRecurringRuleNestedInput
 }
 
 export type RecurringRuleUncheckedUpdateManyWithoutUserInput = {
@@ -1233,6 +1411,7 @@ export type RecurringRuleUncheckedUpdateManyWithoutUserInput = {
   nextRunAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   maxOccurrences?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  occurrenceCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1251,6 +1430,7 @@ export type RecurringRuleCreateManyCurrencyInput = {
   nextRunAt: Date | string
   endsAt?: Date | string | null
   maxOccurrences?: number | null
+  occurrenceCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1265,6 +1445,7 @@ export type RecurringRuleUpdateWithoutCurrencyInput = {
   nextRunAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   maxOccurrences?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  occurrenceCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1273,6 +1454,7 @@ export type RecurringRuleUpdateWithoutCurrencyInput = {
   account?: Prisma.AccountUpdateOneRequiredWithoutRecurringRulesNestedInput
   category?: Prisma.CategoryUpdateOneWithoutRecurringRulesNestedInput
   frequency?: Prisma.RecurringFrequencyUpdateOneRequiredWithoutRecurringRulesNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutRecurringRuleNestedInput
 }
 
 export type RecurringRuleUncheckedUpdateWithoutCurrencyInput = {
@@ -1287,10 +1469,12 @@ export type RecurringRuleUncheckedUpdateWithoutCurrencyInput = {
   nextRunAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   maxOccurrences?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  occurrenceCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutRecurringRuleNestedInput
 }
 
 export type RecurringRuleUncheckedUpdateManyWithoutCurrencyInput = {
@@ -1305,6 +1489,7 @@ export type RecurringRuleUncheckedUpdateManyWithoutCurrencyInput = {
   nextRunAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   maxOccurrences?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  occurrenceCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1323,6 +1508,7 @@ export type RecurringRuleCreateManyAccountInput = {
   nextRunAt: Date | string
   endsAt?: Date | string | null
   maxOccurrences?: number | null
+  occurrenceCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1337,6 +1523,7 @@ export type RecurringRuleUpdateWithoutAccountInput = {
   nextRunAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   maxOccurrences?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  occurrenceCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1345,6 +1532,7 @@ export type RecurringRuleUpdateWithoutAccountInput = {
   currency?: Prisma.CurrencyUpdateOneRequiredWithoutRecurringRulesNestedInput
   category?: Prisma.CategoryUpdateOneWithoutRecurringRulesNestedInput
   frequency?: Prisma.RecurringFrequencyUpdateOneRequiredWithoutRecurringRulesNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutRecurringRuleNestedInput
 }
 
 export type RecurringRuleUncheckedUpdateWithoutAccountInput = {
@@ -1359,10 +1547,12 @@ export type RecurringRuleUncheckedUpdateWithoutAccountInput = {
   nextRunAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   maxOccurrences?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  occurrenceCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutRecurringRuleNestedInput
 }
 
 export type RecurringRuleUncheckedUpdateManyWithoutAccountInput = {
@@ -1377,6 +1567,7 @@ export type RecurringRuleUncheckedUpdateManyWithoutAccountInput = {
   nextRunAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   maxOccurrences?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  occurrenceCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1395,6 +1586,7 @@ export type RecurringRuleCreateManyCategoryInput = {
   nextRunAt: Date | string
   endsAt?: Date | string | null
   maxOccurrences?: number | null
+  occurrenceCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1409,6 +1601,7 @@ export type RecurringRuleUpdateWithoutCategoryInput = {
   nextRunAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   maxOccurrences?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  occurrenceCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1417,6 +1610,7 @@ export type RecurringRuleUpdateWithoutCategoryInput = {
   account?: Prisma.AccountUpdateOneRequiredWithoutRecurringRulesNestedInput
   currency?: Prisma.CurrencyUpdateOneRequiredWithoutRecurringRulesNestedInput
   frequency?: Prisma.RecurringFrequencyUpdateOneRequiredWithoutRecurringRulesNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutRecurringRuleNestedInput
 }
 
 export type RecurringRuleUncheckedUpdateWithoutCategoryInput = {
@@ -1431,10 +1625,12 @@ export type RecurringRuleUncheckedUpdateWithoutCategoryInput = {
   nextRunAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   maxOccurrences?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  occurrenceCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutRecurringRuleNestedInput
 }
 
 export type RecurringRuleUncheckedUpdateManyWithoutCategoryInput = {
@@ -1449,6 +1645,7 @@ export type RecurringRuleUncheckedUpdateManyWithoutCategoryInput = {
   nextRunAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   maxOccurrences?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  occurrenceCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1467,6 +1664,7 @@ export type RecurringRuleCreateManyFrequencyInput = {
   nextRunAt: Date | string
   endsAt?: Date | string | null
   maxOccurrences?: number | null
+  occurrenceCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1481,6 +1679,7 @@ export type RecurringRuleUpdateWithoutFrequencyInput = {
   nextRunAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   maxOccurrences?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  occurrenceCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1489,6 +1688,7 @@ export type RecurringRuleUpdateWithoutFrequencyInput = {
   account?: Prisma.AccountUpdateOneRequiredWithoutRecurringRulesNestedInput
   currency?: Prisma.CurrencyUpdateOneRequiredWithoutRecurringRulesNestedInput
   category?: Prisma.CategoryUpdateOneWithoutRecurringRulesNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutRecurringRuleNestedInput
 }
 
 export type RecurringRuleUncheckedUpdateWithoutFrequencyInput = {
@@ -1503,10 +1703,12 @@ export type RecurringRuleUncheckedUpdateWithoutFrequencyInput = {
   nextRunAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   maxOccurrences?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  occurrenceCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutRecurringRuleNestedInput
 }
 
 export type RecurringRuleUncheckedUpdateManyWithoutFrequencyInput = {
@@ -1521,12 +1723,42 @@ export type RecurringRuleUncheckedUpdateManyWithoutFrequencyInput = {
   nextRunAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   maxOccurrences?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  occurrenceCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
+
+/**
+ * Count Type RecurringRuleCountOutputType
+ */
+
+export type RecurringRuleCountOutputType = {
+  transactions: number
+}
+
+export type RecurringRuleCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  transactions?: boolean | RecurringRuleCountOutputTypeCountTransactionsArgs
+}
+
+/**
+ * RecurringRuleCountOutputType without action
+ */
+export type RecurringRuleCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RecurringRuleCountOutputType
+   */
+  select?: Prisma.RecurringRuleCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * RecurringRuleCountOutputType without action
+ */
+export type RecurringRuleCountOutputTypeCountTransactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TransactionWhereInput
+}
 
 
 export type RecurringRuleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1542,6 +1774,7 @@ export type RecurringRuleSelect<ExtArgs extends runtime.Types.Extensions.Interna
   nextRunAt?: boolean
   endsAt?: boolean
   maxOccurrences?: boolean
+  occurrenceCount?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
@@ -1551,6 +1784,8 @@ export type RecurringRuleSelect<ExtArgs extends runtime.Types.Extensions.Interna
   currency?: boolean | Prisma.CurrencyDefaultArgs<ExtArgs>
   category?: boolean | Prisma.RecurringRule$categoryArgs<ExtArgs>
   frequency?: boolean | Prisma.RecurringFrequencyDefaultArgs<ExtArgs>
+  transactions?: boolean | Prisma.RecurringRule$transactionsArgs<ExtArgs>
+  _count?: boolean | Prisma.RecurringRuleCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["recurringRule"]>
 
 export type RecurringRuleSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1566,6 +1801,7 @@ export type RecurringRuleSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   nextRunAt?: boolean
   endsAt?: boolean
   maxOccurrences?: boolean
+  occurrenceCount?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
@@ -1590,6 +1826,7 @@ export type RecurringRuleSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   nextRunAt?: boolean
   endsAt?: boolean
   maxOccurrences?: boolean
+  occurrenceCount?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
@@ -1614,19 +1851,22 @@ export type RecurringRuleSelectScalar = {
   nextRunAt?: boolean
   endsAt?: boolean
   maxOccurrences?: boolean
+  occurrenceCount?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
   isDeleted?: boolean
 }
 
-export type RecurringRuleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "accountId" | "currencyId" | "categoryId" | "frequencyId" | "name" | "amount" | "direction" | "nextRunAt" | "endsAt" | "maxOccurrences" | "createdAt" | "updatedAt" | "deletedAt" | "isDeleted", ExtArgs["result"]["recurringRule"]>
+export type RecurringRuleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "accountId" | "currencyId" | "categoryId" | "frequencyId" | "name" | "amount" | "direction" | "nextRunAt" | "endsAt" | "maxOccurrences" | "occurrenceCount" | "createdAt" | "updatedAt" | "deletedAt" | "isDeleted", ExtArgs["result"]["recurringRule"]>
 export type RecurringRuleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   account?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
   currency?: boolean | Prisma.CurrencyDefaultArgs<ExtArgs>
   category?: boolean | Prisma.RecurringRule$categoryArgs<ExtArgs>
   frequency?: boolean | Prisma.RecurringFrequencyDefaultArgs<ExtArgs>
+  transactions?: boolean | Prisma.RecurringRule$transactionsArgs<ExtArgs>
+  _count?: boolean | Prisma.RecurringRuleCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type RecurringRuleIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1651,6 +1891,7 @@ export type $RecurringRulePayload<ExtArgs extends runtime.Types.Extensions.Inter
     currency: Prisma.$CurrencyPayload<ExtArgs>
     category: Prisma.$CategoryPayload<ExtArgs> | null
     frequency: Prisma.$RecurringFrequencyPayload<ExtArgs>
+    transactions: Prisma.$TransactionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1665,6 +1906,7 @@ export type $RecurringRulePayload<ExtArgs extends runtime.Types.Extensions.Inter
     nextRunAt: Date
     endsAt: Date | null
     maxOccurrences: number | null
+    occurrenceCount: number
     createdAt: Date
     updatedAt: Date
     deletedAt: Date | null
@@ -2068,6 +2310,7 @@ export interface Prisma__RecurringRuleClient<T, Null = never, ExtArgs extends ru
   currency<T extends Prisma.CurrencyDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CurrencyDefaultArgs<ExtArgs>>): Prisma.Prisma__CurrencyClient<runtime.Types.Result.GetResult<Prisma.$CurrencyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   category<T extends Prisma.RecurringRule$categoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RecurringRule$categoryArgs<ExtArgs>>): Prisma.Prisma__CategoryClient<runtime.Types.Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   frequency<T extends Prisma.RecurringFrequencyDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RecurringFrequencyDefaultArgs<ExtArgs>>): Prisma.Prisma__RecurringFrequencyClient<runtime.Types.Result.GetResult<Prisma.$RecurringFrequencyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  transactions<T extends Prisma.RecurringRule$transactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RecurringRule$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2109,6 +2352,7 @@ export interface RecurringRuleFieldRefs {
   readonly nextRunAt: Prisma.FieldRef<"RecurringRule", 'DateTime'>
   readonly endsAt: Prisma.FieldRef<"RecurringRule", 'DateTime'>
   readonly maxOccurrences: Prisma.FieldRef<"RecurringRule", 'Int'>
+  readonly occurrenceCount: Prisma.FieldRef<"RecurringRule", 'Int'>
   readonly createdAt: Prisma.FieldRef<"RecurringRule", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"RecurringRule", 'DateTime'>
   readonly deletedAt: Prisma.FieldRef<"RecurringRule", 'DateTime'>
@@ -2530,6 +2774,30 @@ export type RecurringRule$categoryArgs<ExtArgs extends runtime.Types.Extensions.
    */
   include?: Prisma.CategoryInclude<ExtArgs> | null
   where?: Prisma.CategoryWhereInput
+}
+
+/**
+ * RecurringRule.transactions
+ */
+export type RecurringRule$transactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Transaction
+   */
+  select?: Prisma.TransactionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Transaction
+   */
+  omit?: Prisma.TransactionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TransactionInclude<ExtArgs> | null
+  where?: Prisma.TransactionWhereInput
+  orderBy?: Prisma.TransactionOrderByWithRelationInput | Prisma.TransactionOrderByWithRelationInput[]
+  cursor?: Prisma.TransactionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TransactionScalarFieldEnum | Prisma.TransactionScalarFieldEnum[]
 }
 
 /**

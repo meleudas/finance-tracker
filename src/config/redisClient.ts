@@ -7,9 +7,12 @@ const globalForRedis = globalThis as unknown as {
 };
 
 function createRedisClient(): Redis {
+  const isTest = env.NODE_ENV === "test";
   const client = new Redis(env.REDIS_URL, {
-    maxRetriesPerRequest: 3,
+    maxRetriesPerRequest: isTest ? 0 : 3,
     lazyConnect: true,
+    enableOfflineQueue: !isTest,
+    retryStrategy: isTest ? () => null : undefined,
   });
 
   client.on("connect", () => {

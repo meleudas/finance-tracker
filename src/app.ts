@@ -1,13 +1,14 @@
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
-import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import { randomUUID } from "node:crypto";
 import pinoHttp from "pino-http";
-import { env } from "./config/env";
+import { config } from "./config/ConfigService";
 import { logger } from "./config/logger";
-//import { attachAbortSignal } from "./middleware/abortSignal";
+import { csrfProtection, CSRF_HEADER_NAME } from "./middleware/csrfProtection";
+import { apiLimiter } from "./middleware/rateLimit";
+import { attachAbortSignal } from "./middleware/abortSignal";
 import { errorHandler } from "./middleware/errorHandler";
 import { notFoundHandler } from "./middleware/notFound";
 import { mountOpenApiRoutes } from "./routes/openapi.routes";
@@ -21,11 +22,14 @@ export function createApp(): express.Application {
   app.use(helmet());
   app.use(
     cors({
-      origin: env.CORS_ORIGIN,
+      origin: config.corsOrigin,
       credentials: true,
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization", CSRF_HEADER_NAME, "X-User-Id"],
     }),
   );
   app.use(cookieParser());
+  app.use("/api/v1", csrfProtection);
   app.use(
     pinoHttp({
       logger,
@@ -37,16 +41,10 @@ export function createApp(): express.Application {
     }),
   );
 
-  const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 300,
-    standardHeaders: true,
-    legacyHeaders: false,
-  });
-  app.use(limiter);
+  app.use(apiLimiter);
 
   app.use(express.json({ limit: "1mb" }));
-  //app.use(attachAbortSignal);
+  app.use(attachAbortSignal);
 
   app.get("/health", (_req, res) => {
     res.status(200).json({ status: "ok" });

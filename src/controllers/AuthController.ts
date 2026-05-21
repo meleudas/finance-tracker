@@ -1,10 +1,13 @@
-import { Request, Response } from "express";
-import { IAuthService } from "../services/interfaces/auth/IAuthService";
-import { ConfigService } from "../config/ConfigService";
-import { RegisterSchema } from "../validators/auth/registerSchema";
+import type { CookieOptions, Request, Response } from "express";
+import type { IAuthService } from "../services/interfaces/IAuthService";
+import type { ConfigService } from "../config/ConfigService";
+import type { LoginSchema } from "../validators/loginSchema";
+import type { RegisterSchema } from "../validators/registerSchema";
 import { getServiceContext } from "../http/requestContext";
-import { asyncHandler } from "../middleware/asyncHandler";
-import { unauthorizedError } from "../utils/errors/apiError";
+import { UnauthorizedError } from "../utils/errors/securityErrors";
+import { jwtTtlToMs } from "../utils/jwtTtl";
+import { getAuthCookieOptions } from "../config/authCookieOptions";
+import { issueCsrfToken } from "../middleware/csrfProtection";
 
 export class AuthController {
   constructor(
@@ -12,112 +15,97 @@ export class AuthController {
     private readonly config: ConfigService,
   ) {}
 
-  registerHandler = asyncHandler(async (req: Request, res: Response) => {
-    const validated = req.validated as unknown as { body: RegisterSchema };
-    const { body } = validated;
+  private get cookieOptions(): Pick<CookieOptions, "secure" | "sameSite" | "path"> {
+    return getAuthCookieOptions(this.config);
+  }
 
-    const { user, accessToken, refreshToken } = await this.authService.register(
-      body,
-      getServiceContext(req)
-    );
-
+  private setAuthCookies(res: Response, accessToken: string, refreshToken: string): void {
     res.cookie("accessToken", accessToken, {
+      ...this.cookieOptions,
       httpOnly: true,
-      secure: this.config.isProduction,
-      sameSite: this.config.isProduction ? "none" : "lax",
-      path: "/",
-      maxAge: 15 * 60 * 1000,
+      maxAge: jwtTtlToMs(this.config.jwtAccessTTL),
     });
 
     res.cookie("refreshToken", refreshToken, {
+      ...this.cookieOptions,
       httpOnly: true,
-      secure: this.config.isProduction,
-      sameSite: this.config.isProduction ? "none" : "lax",
-      path: "/",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: jwtTtlToMs(this.config.jwtRefreshTTL),
     });
+  }
+
+  csrfHandler = (_req: Request, res: Response): void => {
+    const csrfToken = issueCsrfToken(res, getAuthCookieOptions(this.config));
+    res.status(200).json({
+      success: true,
+      data: { csrfToken },
+    });
+  };
+
+  registerHandler = async (req: Request, res: Response): Promise<void> => {
+    const { body } = req.validated as { body: RegisterSchema };
+
+    const { user, accessToken, refreshToken } = await this.authService.register(
+      body,
+      getServiceContext(req),
+    );
+
+    this.setAuthCookies(res, accessToken, refreshToken);
 
     res.status(201).json({
       success: true,
       data: { user, accessToken, refreshToken },
     });
-  });
+  };
 
-  loginHandler = asyncHandler(async (req: Request, res: Response) => {
-    const validated = req.validated as unknown as { body: { email: string; password: string } };
-    const { body } = validated;
+  loginHandler = async (req: Request, res: Response): Promise<void> => {
+    const { body } = req.validated as { body: LoginSchema };
 
     const { user, accessToken, refreshToken } = await this.authService.login(
       body.email,
       body.password,
-      getServiceContext(req)
+      getServiceContext(req),
     );
 
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: this.config.isProduction,
-      sameSite: this.config.isProduction ? "none" : "lax",
-      path: "/",
-      maxAge: 15 * 60 * 1000,
-    });
-
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: this.config.isProduction,
-      sameSite: this.config.isProduction ? "none" : "lax",
-      path: "/",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    this.setAuthCookies(res, accessToken, refreshToken);
 
     res.status(200).json({
       success: true,
       data: { user, accessToken, refreshToken },
     });
-  });
+  };
 
-  refreshHandler = asyncHandler(async (req: Request, res: Response) => {
+  refreshHandler = async (req: Request, res: Response): Promise<void> => {
     const cookies = (req.cookies as Record<string, unknown> | undefined) ?? {};
-    const body = (req.body as Record<string, unknown> | undefined) ?? {};
+    const { body } = req.validated as { body: { refreshToken?: string } };
 
-    const token = (cookies.refreshToken as string | undefined) ?? (body.refreshToken as string | undefined);
+    const tokenRaw = cookies.refreshToken ?? body.refreshToken;
 
-    if (!token || typeof token !== "string") {
-      throw unauthorizedError();
+    if (!tokenRaw || typeof tokenRaw !== "string") {
+      throw new UnauthorizedError();
     }
 
-    const isBlacklisted = await this.authService.isTokenBlacklisted(token, getServiceContext(req));
+    const isBlacklisted = await this.authService.isTokenBlacklisted(
+      tokenRaw,
+      getServiceContext(req),
+    );
     if (isBlacklisted) {
-      throw unauthorizedError();
+      throw new UnauthorizedError();
     }
 
     const { accessToken, refreshToken: newRefreshToken } = await this.authService.refreshToken(
-      token,
-      getServiceContext(req)
+      tokenRaw,
+      getServiceContext(req),
     );
 
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: this.config.isProduction,
-      sameSite: this.config.isProduction ? "none" : "lax",
-      path: "/",
-      maxAge: 15 * 60 * 1000,
-    });
-
-    res.cookie("refreshToken", newRefreshToken, {
-      httpOnly: true,
-      secure: this.config.isProduction,
-      sameSite: this.config.isProduction ? "none" : "lax",
-      path: "/",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    this.setAuthCookies(res, accessToken, newRefreshToken);
 
     res.status(200).json({
       success: true,
       data: { accessToken, refreshToken: newRefreshToken },
     });
-  });
+  };
 
-  logoutHandler = asyncHandler(async (req: Request, res: Response) => {
+  logoutHandler = async (req: Request, res: Response): Promise<void> => {
     let accessToken: string | undefined;
 
     const authHeader = req.headers.authorization;
@@ -132,21 +120,17 @@ export class AuthController {
     await this.authService.logout(accessToken, refreshToken, getServiceContext(req));
 
     res.clearCookie("accessToken", {
+      ...this.cookieOptions,
       httpOnly: true,
-      secure: this.config.isProduction,
-      sameSite: this.config.isProduction ? "none" : "lax",
-      path: "/",
     });
 
     res.clearCookie("refreshToken", {
+      ...this.cookieOptions,
       httpOnly: true,
-      secure: this.config.isProduction,
-      sameSite: this.config.isProduction ? "none" : "lax",
-      path: "/",
     });
 
     res.status(200).json({
       success: true,
     });
-  });
+  };
 }

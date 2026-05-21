@@ -1,10 +1,15 @@
 // src/mappers/category.mapper.ts
 import type { Category } from "../generated/prisma/client";
+import type { CategoryNode } from "../services/interfaces/ICategoryService";
 import {
   CategoryResponseSchema,
   type CategoryResponseDto,
 } from "../dtos/category/CategoryResponse.dto";
 import { toIsoString } from "./prisma-format.utils";
+
+export interface CategoryTreeNodeDto extends CategoryResponseDto {
+  children: CategoryTreeNodeDto[];
+}
 
 function toCategoryFields(category: Category) {
   return {
@@ -26,33 +31,13 @@ export function toCategoryResponse(category: Category): CategoryResponseDto {
   return CategoryResponseSchema.parse(toCategoryFields(category));
 }
 
-/**
- * Мапить масив сутностей Category у список відповідей
- */
-export function toCategoryResponseList(categories: Category[]): CategoryResponseDto[] {
-  return categories.map((category) => toCategoryResponse(category));
+export function toCategoryTreeNode(node: CategoryNode): CategoryTreeNodeDto {
+  return {
+    ...toCategoryResponse(node),
+    children: node.children.map(toCategoryTreeNode),
+  };
 }
 
-/**
- * Мапить результат запиту з пагінацією у стандартну відповідь списку
- * @param categories - масив сутностей Category з Prisma
- * @param page - поточна сторінка
- * @param limit - ліміт на сторінку
- * @param total - загальна кількість записів
- */
-export function toCategoryListResponse(
-  categories: Category[],
-  page: number,
-  limit: number,
-  total: number,
-) {
-  return {
-    data: toCategoryResponseList(categories),
-    meta: {
-      page,
-      limit,
-      total,
-      hasNextPage: page * limit < total,
-    },
-  };
+export function toCategoryTreeResponse(nodes: CategoryNode[]): CategoryTreeNodeDto[] {
+  return nodes.map(toCategoryTreeNode);
 }

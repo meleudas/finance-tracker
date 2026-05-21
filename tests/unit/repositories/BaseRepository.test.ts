@@ -1,7 +1,7 @@
 jest.mock("../../../src/config/prismaClient");
 
 import { BaseRepository, type PrismaDelegate } from "../../../src/repositories/impl/BaseRepository";
-import { AbortError } from "../../../src/utils/errors/СlientErrors";
+import { AbortError } from "../../../src/utils/errors/ClientErrors";
 
 interface TestEntity {
   id: string;

@@ -17,7 +17,7 @@ declare global {
         email: string;
       };
 
-      /** Output of validate() middleware */
+      /** Output of createRequestValidator middleware */
       validated?: {
         body?: RegisterSchema | LoginSchema | Record<string, unknown>;
         query?: Record<string, unknown>;

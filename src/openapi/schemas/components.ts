@@ -18,15 +18,24 @@ import {
   presignedUploadUrlRequestSchema,
   presignedUploadUrlResponseSchema,
 } from "../../dtos/attachment";
-import { uploadAttachmentSchema } from "../../dtos/attachment";
+import { confirmPresignedUploadSchema, uploadAttachmentSchema } from "../../dtos/attachment";
 import { deleteResponseSchema } from "../../dtos/common";
 import { attachmentIdParamSchema, idDtoSchema, transactionIdParamSchema } from "../../dtos/common";
 import { openApiRegistry } from "../registry";
 import { dataEnvelopeSchema, paginatedEnvelopeSchema } from "./envelope";
-import { CreateBudgetDto, CreateBudgetSchema } from "../../dtos/budget/CreateBudget.dto";
-import { BudgetResponseDto, BudgetResponseSchema } from "../../dtos/budget/BudgetResponse.dto";
-import { CurrencyResponseSchema } from "../../dtos/currency/CurrencyResponse.dto";
+import { CreateBudgetSchema } from "../../dtos/budget/CreateBudget.dto";
+import { UpdateBudgetSchema } from "../../dtos/budget/UpdateBudget.dto";
+import { UpdateBudgetLimitSchema } from "../../dtos/budget/UpdateBudgetLimit.dto";
+import { BudgetQuerySchema } from "../../dtos/budget/BudgetQuery.dto";
+import { BudgetResponseSchema } from "../../dtos/budget/BudgetResponse.dto";
+import { BudgetProgressResponseSchema } from "../../dtos/budget/BudgetProgress.dto";
+import {
+  CurrencyResponseSchema,
+  PublicCurrencyResponseSchema,
+} from "../../dtos/currency/CurrencyResponse.dto";
+import { currencyCodeParamSchema } from "../../validators/currency.validator";
 import { CreateCategorySchema } from "../../dtos/category/CreateCategory.dto";
+import { UpdateCategorySchema } from "../../dtos/category/UpdateCategory.dto";
 import { CategoryResponseSchema } from "../../dtos/category/CategoryResponse.dto";
 
 // === ACCOUNTS IMPORTS ===
@@ -34,6 +43,24 @@ import { CreateAccountSchema } from "../../dtos/account/CreateAccount.dto";
 import { UpdateAccountSchema } from "../../dtos/account/UpdateAccount.dto";
 import { AccountResponseSchema } from "../../dtos/account/AccountResponse.dto";
 import { accountListQuerySchema } from "../../dtos/account/AccountListQuery.dto";
+import {
+  reportQuerySchema,
+  financialReportSchema,
+  createReportJobSchema,
+  reportJobResponseSchema,
+} from "../../dtos/report";
+import {
+  CreateRecurringFrequencySchema,
+  UpdateRecurringFrequencySchema,
+  RecurringFrequencyResponseSchema,
+  recurringFrequencyListQuerySchema,
+} from "../../dtos/recurring-frequency";
+import {
+  CreateRecurringRuleSchema,
+  UpdateRecurringRuleSchema,
+  RecurringRuleResponseSchema,
+  recurringRuleListQuerySchema,
+} from "../../dtos/recurring-rule";
 
 // === AUTH IMPORTS ===
 import { AuthResponseSchema } from "../../dtos/auth/AuthResponse.dto";
@@ -127,6 +154,10 @@ export const PresignedUploadUrlRequestSchema = openApiRegistry.register(
 export const PresignedUploadUrlResponseSchemaRef = openApiRegistry.register(
   "PresignedUploadUrlResponse",
   presignedUploadUrlResponseSchema,
+);
+export const ConfirmPresignedUploadBodySchema = openApiRegistry.register(
+  "ConfirmPresignedUpload",
+  confirmPresignedUploadSchema,
 );
 export const UploadAttachmentMetadataSchema = openApiRegistry.register(
   "UploadAttachmentMetadata",
@@ -265,14 +296,29 @@ export const DeleteResponseEnvelopeSchema = dataEnvelopeSchema(
 );
 
 // Budget schemas
-export const CreateBudgetBodySchema = openApiRegistry.register(
-  "CreateBudget",
-  CreateBudgetSchema,
+export const CreateBudgetBodySchema = openApiRegistry.register("CreateBudget", CreateBudgetSchema);
+
+export const UpdateBudgetBodySchema = openApiRegistry.register("UpdateBudget", UpdateBudgetSchema);
+
+export const UpdateBudgetLimitBodySchema = openApiRegistry.register(
+  "UpdateBudgetLimit",
+  UpdateBudgetLimitSchema,
 );
 
-export const UpdateBudgetBodySchema = openApiRegistry.register(
-  "UpdateBudget",
-  CreateBudgetSchema.partial(),
+export const BudgetQuerySchemaRef = openApiRegistry.register("BudgetQuery", BudgetQuerySchema);
+
+export const BudgetProgressResponseSchemaRef = openApiRegistry.register(
+  "BudgetProgressResponse",
+  BudgetProgressResponseSchema,
+);
+
+export const BudgetProgressQuerySchema = openApiRegistry.register(
+  "BudgetProgressQuery",
+  z.object({
+    date: z.coerce.date().optional().openapi({
+      description: "Target date for progress (defaults to today)",
+    }),
+  }),
 );
 
 export const BudgetResponseSchemaRef = openApiRegistry.register(
@@ -286,6 +332,16 @@ export const CurrencyResponseSchemaRef = openApiRegistry.register(
   CurrencyResponseSchema,
 );
 
+export const PublicCurrencyResponseSchemaRef = openApiRegistry.register(
+  "PublicCurrencyResponse",
+  PublicCurrencyResponseSchema,
+);
+
+export const CurrencyCodeParamsSchema = openApiRegistry.register(
+  "CurrencyCodeParams",
+  currencyCodeParamSchema,
+);
+
 export const CreateCategoryBodySchema = openApiRegistry.register(
   "CreateCategory",
   CreateCategorySchema,
@@ -293,7 +349,22 @@ export const CreateCategoryBodySchema = openApiRegistry.register(
 
 export const UpdateCategoryBodySchema = openApiRegistry.register(
   "UpdateCategory",
-  CreateCategorySchema.partial(),
+  UpdateCategorySchema,
+);
+
+export const categoryTreeNodeSchema: z.ZodType<
+  z.infer<typeof CategoryResponseSchema> & {
+    children: z.infer<typeof categoryTreeNodeSchema>[];
+  }
+> = z.lazy(() =>
+  CategoryResponseSchema.extend({
+    children: z.array(categoryTreeNodeSchema),
+  }),
+);
+
+export const CategoryTreeNodeSchemaRef = openApiRegistry.register(
+  "CategoryTreeNode",
+  categoryTreeNodeSchema,
 );
 
 export const CategoryResponseSchemaRef = openApiRegistry.register(
@@ -310,13 +381,18 @@ export const BudgetListEnvelopeSchema = paginatedEnvelopeSchema(
   "BudgetListEnvelope",
 );
 
+export const BudgetProgressListEnvelopeSchema = dataEnvelopeSchema(
+  z.array(BudgetProgressResponseSchemaRef),
+  "BudgetProgressListEnvelope",
+);
+
 // Currency envelopes
 export const CurrencyResponseEnvelopeSchema = dataEnvelopeSchema(
-  CurrencyResponseSchemaRef,
+  PublicCurrencyResponseSchemaRef,
   "CurrencyResponseEnvelope",
 );
-export const CurrencyListEnvelopeSchema = paginatedEnvelopeSchema(
-  CurrencyResponseSchemaRef,
+export const CurrencyListEnvelopeSchema = dataEnvelopeSchema(
+  z.array(PublicCurrencyResponseSchemaRef),
   "CurrencyListEnvelope",
 );
 
@@ -325,7 +401,97 @@ export const CategoryResponseEnvelopeSchema = dataEnvelopeSchema(
   CategoryResponseSchemaRef,
   "CategoryResponseEnvelope",
 );
-export const CategoryListEnvelopeSchema = paginatedEnvelopeSchema(
-  CategoryResponseSchemaRef,
-  "CategoryListEnvelope",
+export const CategoryTreeListEnvelopeSchema = dataEnvelopeSchema(
+  z.array(CategoryTreeNodeSchemaRef),
+  "CategoryTreeListEnvelope",
+);
+
+// Reports
+export const ReportQuerySchemaRef = openApiRegistry.register("ReportQuery", reportQuerySchema);
+
+export const FinancialReportSchemaRef = openApiRegistry.register(
+  "FinancialReport",
+  financialReportSchema,
+);
+
+export const FinancialReportEnvelopeSchema = dataEnvelopeSchema(
+  FinancialReportSchemaRef,
+  "FinancialReportEnvelope",
+);
+
+export const CreateReportJobBodySchema = openApiRegistry.register(
+  "CreateReportJob",
+  createReportJobSchema,
+);
+
+export const ReportJobResponseSchemaRef = openApiRegistry.register(
+  "ReportJobResponse",
+  reportJobResponseSchema,
+);
+
+export const ReportJobResponseEnvelopeSchema = dataEnvelopeSchema(
+  ReportJobResponseSchemaRef,
+  "ReportJobResponseEnvelope",
+);
+
+// Recurring frequency
+export const CreateRecurringFrequencyBodySchema = openApiRegistry.register(
+  "CreateRecurringFrequency",
+  CreateRecurringFrequencySchema,
+);
+
+export const UpdateRecurringFrequencyBodySchema = openApiRegistry.register(
+  "UpdateRecurringFrequency",
+  UpdateRecurringFrequencySchema,
+);
+
+export const RecurringFrequencyResponseSchemaRef = openApiRegistry.register(
+  "RecurringFrequencyResponse",
+  RecurringFrequencyResponseSchema,
+);
+
+export const RecurringFrequencyListQuerySchemaRef = openApiRegistry.register(
+  "RecurringFrequencyListQuery",
+  recurringFrequencyListQuerySchema,
+);
+
+export const RecurringFrequencyResponseEnvelopeSchema = dataEnvelopeSchema(
+  RecurringFrequencyResponseSchemaRef,
+  "RecurringFrequencyResponseEnvelope",
+);
+
+export const RecurringFrequencyListEnvelopeSchema = paginatedEnvelopeSchema(
+  RecurringFrequencyResponseSchemaRef,
+  "RecurringFrequencyListEnvelope",
+);
+
+// Recurring rules
+export const CreateRecurringRuleBodySchema = openApiRegistry.register(
+  "CreateRecurringRule",
+  CreateRecurringRuleSchema,
+);
+
+export const UpdateRecurringRuleBodySchema = openApiRegistry.register(
+  "UpdateRecurringRule",
+  UpdateRecurringRuleSchema,
+);
+
+export const RecurringRuleResponseSchemaRef = openApiRegistry.register(
+  "RecurringRuleResponse",
+  RecurringRuleResponseSchema,
+);
+
+export const RecurringRuleListQuerySchemaRef = openApiRegistry.register(
+  "RecurringRuleListQuery",
+  recurringRuleListQuerySchema,
+);
+
+export const RecurringRuleResponseEnvelopeSchema = dataEnvelopeSchema(
+  RecurringRuleResponseSchemaRef,
+  "RecurringRuleResponseEnvelope",
+);
+
+export const RecurringRuleListEnvelopeSchema = paginatedEnvelopeSchema(
+  RecurringRuleResponseSchemaRef,
+  "RecurringRuleListEnvelope",
 );

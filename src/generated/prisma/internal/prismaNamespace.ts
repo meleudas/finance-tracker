@@ -393,7 +393,8 @@ export const ModelName = {
   Budget: 'Budget',
   RecurringRule: 'RecurringRule',
   RecurringFrequency: 'RecurringFrequency',
-  Attachment: 'Attachment'
+  Attachment: 'Attachment',
+  ReportJob: 'ReportJob'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -409,7 +410,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "currency" | "account" | "category" | "transaction" | "transfer" | "budget" | "recurringRule" | "recurringFrequency" | "attachment"
+    modelProps: "user" | "currency" | "account" | "category" | "transaction" | "transfer" | "budget" | "recurringRule" | "recurringFrequency" | "attachment" | "reportJob"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1153,6 +1154,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ReportJob: {
+      payload: Prisma.$ReportJobPayload<ExtArgs>
+      fields: Prisma.ReportJobFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ReportJobFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportJobPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ReportJobFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportJobPayload>
+        }
+        findFirst: {
+          args: Prisma.ReportJobFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportJobPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ReportJobFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportJobPayload>
+        }
+        findMany: {
+          args: Prisma.ReportJobFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportJobPayload>[]
+        }
+        create: {
+          args: Prisma.ReportJobCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportJobPayload>
+        }
+        createMany: {
+          args: Prisma.ReportJobCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ReportJobCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportJobPayload>[]
+        }
+        delete: {
+          args: Prisma.ReportJobDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportJobPayload>
+        }
+        update: {
+          args: Prisma.ReportJobUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportJobPayload>
+        }
+        deleteMany: {
+          args: Prisma.ReportJobDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ReportJobUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ReportJobUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportJobPayload>[]
+        }
+        upsert: {
+          args: Prisma.ReportJobUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportJobPayload>
+        }
+        aggregate: {
+          args: Prisma.ReportJobAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateReportJob>
+        }
+        groupBy: {
+          args: Prisma.ReportJobGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ReportJobGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ReportJobCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ReportJobCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1254,6 +1329,7 @@ export const TransactionScalarFieldEnum = {
   accountId: 'accountId',
   currencyId: 'currencyId',
   categoryId: 'categoryId',
+  recurringRuleId: 'recurringRuleId',
   amount: 'amount',
   direction: 'direction',
   occurredAt: 'occurredAt',
@@ -1317,6 +1393,7 @@ export const RecurringRuleScalarFieldEnum = {
   nextRunAt: 'nextRunAt',
   endsAt: 'endsAt',
   maxOccurrences: 'maxOccurrences',
+  occurrenceCount: 'occurrenceCount',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt',
@@ -1356,12 +1433,39 @@ export const AttachmentScalarFieldEnum = {
 export type AttachmentScalarFieldEnum = (typeof AttachmentScalarFieldEnum)[keyof typeof AttachmentScalarFieldEnum]
 
 
+export const ReportJobScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  status: 'status',
+  format: 'format',
+  from: 'from',
+  to: 'to',
+  accountId: 'accountId',
+  includeRecurring: 'includeRecurring',
+  resultJson: 'resultJson',
+  storageKey: 'storageKey',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt',
+  completedAt: 'completedAt'
+} as const
+
+export type ReportJobScalarFieldEnum = (typeof ReportJobScalarFieldEnum)[keyof typeof ReportJobScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const QueryMode = {
@@ -1378,6 +1482,15 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
 
@@ -1488,6 +1601,48 @@ export type EnumRecurringIntervalUnitFieldRefInput<$PrismaModel> = FieldRefInput
  * Reference to a field of type 'RecurringIntervalUnit[]'
  */
 export type ListEnumRecurringIntervalUnitFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RecurringIntervalUnit[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ReportJobStatus'
+ */
+export type EnumReportJobStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReportJobStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'ReportJobStatus[]'
+ */
+export type ListEnumReportJobStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReportJobStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ReportFormat'
+ */
+export type EnumReportFormatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReportFormat'>
+    
+
+
+/**
+ * Reference to a field of type 'ReportFormat[]'
+ */
+export type ListEnumReportFormatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReportFormat[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -1624,6 +1779,7 @@ export type GlobalOmitConfig = {
   recurringRule?: Prisma.RecurringRuleOmit
   recurringFrequency?: Prisma.RecurringFrequencyOmit
   attachment?: Prisma.AttachmentOmit
+  reportJob?: Prisma.ReportJobOmit
 }
 
 /* Types for Logging */

@@ -1,35 +1,51 @@
 import { Router } from "express";
-import { UserRepository } from "../../repositories/impl/UserRepository";
-import { validate } from "../../middleware/validate";
-import { config } from "../../config/ConfigService";
-import { AuthController } from "../../controllers/AuthController";
 import { createAuthMiddleware } from "../../middleware/auth";
-import { Cache } from "../../redis";
 import { asyncHandler } from "../../middleware/asyncHandler";
-import { TokenService } from "../../services/impl/TokenService";
-import { AuthService } from "../../services/impl/AuthService";
-import { registerSchema } from "../../validators/registerSchema";
-import { loginSchema } from "../../validators/loginSchema";
+import { strictLimiter } from "../../middleware/rateLimit";
+import {
+  LoginRequestValidator,
+  RefreshTokenRequestValidator,
+  RegisterRequestValidator,
+} from "../../validators/auth.validator";
+import type { AuthController } from "../../controllers/AuthController";
+import type { IAuthService } from "../../services/interfaces/IAuthService";
 
-const userRepository = new UserRepository();
-const tokenService = new TokenService(config);
-const cache = new Cache();
+export function createAuthRouter(deps: {
+  authService: IAuthService;
+  authController: AuthController;
+}): Router {
+  const router = Router();
+  const { authService, authController } = deps;
 
-const authService = new AuthService(userRepository, tokenService, cache);
-const authController = new AuthController(authService, config);
+  router.get("/csrf", asyncHandler(authController.csrfHandler));
 
-const router = Router();
+  router.post(
+    "/register",
+    strictLimiter,
+    RegisterRequestValidator,
+    asyncHandler(authController.registerHandler),
+  );
 
-router.post("/register", validate(registerSchema), asyncHandler(authController.registerHandler));
+  router.post(
+    "/login",
+    strictLimiter,
+    LoginRequestValidator,
+    asyncHandler(authController.loginHandler),
+  );
 
-router.post("/login", validate(loginSchema), asyncHandler(authController.loginHandler));
+  router.post(
+    "/refresh",
+    RefreshTokenRequestValidator,
+    asyncHandler(authController.refreshHandler),
+  );
 
-router.post("/refresh", asyncHandler(authController.refreshHandler));
+  router.post(
+    "/logout",
+    createAuthMiddleware(authService),
+    asyncHandler(authController.logoutHandler),
+  );
 
-router.post(
-  "/logout",
-  createAuthMiddleware(authService),
-  asyncHandler(authController.logoutHandler),
-);
+  return router;
+}
 
-export default router;
+export default createAuthRouter;

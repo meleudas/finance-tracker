@@ -1,21 +1,38 @@
 import type { ErrorRequestHandler } from "express";
-import { AppError } from "../utils/errors/AppError";
-import { AbortError } from "../utils/errors/СlientErrors";
-import { InternalError } from "../utils/errors/ServerErrors";
+import { AppError } from "../utils/errors/appError";
+import { AbortError } from "../utils/errors/ClientErrors";
+import { InternalError } from "../utils/errors/serverErrors";
 
 function isAppError(err: unknown): err is AppError {
   return err instanceof AppError;
 }
 
+function isAbortError(err: unknown): boolean {
+  return err instanceof AbortError || (err instanceof Error && err.name === "AbortError");
+}
+
+function requestIdFrom(req: { id?: unknown }): string {
+  if (typeof req.id === "string" && req.id.length > 0) {
+    return req.id;
+  }
+  return "unknown";
+}
+
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next): void => {
-  if (err instanceof AbortError || err.name === "AbortError") {
+  if (isAbortError(err)) {
     if (!res.headersSent) {
-      res.status(499).end();
+      res.status(499).json({
+        error: {
+          code: "ABORTED",
+          message: "Request was cancelled",
+          requestId: requestIdFrom(req),
+        },
+      });
     }
     return;
   }
 
-  const requestId = String(req.id);
+  const requestId = requestIdFrom(req);
 
   const appError = isAppError(err) ? err : new InternalError();
 
@@ -36,7 +53,7 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next): void =>
     error: {
       code: appError.code,
       message,
-      requestId, 
+      requestId,
     },
   };
 

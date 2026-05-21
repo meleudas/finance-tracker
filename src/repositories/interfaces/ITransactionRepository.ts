@@ -10,9 +10,29 @@ export interface TransactionFilter {
   userId: string;
   accountId?: string;
   categoryId?: string;
+  currencyId?: string;
   direction?: TransactionDirection;
   from?: Date;
   to?: Date;
+}
+
+export interface TransactionCategoryAggregate {
+  categoryId: string | null;
+  direction: TransactionDirection;
+  amount: number;
+  transactionCount: number;
+}
+
+export interface TransactionAccountAggregate {
+  accountId: string;
+  direction: TransactionDirection;
+  amount: number;
+}
+
+export interface TransactionRecurringRuleAggregate {
+  recurringRuleId: string;
+  amount: number;
+  transactionCount: number;
 }
 
 export interface ITransactionRepository extends IBaseRepository<Transaction> {
@@ -28,4 +48,24 @@ export interface ITransactionRepository extends IBaseRepository<Transaction> {
   ): Promise<PaginatedResult<Transaction>>;
   findByAccountId(accountId: string, options?: RequestOptions): Promise<Transaction[]>;
   findByCategoryId(categoryId: string, options?: RequestOptions): Promise<Transaction[]>;
+
+  sumExpenseAmount(filter: TransactionFilter, options?: RequestOptions): Promise<number>;
+  sumAmount(
+    filter: TransactionFilter,
+    direction: TransactionDirection,
+    options?: RequestOptions,
+  ): Promise<number>;
+  sumByCategory(
+    filter: TransactionFilter,
+    options?: RequestOptions,
+  ): Promise<TransactionCategoryAggregate[]>;
+  sumByAccount(
+    filter: TransactionFilter,
+    options?: RequestOptions,
+  ): Promise<TransactionAccountAggregate[]>;
+
+  sumByRecurringRule(
+    filter: TransactionFilter,
+    options?: RequestOptions,
+  ): Promise<TransactionRecurringRuleAggregate[]>;
 }

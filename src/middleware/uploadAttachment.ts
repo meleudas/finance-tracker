@@ -1,6 +1,7 @@
 import multer from "multer";
+import type { NextFunction, Request, Response } from "express";
 import { env } from "../config/env";
-import { validationError } from "../utils/errors/apiError";
+import { ValidationError } from "../utils/errors/ClientErrors";
 
 const storage = multer.memoryStorage();
 
@@ -11,18 +12,20 @@ export const uploadAttachmentMiddleware = multer({
 
 export function handleMulterError(
   err: unknown,
-  _req: unknown,
-  _res: unknown,
-  next: (err?: unknown) => void,
+  _req: Request,
+  _res: Response,
+  next: NextFunction,
 ): void {
   if (err instanceof multer.MulterError) {
     if (err.code === "LIMIT_FILE_SIZE") {
       next(
-        validationError(`File size must not exceed ${String(env.ATTACHMENT_MAX_SIZE_BYTES)} bytes`),
+        new ValidationError(
+          `File size must not exceed ${String(env.ATTACHMENT_MAX_SIZE_BYTES)} bytes`,
+        ),
       );
       return;
     }
-    next(validationError(err.message));
+    next(new ValidationError(err.message));
     return;
   }
   next(err);

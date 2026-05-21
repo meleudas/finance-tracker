@@ -2,7 +2,7 @@ import type { Currency } from "../../generated/prisma/client";
 import type { ICurrencyRepository } from "../interfaces/ICurrencyRepository";
 import type { RequestOptions } from "../interfaces/IBaseRepository";
 import { BaseRepository, type PrismaDelegate } from "./BaseRepository";
-import { withAbortSignal } from "../../utils/helpers/WithAbortSignal";
+import { withAbortSignal } from "../../utils/helpers/withAbortSignal";
 
 export class CurrencyRepository extends BaseRepository<Currency> implements ICurrencyRepository {
   protected get delegate(): PrismaDelegate {
@@ -29,6 +29,7 @@ export class CurrencyRepository extends BaseRepository<Currency> implements ICur
     return withAbortSignal(
       this.prisma.currency.findMany({
         where: { isDeleted: false },
+        orderBy: { code: "asc" },
       }),
       options?.signal,
     );

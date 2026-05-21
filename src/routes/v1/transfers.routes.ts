@@ -1,8 +1,6 @@
 import { Router } from "express";
 import { transferController } from "../../container";
 import { asyncHandler } from "../../middleware/asyncHandler";
-import { requireUser } from "../../middleware/requireUser";
-import { validate } from "../../middleware/validate";
 import {
   CreateTransferRequestValidator,
   DeleteTransferRequestValidator,
@@ -14,30 +12,20 @@ import {
 
 const router = Router();
 
-router.use(requireUser);
-
-router.get("/", validate(ListTransfersRequestValidator), asyncHandler(transferController.list));
+router.get("/", ListTransfersRequestValidator, asyncHandler(transferController.list));
 
 router.get(
   "/accounts/:accountId",
-  validate(ListTransfersByAccountRequestValidator),
+  ListTransfersByAccountRequestValidator,
   asyncHandler(transferController.listByAccount),
 );
 
-router.post("/", validate(CreateTransferRequestValidator), asyncHandler(transferController.create));
+router.post("/", CreateTransferRequestValidator, asyncHandler(transferController.create));
 
-router.get("/:id", validate(GetTransferRequestValidator), asyncHandler(transferController.getById));
+router.get("/:id", GetTransferRequestValidator, asyncHandler(transferController.getById));
 
-router.patch(
-  "/:id",
-  validate(UpdateTransferRequestValidator),
-  asyncHandler(transferController.update),
-);
+router.patch("/:id", UpdateTransferRequestValidator, asyncHandler(transferController.update));
 
-router.delete(
-  "/:id",
-  validate(DeleteTransferRequestValidator),
-  asyncHandler(transferController.remove),
-);
+router.delete("/:id", DeleteTransferRequestValidator, asyncHandler(transferController.remove));
 
 export default router;

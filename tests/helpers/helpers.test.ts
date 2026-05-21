@@ -2,10 +2,10 @@ import {
   getStartOfMonth,
   getEndOfMonth,
   getFormattedDate,
-} from "../../src/utils/helpers/DateHelpers";
+} from "../../src/utils/helpers/dateHelpers";
 import { DB_CONSTANTS } from "../../src/utils/constants/dbConstants";
-import { getPaginationOptions } from "../../src/utils/helpers/PaginationHelper";
-import { withAbortSignal } from "../../src/utils/helpers/WithAbortSignal";
+import { getPaginationOptions } from "../../src/utils/helpers/paginationHelper";
+import { withAbortSignal } from "../../src/utils/helpers/withAbortSignal";
 
 describe("Helpers Logic (Unit)", () => {
   describe("withAbortSignal - Unit Tests", () => {

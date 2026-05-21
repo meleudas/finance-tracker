@@ -21,4 +21,8 @@ export {
   type PresignedUploadUrlResponseDto,
 } from "./PresignedUploadUrl.dto";
 export { AttachmentResponseSchema, type AttachmentResponseDto } from "./AttachmentResponse.dto";
+export {
+  confirmPresignedUploadSchema,
+  type ConfirmPresignedUploadDto,
+} from "./ConfirmPresignedUpload.dto";
 export { UpdateAttachmentSchema, type UpdateAttachmentDto } from "./UpdateAttachment.dto";

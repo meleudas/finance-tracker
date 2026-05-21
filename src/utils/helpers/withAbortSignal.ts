@@ -1,5 +1,5 @@
 //../src\utils\helpers\withAbortSignal.ts
-import { AbortError } from "../errors/СlientErrors";
+import { AbortError } from "../errors/ClientErrors";
 
 /**
  * Races a promise against an AbortSignal.

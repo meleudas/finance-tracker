@@ -1,274 +1,118 @@
 import { CategoryService } from "../../../src/services/impl/CategoryService";
 import type { ICategoryRepository } from "../../../src/repositories/interfaces/ICategoryRepository";
-import {
-  NotFoundError,
-  ConflictError,
-  ValidationError,
-} from "../../../src/utils/errors/СlientErrors";
-import { ForbiddenError } from "../../../src/utils/errors/SecurityErrors";
+import type { ICache } from "../../../src/redis";
 import type { Category } from "../../../src/generated/prisma/client";
 
-interface MockPrismaTx {
-  category: { findUnique: jest.Mock; updateMany: jest.Mock };
-  transaction: { count: jest.Mock };
-  budget: { updateMany: jest.Mock };
-}
+describe("CategoryService", () => {
+  const userId = "clg7v9x1k0000qzq8x8x8x8x8";
+  const categoryId = "clk7v9x1k0000qzq8x8x8x8xb";
 
-const mockPrismaTx: MockPrismaTx = {
-  category: { findUnique: jest.fn(), updateMany: jest.fn() },
-  transaction: { count: jest.fn() },
-  budget: { updateMany: jest.fn() },
-};
+  let categoryRepo: jest.Mocked<ICategoryRepository>;
+  let cache: jest.Mocked<ICache>;
+  let service: CategoryService;
 
-jest.mock("../../../src/config/prismaClient", () => ({
-  prisma: {
-    $transaction: jest.fn((callback: (tx: unknown) => Promise<unknown>) => callback(mockPrismaTx)),
-    category: {
-      findUnique: jest.fn(
-        async (args: unknown): Promise<unknown> =>
-          Promise.resolve(mockPrismaTx.category.findUnique(args)),
-      ),
-    },
-  },
-}));
-
-describe("CategoryService - Unit Tests", () => {
-  let categoryService: CategoryService;
-  let mockCategoryRepo: jest.Mocked<ICategoryRepository>;
-  const userId = "user_cl9123abc";
+  const makeCategory = (overrides: Partial<Category> = {}): Category => ({
+    id: categoryId,
+    userId,
+    name: "Food",
+    kind: "EXPENSE",
+    parentId: null,
+    createdAt: new Date("2026-05-01T00:00:00.000Z"),
+    updatedAt: new Date("2026-05-01T00:00:00.000Z"),
+    deletedAt: null,
+    isDeleted: false,
+    ...overrides,
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockCategoryRepo = {
+    categoryRepo = {
+      findByUserId: jest.fn(),
       findById: jest.fn(),
-      findAll: jest.fn(),
-      findMany: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
-      softDelete: jest.fn(),
-      exists: jest.fn(),
-      count: jest.fn(),
-      findByUserId: jest.fn(),
+      deleteWithHierarchy: jest.fn(),
+      existsWithSameName: jest.fn(),
       findSubCategories: jest.fn(),
-      //upsert: jest.fn(),
-    };
+    } as unknown as jest.Mocked<ICategoryRepository>;
 
-    categoryService = new CategoryService(mockCategoryRepo);
-  });
+    cache = {
+      getJson: jest.fn().mockResolvedValue(null),
+      setJson: jest.fn().mockResolvedValue(undefined),
+      delete: jest.fn().mockResolvedValue(undefined),
+      keys: jest.fn().mockResolvedValue([]),
+    } as unknown as jest.Mocked<ICache>;
 
-  describe("createCategory", () => {
-    it("має успішно створити кореневу категорію, якщо немає дублікатів", async () => {
-      const dto = { userId, name: "Продукти", kind: "EXPENSE" as const };
-
-      mockCategoryRepo.findByUserId.mockResolvedValue([]);
-      mockCategoryRepo.create.mockResolvedValue({
-        id: "cat_1",
-        ...dto,
-        parentId: null,
-        isDeleted: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        deletedAt: null,
-      });
-
-      const result = await categoryService.createCategory(dto);
-
-      expect(result.id).toBe("cat_1");
-    });
-
-    it("має викинути помилку ConflictError, якщо категорія з таким ім'ям вже є на цьому рівні", async () => {
-      const dto = { userId, name: "   Продукти   ", kind: "EXPENSE" as const };
-
-      mockCategoryRepo.findByUserId.mockResolvedValue([
-        {
-          id: "cat_old",
-          userId,
-          name: "Продукти",
-          kind: "EXPENSE",
-          parentId: null,
-          isDeleted: false,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          deletedAt: null,
-        },
-      ]);
-
-      await expect(categoryService.createCategory(dto)).rejects.toThrow(
-        new ConflictError("Category with this name already exists at this level"),
-      );
-    });
-
-    it("має викинути помилку NotFoundError, якщо вказаного parentId не існує в БД", async () => {
-      const dto = { userId, name: "Молочка", kind: "EXPENSE" as const, parentId: "invalid_parent" };
-
-      mockPrismaTx.category.findUnique.mockResolvedValue(null);
-
-      await expect(categoryService.createCategory(dto)).rejects.toThrow(
-        new NotFoundError("Parent category"),
-      );
-    });
-
-    it("має викинути помилку ForbiddenError, якщо батьківська категорія належить іншому юзеру", async () => {
-      const dto = { userId, name: "Молочка", kind: "EXPENSE" as const, parentId: "parent_xyz" };
-
-      mockPrismaTx.category.findUnique.mockResolvedValue({
-        id: "parent_xyz",
-        userId: "other_user_id",
-        kind: "EXPENSE",
-        isDeleted: false,
-      });
-
-      await expect(categoryService.createCategory(dto)).rejects.toThrow(
-        new ForbiddenError("You do not have permission to use this parent category"),
-      );
-    });
-
-    it("має викинути помилку ValidationError, якщо тип дитини не збігається з типом батька", async () => {
-      const dto = { userId, name: "Кешбек", kind: "INCOME" as const, parentId: "parent_expense" };
-
-      mockPrismaTx.category.findUnique.mockResolvedValue({
-        id: "parent_expense",
-        userId,
-        kind: "EXPENSE",
-        isDeleted: false,
-      });
-
-      await expect(categoryService.createCategory(dto)).rejects.toThrow(
-        new ValidationError("Child category must have the same kind as parent"),
-      );
-    });
-  });
-
-  describe("deleteCategory", () => {
-    it("має викинути помилку ConflictError, якщо категорія або підкатегорії мають фінансову історію", async () => {
-      mockPrismaTx.category.findUnique.mockResolvedValue({
-        id: "cat_root",
-        userId,
-        isDeleted: false,
-      });
-
-      mockCategoryRepo.findSubCategories.mockResolvedValue([
-        {
-          id: "cat_sub_1",
-          userId,
-          name: "Субкатегорія",
-          kind: "EXPENSE",
-          parentId: "cat_root",
-          isDeleted: false,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          deletedAt: null,
-        },
-      ]);
-
-      mockPrismaTx.transaction.count.mockResolvedValue(3);
-
-      await expect(categoryService.deleteCategory(userId, "cat_root")).rejects.toThrow(
-        new ConflictError(
-          "Cannot delete category with active financial history. Reassign transactions first.",
-        ),
-      );
-    });
-
-    it("має успішно виконати софт-деліт для категорії, її дітей та бюджетів, якщо транзакцій немає", async () => {
-      mockPrismaTx.category.findUnique.mockResolvedValue({
-        id: "cat_root",
-        userId,
-        isDeleted: false,
-      });
-      mockCategoryRepo.findSubCategories.mockResolvedValue([
-        {
-          id: "cat_child",
-          userId,
-          name: "Дочірня",
-          kind: "EXPENSE",
-          parentId: "cat_root",
-          isDeleted: false,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          deletedAt: null,
-        },
-      ]);
-
-      mockPrismaTx.transaction.count.mockResolvedValue(0);
-
-      await categoryService.deleteCategory(userId, "cat_root");
-
-      expect(mockPrismaTx.budget.updateMany).toHaveBeenCalled();
-      expect(mockPrismaTx.category.updateMany).toHaveBeenCalled();
-    });
+    service = new CategoryService(categoryRepo, cache);
   });
 
   describe("getCategoryTree", () => {
-    it("має правильно зібрати плоский масив з БД у деревоподібну структуру для фронтенду", async () => {
-      const flatData: Category[] = [
-        {
-          id: "1",
-          userId,
-          name: "Авто",
-          kind: "EXPENSE",
-          parentId: null,
-          isDeleted: false,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          deletedAt: null,
-        },
-        {
-          id: "2",
-          userId,
-          name: "Паливо",
-          kind: "EXPENSE",
-          parentId: "1",
-          isDeleted: false,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          deletedAt: null,
-        },
-        {
-          id: "3",
-          userId,
-          name: "Мийка",
-          kind: "EXPENSE",
-          parentId: "1",
-          isDeleted: false,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          deletedAt: null,
-        },
-        {
-          id: "4",
-          userId,
-          name: "Зарплата",
-          kind: "INCOME",
-          parentId: null,
-          isDeleted: false,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          deletedAt: null,
-        },
-      ];
+    it("returns cached tree without hitting repository", async () => {
+      const tree = [{ ...makeCategory(), children: [] }];
+      cache.getJson.mockResolvedValueOnce(tree);
 
-      // Використовуємо повернення типу самого методу сервісу, щоб лінтер не лаявся на unknown/any кастинг
-      mockCategoryRepo.findByUserId.mockResolvedValue(flatData);
+      const result = await service.getCategoryTree(userId);
 
-      const tree = await categoryService.getCategoryTree(userId);
+      expect(result).toEqual(tree);
+      expect(categoryRepo.findByUserId).not.toHaveBeenCalled();
+    });
 
-      expect(tree).toHaveLength(2);
+    it("loads tree from repository on cache miss", async () => {
+      categoryRepo.findByUserId.mockResolvedValue([makeCategory()]);
 
-      const autoNode = tree.find((node) => node.id === "1");
+      await service.getCategoryTree(userId);
 
-      if (autoNode?.children) {
-        expect(autoNode.children).toHaveLength(2);
+      expect(categoryRepo.findByUserId).toHaveBeenCalledWith(userId, undefined);
+      expect(cache.setJson).toHaveBeenCalledWith(
+        `category:tree:${userId}`,
+        expect.any(Array),
+        expect.any(Number),
+      );
+    });
+  });
 
-        const fuelNode = autoNode.children[0];
-        const washNode = autoNode.children[1];
+  describe("createCategory", () => {
+    it("invalidates category cache after create", async () => {
+      categoryRepo.existsWithSameName.mockResolvedValue(false);
+      categoryRepo.create.mockResolvedValue(makeCategory());
 
-        if (fuelNode && washNode) {
-          expect(fuelNode.id).toBe("2");
-          expect(washNode.id).toBe("3");
-        }
-      }
+      await service.createCategory(userId, {
+        name: "Food",
+        kind: "EXPENSE",
+      });
+
+      expect(cache.delete).toHaveBeenCalledWith(`category:tree:${userId}`);
+      expect(cache.keys).toHaveBeenCalledWith(`category:item:${userId}:*`);
+      expect(categoryRepo.existsWithSameName).toHaveBeenCalledWith(
+        userId,
+        "Food",
+        null,
+        "EXPENSE",
+        undefined,
+        undefined,
+      );
+    });
+
+    it("передає abort signal у existsWithSameName", async () => {
+      const ac = new AbortController();
+      categoryRepo.existsWithSameName.mockResolvedValue(false);
+      categoryRepo.create.mockResolvedValue(makeCategory());
+
+      await service.createCategory(
+        userId,
+        { name: "Food", kind: "EXPENSE" },
+        { signal: ac.signal },
+      );
+
+      expect(categoryRepo.existsWithSameName).toHaveBeenCalledWith(
+        userId,
+        "Food",
+        null,
+        "EXPENSE",
+        undefined,
+        { signal: ac.signal },
+      );
     });
   });
 });

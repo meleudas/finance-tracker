@@ -1,46 +1,74 @@
+import type { RequestHandler } from "express";
 import { z } from "zod";
-import { idDtoSchema } from "../dtos/common/id.dto";
+
 import { CreateTransactionSchema } from "../dtos/transaction/CreateTransaction.dto";
 import { UpdateTransactionSchema } from "../dtos/transaction/UpdateTransaction.dto";
 import { transactionListQuerySchema } from "../dtos/transaction/TransactionListQuery.dto";
+import { idDtoSchema } from "../dtos/common/id.dto";
 
-const emptyQuerySchema = z.object({}).strict();
+interface ValidationTarget {
+  body?: z.ZodType;
+  params?: z.ZodType;
+  query?: z.ZodType;
+}
 
-/** GET /transactions/:id */
-export const GetTransactionRequestValidator = z.object({
-  params: idDtoSchema,
-  query: emptyQuerySchema.optional(),
-});
+interface ValidatedRequest {
+  validated: Record<string, unknown>;
+}
 
-/** GET /transactions */
-export const ListTransactionsRequestValidator = z.object({
+const createRequestValidator = (config: ValidationTarget): RequestHandler => {
+  return (req, res, next) => {
+    try {
+      const validated: Record<string, unknown> = {};
+      if (config.body) validated.body = config.body.parse(req.body);
+      if (config.params) validated.params = config.params.parse(req.params);
+      if (config.query) validated.query = config.query.parse(req.query);
+
+      (req as unknown as ValidatedRequest).validated = validated;
+      next();
+    } catch (error: unknown) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({
+          error: "Validation failed",
+          details: error.issues,
+        });
+      } else {
+        next(error);
+      }
+    }
+  };
+};
+
+const accountIdParamSchema = z.object({ accountId: idDtoSchema.shape.id });
+const categoryIdParamSchema = z.object({ categoryId: idDtoSchema.shape.id });
+
+export const ListTransactionsRequestValidator = createRequestValidator({
   query: transactionListQuerySchema,
 });
 
-/** POST /transactions */
-export const CreateTransactionRequestValidator = z.object({
+export const ListTransactionsByAccountRequestValidator = createRequestValidator({
+  params: accountIdParamSchema,
+  query: transactionListQuerySchema,
+});
+
+export const ListTransactionsByCategoryRequestValidator = createRequestValidator({
+  params: categoryIdParamSchema,
+  query: transactionListQuerySchema,
+});
+
+export const CreateTransactionRequestValidator = createRequestValidator({
   body: CreateTransactionSchema,
 });
 
-/** PATCH /transactions/:id */
-export const UpdateTransactionRequestValidator = z.object({
+export const GetTransactionRequestValidator = createRequestValidator({
+  params: idDtoSchema,
+});
+
+export const UpdateTransactionRequestValidator = createRequestValidator({
   params: idDtoSchema,
   body: UpdateTransactionSchema,
 });
 
-/** DELETE /transactions/:id */
-export const DeleteTransactionRequestValidator = z.object({
+export const DeleteTransactionRequestValidator = createRequestValidator({
   params: idDtoSchema,
-});
-
-/** GET /transactions/accounts/:accountId */
-export const ListTransactionsByAccountRequestValidator = z.object({
-  params: z.object({ accountId: idDtoSchema.shape.id }),
-  query: transactionListQuerySchema,
-});
-
-/** GET /transactions/categories/:categoryId */
-export const ListTransactionsByCategoryRequestValidator = z.object({
-  params: z.object({ categoryId: idDtoSchema.shape.id }),
-  query: transactionListQuerySchema,
 });

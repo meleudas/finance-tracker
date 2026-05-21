@@ -1,10 +1,10 @@
-import type { ZodType } from "zod";
-import { validationError } from "../errors/apiError";
+import { z, type ZodType } from "zod";
+import { ValidationError } from "../errors/ClientErrors";
 
 export function parseOrThrow<T>(schema: ZodType<T>, data: unknown): T {
   const result = schema.safeParse(data);
   if (!result.success) {
-    throw validationError(result.error.message);
+    throw new ValidationError(result.error.message, z.treeifyError(result.error));
   }
   return result.data;
 }

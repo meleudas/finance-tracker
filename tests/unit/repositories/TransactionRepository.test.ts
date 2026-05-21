@@ -2,7 +2,7 @@ jest.mock("../../../src/config/prismaClient");
 
 import { prisma } from "../../../src/config/prismaClient";
 import { TransactionRepository } from "../../../src/repositories/impl/TransactionRepository";
-import { AbortError } from "../../../src/utils/errors/СlientErrors";
+import { AbortError } from "../../../src/utils/errors/ClientErrors";
 
 describe("TransactionRepository", () => {
   let repo: TransactionRepository;
@@ -57,6 +57,75 @@ describe("TransactionRepository", () => {
           },
         }),
       );
+    });
+
+    it("sumAmount: aggregate з direction та currencyId", async () => {
+      (prisma.transaction.aggregate as jest.Mock).mockResolvedValue({
+        _sum: { amount: { toNumber: () => 150 } },
+      });
+      const from = new Date("2026-05-01T00:00:00.000Z");
+      const to = new Date("2026-05-31T00:00:00.000Z");
+
+      const total = await repo.sumAmount({ userId: "u1", currencyId: "cur-1", from, to }, "INCOME");
+
+      expect(prisma.transaction.aggregate).toHaveBeenCalledWith({
+        where: {
+          userId: "u1",
+          isDeleted: false,
+          currencyId: "cur-1",
+          direction: "INCOME",
+          occurredAt: { gte: from, lte: to },
+        },
+        _sum: { amount: true },
+      });
+      expect(total).toBe(150);
+    });
+
+    it("sumByCategory: groupBy categoryId та direction", async () => {
+      (prisma.transaction.groupBy as jest.Mock).mockResolvedValue([
+        {
+          categoryId: "cat-1",
+          direction: "EXPENSE",
+          _sum: { amount: { toNumber: () => 80 } },
+          _count: { _all: 3 },
+        },
+      ]);
+
+      const rows = await repo.sumByCategory({
+        userId: "u1",
+        from: new Date("2026-05-01"),
+        to: new Date("2026-05-31"),
+      });
+
+      expect(prisma.transaction.groupBy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          by: ["categoryId", "direction"],
+          _sum: { amount: true },
+          _count: { _all: true },
+        }),
+      );
+      expect(rows).toEqual([
+        { categoryId: "cat-1", direction: "EXPENSE", amount: 80, transactionCount: 3 },
+      ]);
+    });
+
+    it("sumByAccount: groupBy accountId та direction", async () => {
+      (prisma.transaction.groupBy as jest.Mock).mockResolvedValue([
+        {
+          accountId: "acc-1",
+          direction: "INCOME",
+          _sum: { amount: { toNumber: () => 200 } },
+        },
+      ]);
+
+      const rows = await repo.sumByAccount({ userId: "u1" });
+
+      expect(prisma.transaction.groupBy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          by: ["accountId", "direction"],
+        }),
+      );
+      expect(rows).toEqual([{ accountId: "acc-1", direction: "INCOME", amount: 200 }]);
     });
 
     it("findByAccountId: фільтр за рахунком та isDeleted", async () => {

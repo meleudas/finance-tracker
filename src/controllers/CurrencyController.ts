@@ -1,48 +1,29 @@
-import { Request, Response, NextFunction } from 'express';
-import { CurrencyService } from '../services/impl/CurrencyService';
+import type { Request, Response } from "express";
+import type { ICurrencyService } from "../services/interfaces/ICurrencyService";
+import { getServiceContext } from "../http/requestContext";
+import { sendData } from "../http/response";
+import { toCurrencyResponse, toCurrencyResponseList } from "../mappers/currency.mapper";
 
 export class CurrencyController {
-  private readonly currencyService: CurrencyService;
+  constructor(private readonly currencyService: ICurrencyService) {}
 
-  constructor(currencyService: CurrencyService) {
-    this.currencyService = currencyService;
-  }
-
-  /** GET /api/v1/currencies */
-  getAllCurrencies = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const currencies = await this.currencyService.getAllCurrencies();
-      res.status(200).json(currencies);
-    } catch (error) {
-      next(error);
-    }
+  list = async (req: Request, res: Response): Promise<void> => {
+    const currencies = await this.currencyService.getAllCurrencies(getServiceContext(req));
+    sendData(res, req, toCurrencyResponseList(currencies));
   };
 
-  /** GET /api/v1/currencies/code/:code */
-  getCurrencyByCode = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { code } = req.params;
-      if (typeof code !== 'string') {
-        return next({ status: 400, message: 'Invalid currency code parameter' });
-      }
-      const currency = await this.currencyService.getCurrencyByCode(code);
-      res.status(200).json(currency);
-    } catch (error) {
-      next(error);
-    }
+  getByCode = async (req: Request, res: Response): Promise<void> => {
+    const { params } = req.validated as { params: { code: string } };
+    const currency = await this.currencyService.getCurrencyByCode(
+      params.code,
+      getServiceContext(req),
+    );
+    sendData(res, req, toCurrencyResponse(currency));
   };
 
-  /** GET /api/v1/currencies/:id */
-  getCurrencyById = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { id } = req.params;
-      if (typeof id !== 'string') {
-        return next({ status: 400, message: 'Invalid currency ID parameter' });
-      }
-      const currency = await this.currencyService.getCurrencyById(id);
-      res.status(200).json(currency);
-    } catch (error) {
-      next(error);
-    }
+  getById = async (req: Request, res: Response): Promise<void> => {
+    const { params } = req.validated as { params: { id: string } };
+    const currency = await this.currencyService.getCurrencyById(params.id, getServiceContext(req));
+    sendData(res, req, toCurrencyResponse(currency));
   };
 }

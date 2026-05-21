@@ -1,4 +1,7 @@
+import { API_V1_PREFIX } from "../constants";
+import { errorResponses, protectedSecurity } from "../helpers";
 import { openApiRegistry } from "../registry";
+import { ApiErrorResponseSchema } from "../schemas/envelope";
 import {
   AccountIdParamsSchema,
   CreateAccountBodySchema,
@@ -9,13 +12,17 @@ import {
   DeleteResponseEnvelopeSchema,
 } from "../schemas/components";
 
+const tag = "Accounts";
+const basePath = `${API_V1_PREFIX}/accounts`;
+
 openApiRegistry.registerPath({
   method: "get",
-  path: "/accounts",
-  tags: ["Accounts"],
+  path: basePath,
+  tags: [tag],
   summary: "List user accounts",
-  description: "Returns paginated list of accounts for the authenticated user",
-  security: [{ cookieAuth: [] }, { devUserId: [] }],
+  description:
+    "Returns paginated list of accounts for the authenticated user. Query `includeDeleted=true` returns both active and soft-deleted accounts; default lists active only.",
+  security: protectedSecurity,
   request: {
     query: AccountListQuerySchema,
   },
@@ -28,18 +35,17 @@ openApiRegistry.registerPath({
         },
       },
     },
-    401: { description: "Unauthorized" },
-    400: { description: "Bad request" },
+    ...errorResponses,
   },
 });
 
 openApiRegistry.registerPath({
   method: "post",
-  path: "/accounts",
-  tags: ["Accounts"],
+  path: basePath,
+  tags: [tag],
   summary: "Create new account",
   description: "Creates a new account for the authenticated user",
-  security: [{ cookieAuth: [] }, { devUserId: [] }],
+  security: protectedSecurity,
   request: {
     body: {
       content: {
@@ -58,19 +64,17 @@ openApiRegistry.registerPath({
         },
       },
     },
-    401: { description: "Unauthorized" },
-    400: { description: "Validation error" },
-    409: { description: "Conflict (duplicate name or currency)" },
+    ...errorResponses,
   },
 });
 
 openApiRegistry.registerPath({
   method: "get",
-  path: "/accounts/{id}",
-  tags: ["Accounts"],
+  path: `${basePath}/{id}`,
+  tags: [tag],
   summary: "Get account by ID",
   description: "Returns details of a specific account owned by the user",
-  security: [{ cookieAuth: [] }, { devUserId: [] }],
+  security: protectedSecurity,
   request: {
     params: AccountIdParamsSchema,
   },
@@ -83,18 +87,17 @@ openApiRegistry.registerPath({
         },
       },
     },
-    404: { description: "Account not found" },
-    401: { description: "Unauthorized" },
+    ...errorResponses,
   },
 });
 
 openApiRegistry.registerPath({
   method: "patch",
-  path: "/accounts/{id}",
-  tags: ["Accounts"],
+  path: `${basePath}/{id}`,
+  tags: [tag],
   summary: "Update account",
-  description: "Updates name or note of an existing account",
-  security: [{ cookieAuth: [] }, { devUserId: [] }],
+  description: "Updates the name of an existing account",
+  security: protectedSecurity,
   request: {
     params: AccountIdParamsSchema,
     body: {
@@ -114,19 +117,18 @@ openApiRegistry.registerPath({
         },
       },
     },
-    404: { description: "Account not found" },
-    401: { description: "Unauthorized" },
-    400: { description: "Validation error" },
+    ...errorResponses,
   },
 });
 
 openApiRegistry.registerPath({
   method: "delete",
-  path: "/accounts/{id}",
-  tags: ["Accounts"],
+  path: `${basePath}/{id}`,
+  tags: [tag],
   summary: "Delete account (soft delete)",
-  description: "Marks account as deleted. Fails if account has dependencies",
-  security: [{ cookieAuth: [] }, { devUserId: [] }],
+  description:
+    "Marks account as deleted. Returns 409 if the account has active transactions, budgets, transfers, or recurring rules.",
+  security: protectedSecurity,
   request: {
     params: AccountIdParamsSchema,
   },
@@ -139,8 +141,14 @@ openApiRegistry.registerPath({
         },
       },
     },
-    404: { description: "Account not found" },
-    401: { description: "Unauthorized" },
-    409: { description: "Cannot delete (has transactions/budgets)" },
+    409: {
+      description: "Cannot delete (has transactions/budgets/transfers/recurring rules)",
+      content: {
+        "application/json": {
+          schema: ApiErrorResponseSchema,
+        },
+      },
+    },
+    ...errorResponses,
   },
 });

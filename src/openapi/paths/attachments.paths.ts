@@ -9,6 +9,7 @@ import {
   AttachmentWithDownloadUrlEnvelopeSchema,
   AttachmentWithDownloadUrlListEnvelopeSchema,
   DeleteResponseEnvelopeSchema,
+  ConfirmPresignedUploadBodySchema,
   PresignedUploadUrlEnvelopeSchema,
   PresignedUploadUrlRequestSchema,
   TransactionIdParamsSchema,
@@ -68,8 +69,9 @@ openApiRegistry.registerPath({
   method: "post",
   path: `${basePath}/presigned-upload-url`,
   tags: [tag],
-  summary: "Get presigned upload URL",
-  description: "Returns a short-lived URL for direct upload to object storage.",
+  summary: "Get presigned upload URL (step 1 of 2)",
+  description:
+    "Returns a short-lived URL and storageKey for direct PUT upload to object storage. After uploading the file to S3, call POST .../confirm with the same storageKey and file metadata.",
   security: protectedSecurity,
   request: {
     params: TransactionIdParamsSchema,
@@ -81,6 +83,29 @@ openApiRegistry.registerPath({
     201: {
       description: "Presigned upload URL",
       content: { "application/json": { schema: PresignedUploadUrlEnvelopeSchema } },
+    },
+    ...errorResponses,
+  },
+});
+
+openApiRegistry.registerPath({
+  method: "post",
+  path: `${basePath}/confirm`,
+  tags: [tag],
+  summary: "Confirm presigned upload (step 2 of 2)",
+  description:
+    "Registers attachment metadata in the database after the client has uploaded the file via the presigned PUT URL.",
+  security: protectedSecurity,
+  request: {
+    params: TransactionIdParamsSchema,
+    body: {
+      content: { "application/json": { schema: ConfirmPresignedUploadBodySchema } },
+    },
+  },
+  responses: {
+    201: {
+      description: "Attachment metadata stored",
+      content: { "application/json": { schema: AttachmentResponseEnvelopeSchema } },
     },
     ...errorResponses,
   },

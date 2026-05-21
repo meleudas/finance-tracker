@@ -2,12 +2,12 @@ import type { Request, Response } from "express";
 import type { ITransactionService } from "../services/interfaces/ITransactionService";
 import { getServiceContext } from "../http/requestContext";
 import { sendData, sendPaginated } from "../http/response";
-import { unauthorizedError } from "../utils/errors/apiError";
+import { UnauthorizedError } from "../utils/errors/securityErrors";
 
 function getUserId(req: Request): string {
   const userId = req.user?.id;
   if (!userId) {
-    throw unauthorizedError();
+    throw new UnauthorizedError();
   }
   return userId;
 }

@@ -17,6 +17,8 @@ import {
   attachmentDownloadUrlResponseSchema,
   AttachmentResponseDto,
   AttachmentWithDownloadUrlResponseDto,
+  confirmPresignedUploadSchema,
+  ConfirmPresignedUploadDto,
   MAX_ATTACHMENT_SIZE_BYTES,
   presignedUploadUrlRequestSchema,
   PresignedUploadUrlRequestDto,
@@ -31,9 +33,9 @@ import { env } from "../../config/env";
 import { toAttachmentResponse, toAttachmentWithDownloadUrl } from "../../mappers/attachment.mapper";
 import { toDeleteResponse } from "../../mappers/delete-response.mapper";
 import { parseOrThrow } from "../../utils/helpers/zodParse";
-import { notFoundError, validationError } from "../../utils/errors/apiError";
+import { NotFoundError, ValidationError } from "../../utils/errors/ClientErrors";
 import type { IFileStorage } from "../../storage/IFileStorage";
-import { FileStorage } from "../../storage/FileStorage";
+import { buildAttachmentStorageKey } from "../../storage/attachmentKey";
 import { IAttachmentService } from "../interfaces/IAttachmentService";
 import type { ICache } from "../../redis/ICache";
 import type { ServiceContext } from "../serviceContext";
@@ -86,10 +88,7 @@ export class AttachmentService implements IAttachmentService {
 
     await this.findOwnedTransaction(validatedTransactionId.transactionId, validatedUserId.id, ctx);
 
-    const storageKey = FileStorage.buildAttachmentKey(
-      validatedUserId.id,
-      validatedInput.originalName,
-    );
+    const storageKey = buildAttachmentStorageKey(validatedUserId.id, validatedInput.originalName);
 
     await withServiceSignal(
       this.fileStorage.uploadFile(storageKey, validatedInput.buffer, validatedInput.mimeType),
@@ -128,10 +127,7 @@ export class AttachmentService implements IAttachmentService {
 
     await this.findOwnedTransaction(validatedTransactionId.transactionId, validatedUserId.id, ctx);
 
-    const storageKey = FileStorage.buildAttachmentKey(
-      validatedUserId.id,
-      validatedRequest.originalName,
-    );
+    const storageKey = buildAttachmentStorageKey(validatedUserId.id, validatedRequest.originalName);
     const expiresInSeconds = env.S3_PRESIGNED_URL_EXPIRY_SECONDS;
     const uploadUrl = await withServiceSignal(
       this.fileStorage.getPresignedUploadUrl(storageKey, expiresInSeconds),
@@ -143,6 +139,44 @@ export class AttachmentService implements IAttachmentService {
       uploadUrl,
       expiresInSeconds,
     });
+  }
+
+  async confirmPresignedUpload(
+    body: ConfirmPresignedUploadDto,
+    transactionId: TransactionIdParamDto,
+    userId: IdDto,
+    ctx?: ServiceContext,
+  ): Promise<AttachmentResponseDto> {
+    const validatedBody = parseOrThrow(confirmPresignedUploadSchema, body);
+    const validatedTransactionId = parseOrThrow(transactionIdParamSchema, transactionId);
+    const validatedUserId = parseOrThrow(idDtoSchema, userId);
+    const options = repoOptions(ctx);
+
+    await this.findOwnedTransaction(validatedTransactionId.transactionId, validatedUserId.id, ctx);
+
+    const expectedPrefix = `attachments/${validatedUserId.id}/`;
+    if (!validatedBody.storageKey.startsWith(expectedPrefix)) {
+      throw new ValidationError("Invalid storage key for this user");
+    }
+
+    const createdAttachment = await this.attachmentRepository.create(
+      {
+        transactionId: validatedTransactionId.transactionId,
+        storageKey: validatedBody.storageKey,
+        mimeType: validatedBody.mimeType,
+        originalName: validatedBody.originalName,
+      },
+      options,
+    );
+
+    await this.invalidateTransactionAttachmentCache(
+      validatedUserId.id,
+      validatedTransactionId.transactionId,
+      undefined,
+      ctx,
+    );
+
+    return toAttachmentResponse(createdAttachment);
   }
 
   async updateAttachment(
@@ -343,11 +377,13 @@ export class AttachmentService implements IAttachmentService {
     });
 
     if (input.buffer.length === 0) {
-      throw validationError("File must not be empty");
+      throw new ValidationError("File must not be empty");
     }
 
     if (input.buffer.length > MAX_ATTACHMENT_SIZE_BYTES) {
-      throw validationError(`File size must not exceed ${String(MAX_ATTACHMENT_SIZE_BYTES)} bytes`);
+      throw new ValidationError(
+        `File size must not exceed ${String(MAX_ATTACHMENT_SIZE_BYTES)} bytes`,
+      );
     }
 
     return {
@@ -406,7 +442,7 @@ export class AttachmentService implements IAttachmentService {
   ): Promise<void> {
     const transaction = await this.transactionRepository.findById(transactionId, repoOptions(ctx));
     if (transaction?.userId !== userId) {
-      throw notFoundError("TRANSACTION_NOT_FOUND");
+      throw new NotFoundError("Transaction");
     }
   }
 
@@ -420,7 +456,7 @@ export class AttachmentService implements IAttachmentService {
 
     const attachment = await this.attachmentRepository.findById(attachmentId, repoOptions(ctx));
     if (attachment?.transactionId !== transactionId) {
-      throw notFoundError("ATTACHMENT_NOT_FOUND");
+      throw new NotFoundError("Attachment");
     }
     return attachment;
   }

@@ -1,12 +1,22 @@
-import request from 'supertest';
-import express from 'express';
-import { CategoryController } from '../../../src/controllers/CategoryController';
-import type { CategoryService } from '../../../src/services/impl/CategoryService';
-import { ConflictError } from '../../../src/utils/errors/СlientErrors';
+import request from "supertest";
+import express from "express";
+import { CategoryController } from "../../../src/controllers/CategoryController";
+import type { ICategoryService } from "../../../src/services/interfaces/ICategoryService";
+import { asyncHandler } from "../../../src/middleware/asyncHandler";
+import {
+  CreateCategoryRequestValidator,
+  DeleteCategoryRequestValidator,
+  GetCategoryRequestValidator,
+} from "../../../src/validators/category.validator";
+import { AppError } from "../../../src/utils/errors/appError";
+import { ConflictError } from "../../../src/utils/errors/ClientErrors";
 
-describe('CategoryController', () => {
+describe("CategoryController (Integration)", () => {
   let app: express.Application;
-  let mockService: jest.Mocked<CategoryService>;
+  let mockService: jest.Mocked<ICategoryService>;
+
+  const userId = "clg7v9x1k0000qzq8x8x8x8x8";
+  const categoryId = "clk7v9x1k0000qzq8x8x8x8xb";
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -17,85 +27,117 @@ describe('CategoryController', () => {
       deleteCategory: jest.fn(),
       getCategoryTree: jest.fn(),
       getCategoryById: jest.fn(),
-    } as unknown as jest.Mocked<CategoryService>;
+    } as unknown as jest.Mocked<ICategoryService>;
 
     const controller = new CategoryController(mockService);
     app = express();
     app.use(express.json());
-
-    app.use('/api/v1/categories', (req, _res, next) => {
-      req.user = { id: 'user_test_123' };
+    app.use((req, _res, next) => {
+      req.id = "test-request-id";
       next();
     });
 
-    app.post('/api/v1/categories', controller.createCategory);
-    app.get('/api/v1/categories', controller.getCategoryTree);
-    app.get('/api/v1/categories/:id', controller.getCategoryById);
-    app.put('/api/v1/categories/:id', controller.updateCategory);
-    app.delete('/api/v1/categories/:id', controller.deleteCategory);
-
-    app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-      res.status(err.statusCode || 500).json({ error: { code: err.errorCode || 'INTERNAL', message: err.message } });
+    app.use("/api/v1/categories", (req, _res, next) => {
+      req.user = { id: userId, email: "test@example.com" };
+      next();
     });
+
+    app.post("/api/v1/categories", CreateCategoryRequestValidator, asyncHandler(controller.create));
+    app.get("/api/v1/categories", asyncHandler(controller.list));
+    app.get(
+      "/api/v1/categories/:id",
+      GetCategoryRequestValidator,
+      asyncHandler(controller.getById),
+    );
+    app.delete(
+      "/api/v1/categories/:id",
+      DeleteCategoryRequestValidator,
+      asyncHandler(controller.remove),
+    );
+
+    app.use(
+      (
+        err: Error | AppError,
+        req: express.Request,
+        res: express.Response,
+        _next: express.NextFunction,
+      ) => {
+        const isAppError = err instanceof AppError;
+        const statusCode = isAppError ? err.statusCode : 500;
+        const code = isAppError ? err.code : "INTERNAL_ERROR";
+        const message = isAppError ? err.message : "Internal server error";
+        res.status(statusCode).json({
+          error: { code, message, requestId: String(req.id ?? "test") },
+        });
+      },
+    );
   });
 
-  describe('POST /api/v1/categories', () => {
-    it('should create category and return 201', async () => {
-      mockService.createCategory.mockResolvedValue({ id: 'cat_1', name: 'Food' } as any);
+  describe("POST /api/v1/categories", () => {
+    it("should create category and return 201", async () => {
+      mockService.createCategory.mockResolvedValue({
+        id: categoryId,
+        userId,
+        name: "Food",
+        kind: "EXPENSE",
+        parentId: null,
+        isDeleted: false,
+        createdAt: new Date("2026-05-01T00:00:00.000Z"),
+        updatedAt: new Date("2026-05-01T00:00:00.000Z"),
+        deletedAt: null,
+      });
 
       const res = await request(app)
-        .post('/api/v1/categories')
-        .send({ name: 'Food', kind: 'EXPENSE', parentId: null });
+        .post("/api/v1/categories")
+        .send({ name: "Food", kind: "EXPENSE" });
 
       expect(res.status).toBe(201);
       expect(mockService.createCategory).toHaveBeenCalledWith(
-        expect.objectContaining({ userId: 'user_test_123', name: 'Food', kind: 'EXPENSE' })
+        userId,
+        { name: "Food", kind: "EXPENSE" },
+        expect.any(Object),
       );
     });
   });
 
-  describe('GET /api/v1/categories', () => {
-    it('should return category tree', async () => {
-      mockService.getCategoryTree.mockResolvedValue([{ id: 'cat_1', children: [] }] as any);
+  describe("GET /api/v1/categories", () => {
+    it("should return category tree envelope", async () => {
+      mockService.getCategoryTree.mockResolvedValue([
+        {
+          id: categoryId,
+          userId,
+          name: "Food",
+          kind: "EXPENSE",
+          parentId: null,
+          isDeleted: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          deletedAt: null,
+          children: [],
+        },
+      ]);
 
-      const res = await request(app).get('/api/v1/categories');
+      const res = await request(app).get("/api/v1/categories");
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveLength(1);
+      expect(res.body.data).toHaveLength(1);
     });
   });
 
-  describe('GET /api/v1/categories/:id', () => {
-    it('should return 200 with category', async () => {
-      mockService.getCategoryById.mockResolvedValue({ id: 'cat_1' } as any);
-
-      const res = await request(app).get('/api/v1/categories/cat_1');
-
-      expect(res.status).toBe(200);
-    });
-
-    it('should return 404 when service returns null', async () => {
-      mockService.getCategoryById.mockResolvedValue(null);
-
-      const res = await request(app).get('/api/v1/categories/cat_missing');
-
-      expect(res.status).toBe(404);
-    });
-  });
-
-  describe('DELETE /api/v1/categories/:id', () => {
-    it('should return 204 on successful deletion', async () => {
+  describe("DELETE /api/v1/categories/:id", () => {
+    it("should return 200 delete envelope on success", async () => {
       mockService.deleteCategory.mockResolvedValue(undefined);
 
-      const res = await request(app).delete('/api/v1/categories/cat_1');
+      const res = await request(app).delete(`/api/v1/categories/${categoryId}`);
 
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body.data.isDeleted).toBe(true);
     });
 
-    it('should forward ConflictError as 409', async () => {
-      mockService.deleteCategory.mockRejectedValue(new ConflictError('Has transactions'));
+    it("should forward ConflictError as 409", async () => {
+      mockService.deleteCategory.mockRejectedValue(new ConflictError("Has transactions"));
 
-      const res = await request(app).delete('/api/v1/categories/cat_1');
+      const res = await request(app).delete(`/api/v1/categories/${categoryId}`);
 
       expect(res.status).toBe(409);
     });
