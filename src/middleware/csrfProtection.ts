@@ -5,6 +5,16 @@ import { ForbiddenError } from "../utils/errors/securityErrors";
 export const CSRF_COOKIE_NAME = "csrfToken";
 export const CSRF_HEADER_NAME = "x-csrf-token";
 
+const UNSAFE_HTTP_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
+function isAuthMutationRoute(req: Request): boolean {
+  return /^\/auth(\/|$)/.test(req.path);
+}
+
+function hasCookieAuthSession(cookies: Record<string, string | undefined>): boolean {
+  return Boolean(cookies[CSRF_COOKIE_NAME] ?? cookies.accessToken ?? cookies.refreshToken);
+}
+
 export function issueCsrfToken(
   res: Response,
   cookieOptions: Pick<CookieOptions, "secure" | "sameSite" | "path">,
@@ -21,9 +31,19 @@ export function issueCsrfToken(
 }
 
 export function csrfProtection(req: Request, _res: Response, next: NextFunction): void {
-  const cookieToken = (req.cookies as Record<string, string | undefined> | undefined)?.[
-    CSRF_COOKIE_NAME
-  ];
+  if (!UNSAFE_HTTP_METHODS.has(req.method)) {
+    next();
+    return;
+  }
+
+  const cookies = (req.cookies as Record<string, string | undefined> | undefined) ?? {};
+
+  if (!isAuthMutationRoute(req) && !hasCookieAuthSession(cookies)) {
+    next();
+    return;
+  }
+
+  const cookieToken = cookies[CSRF_COOKIE_NAME];
   const headerToken = req.header(CSRF_HEADER_NAME);
 
   if (!cookieToken || !headerToken || cookieToken !== headerToken) {

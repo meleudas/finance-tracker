@@ -4,16 +4,12 @@ import cookieParser from "cookie-parser";
 import { AuthController } from "../../../src/controllers/AuthController";
 import { config } from "../../../src/config/ConfigService";
 import type { IAuthService } from "../../../src/services/interfaces/IAuthService";
-import { asyncHandler } from "../../../src/middleware/asyncHandler";
+import { createAuthRouter } from "../../../src/routes/v1/auth.routes";
 import {
   csrfProtection,
   CSRF_COOKIE_NAME,
   CSRF_HEADER_NAME,
 } from "../../../src/middleware/csrfProtection";
-import {
-  LoginRequestValidator,
-  RegisterRequestValidator,
-} from "../../../src/validators/auth.validator";
 import { UnauthorizedError } from "../../../src/utils/errors/securityErrors";
 import {
   assignTestRequestId,
@@ -45,21 +41,8 @@ describe("AuthController (Integration)", () => {
     app.use(express.json());
     app.use(cookieParser());
     app.use(assignTestRequestId);
-
-    app.get("/api/v1/auth/csrf", asyncHandler(authController.csrfHandler));
-    app.post(
-      "/api/v1/auth/login",
-      csrfProtection,
-      LoginRequestValidator,
-      asyncHandler(authController.loginHandler),
-    );
-    app.post(
-      "/api/v1/auth/register",
-      csrfProtection,
-      RegisterRequestValidator,
-      asyncHandler(authController.registerHandler),
-    );
-
+    app.use("/api/v1", csrfProtection);
+    app.use("/api/v1/auth", createAuthRouter({ authService: mockAuthService, authController }));
     app.use(createTestAppErrorHandler());
   });
 

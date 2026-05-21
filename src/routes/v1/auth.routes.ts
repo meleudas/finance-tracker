@@ -2,7 +2,6 @@ import { Router } from "express";
 import { createAuthMiddleware } from "../../middleware/auth";
 import { asyncHandler } from "../../middleware/asyncHandler";
 import { strictLimiter } from "../../middleware/rateLimit";
-import { csrfProtection } from "../../middleware/csrfProtection";
 import {
   LoginRequestValidator,
   RefreshTokenRequestValidator,
@@ -23,7 +22,6 @@ export function createAuthRouter(deps: {
   router.post(
     "/register",
     strictLimiter,
-    csrfProtection,
     RegisterRequestValidator,
     asyncHandler(authController.registerHandler),
   );
@@ -31,21 +29,18 @@ export function createAuthRouter(deps: {
   router.post(
     "/login",
     strictLimiter,
-    csrfProtection,
     LoginRequestValidator,
     asyncHandler(authController.loginHandler),
   );
 
   router.post(
     "/refresh",
-    csrfProtection,
     RefreshTokenRequestValidator,
     asyncHandler(authController.refreshHandler),
   );
 
   router.post(
     "/logout",
-    csrfProtection,
     createAuthMiddleware(authService),
     asyncHandler(authController.logoutHandler),
   );
