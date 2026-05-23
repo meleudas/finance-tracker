@@ -1,11 +1,12 @@
 import { z } from "zod";
 import { cuidSchema } from "../common/id.dto";
+import { requiredCoercedDateSchema } from "../common/query-schemas";
 import { dateRangeRefineConfig, hasValidDateRange } from "../common/schemas";
 
 export const reportQuerySchema = z
   .object({
-    from: z.coerce.date(),
-    to: z.coerce.date(),
+    from: requiredCoercedDateSchema("from"),
+    to: requiredCoercedDateSchema("to"),
     accountId: cuidSchema.optional(),
     includeRecurring: z
       .union([z.enum(["true", "false"]), z.boolean()])
