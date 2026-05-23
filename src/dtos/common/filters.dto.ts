@@ -1,10 +1,11 @@
 import { z } from "zod";
+import { optionalCoercedDateSchema } from "./query-schemas";
 import { dateRangeRefineConfig, hasValidDateRange } from "./schemas";
 
 export const dateRangeQuerySchema = z
   .object({
-    from: z.coerce.date().optional(),
-    to: z.coerce.date().optional(),
+    from: optionalCoercedDateSchema,
+    to: optionalCoercedDateSchema,
   })
   .refine(hasValidDateRange, dateRangeRefineConfig);
 
