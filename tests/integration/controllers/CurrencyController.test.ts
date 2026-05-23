@@ -23,10 +23,8 @@ describe("CurrencyController (Integration)", () => {
     code: "EUR",
     name: "Euro",
     minorUnits: 2,
-    isDeleted: false,
-    createdAt: new Date("2026-05-01T00:00:00.000Z"),
-    updatedAt: new Date("2026-05-01T00:00:00.000Z"),
-    deletedAt: null,
+    createdAt: "2026-05-01T00:00:00.000Z",
+    updatedAt: "2026-05-01T00:00:00.000Z",
   };
 
   beforeEach(() => {
@@ -86,7 +84,7 @@ describe("CurrencyController (Integration)", () => {
       mockService.getAllCurrencies.mockResolvedValue([
         { ...currencyEntity, code: "UAH", name: "Hryvnia" },
         currencyEntity,
-      ] as never);
+      ]);
 
       const res = await request(app).get("/api/v1/currencies");
 
@@ -99,7 +97,7 @@ describe("CurrencyController (Integration)", () => {
 
   describe("GET /api/v1/currencies/code/:code", () => {
     it("should return currency by code in envelope", async () => {
-      mockService.getCurrencyByCode.mockResolvedValue(currencyEntity as never);
+      mockService.getCurrencyByCode.mockResolvedValue(currencyEntity);
 
       const res = await request(app).get("/api/v1/currencies/code/EUR");
 
@@ -121,7 +119,7 @@ describe("CurrencyController (Integration)", () => {
 
   describe("GET /api/v1/currencies/:id", () => {
     it("should return currency by id in envelope", async () => {
-      mockService.getCurrencyById.mockResolvedValue(currencyEntity as never);
+      mockService.getCurrencyById.mockResolvedValue(currencyEntity);
 
       const res = await request(app).get(`/api/v1/currencies/${currencyId}`);
 

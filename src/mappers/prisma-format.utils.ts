@@ -5,6 +5,6 @@ export function decimalToNumber(amount: unknown): number {
   return Number(amount);
 }
 
-export function toIsoString(date: Date): string {
-  return date.toISOString();
+export function toIsoString(date: Date | string): string {
+  return typeof date === "string" ? date : date.toISOString();
 }
