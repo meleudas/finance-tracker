@@ -5,6 +5,7 @@ import type { ICategoryRepository } from "../../../src/repositories/interfaces/I
 import type { ITransactionRepository } from "../../../src/repositories/interfaces/ITransactionRepository";
 import type { ICurrencyRepository } from "../../../src/repositories/interfaces/ICurrencyRepository";
 import type { ICache } from "../../../src/redis";
+import { Decimal } from "@prisma/client/runtime/client";
 
 describe("BudgetService", () => {
   const userId = "clg7v9x1k0000qzq8x8x8x8x8";
@@ -65,12 +66,54 @@ describe("BudgetService", () => {
         totalPages: 0,
       });
 
-      await service.listBudgets(userId, { page: 1, limit: 20 });
+      await service.listBudgets(userId, {
+        page: 1,
+        limit: 20,
+        activeNow: undefined,
+        from: undefined,
+        to: undefined,
+      });
 
       expect(cache.getJson).toHaveBeenCalledWith(
         expect.stringMatching(/^budget:list:clg7v9x1k0000qzq8x8x8x8x8:/),
       );
       expect(budgetRepo.findByFilter).toHaveBeenCalled();
+    });
+
+    it("maps Prisma Decimal limitAmount to number in response", async () => {
+      budgetRepo.findByFilter.mockResolvedValue({
+        data: [
+          {
+            id: budgetId,
+            userId,
+            accountId: "clh7v9x1k0000qzq8x8x8x8x9",
+            currencyId: "clj7v9x1k0000qzq8x8x8x8xa",
+            categoryId: null,
+            name: "Groceries",
+            limitAmount: new Decimal("1500.5000"),
+            periodStart: new Date("2026-05-01T00:00:00.000Z"),
+            periodEnd: new Date("2026-05-31T23:59:59.999Z"),
+            createdAt: new Date("2026-05-01T00:00:00.000Z"),
+            updatedAt: new Date("2026-05-01T00:00:00.000Z"),
+            deletedAt: null,
+            isDeleted: false,
+          },
+        ],
+        total: 1,
+        page: 1,
+        limit: 20,
+        totalPages: 1,
+      });
+
+      const result = await service.listBudgets(userId, {
+        page: 1,
+        limit: 20,
+        activeNow: undefined,
+        from: undefined,
+        to: undefined,
+      });
+
+      expect(result.data[0]?.limitAmount).toBe(1500.5);
     });
   });
 
