@@ -33,6 +33,19 @@ export function requiredCoercedDateSchema(fieldLabel: string) {
     .transform((s) => new Date(s));
 }
 
+/** For JSON body or re-validation after middleware (string from client or Date after first parse). */
+export function requiredDateInputSchema(fieldLabel: string) {
+  return z
+    .union([
+      z.string().min(1, { message: `${fieldLabel} is required` }),
+      z.date({ error: `${fieldLabel} is required` }),
+    ])
+    .refine((v) => isValidDate(v instanceof Date ? v : new Date(v)), {
+      message: INVALID_DATE_MESSAGE,
+    })
+    .transform((v) => (v instanceof Date ? v : new Date(v)));
+}
+
 export const optionalCoercedDateSchema = z
   .string()
   .optional()
