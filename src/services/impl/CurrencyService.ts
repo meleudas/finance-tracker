@@ -1,6 +1,8 @@
 import type { Currency } from "../../generated/prisma/client";
+import type { PublicCurrencyResponseDto } from "../../dtos/currency/CurrencyResponse.dto";
 import type { ICurrencyService } from "../interfaces/ICurrencyService";
 import type { ICurrencyRepository } from "../../repositories/interfaces/ICurrencyRepository";
+import { toCurrencyResponse, toCurrencyResponseList } from "../../mappers/currency.mapper";
 import { NotFoundError } from "../../utils/errors/ClientErrors";
 import type { ICache } from "../../redis";
 import { env } from "../../config/env";
@@ -25,11 +27,11 @@ export class CurrencyService implements ICurrencyService {
     private readonly cache: ICache,
   ) {}
 
-  async getAllCurrencies(ctx?: ServiceContext): Promise<Currency[]> {
+  async getAllCurrencies(ctx?: ServiceContext): Promise<PublicCurrencyResponseDto[]> {
     const options = repoOptions(ctx);
 
     const cached = await withServiceSignal(
-      this.cache.getJson<Currency[]>(CURRENCY_LIST_CACHE_KEY),
+      this.cache.getJson<PublicCurrencyResponseDto[]>(CURRENCY_LIST_CACHE_KEY),
       ctx,
     );
     if (cached) {
@@ -37,56 +39,63 @@ export class CurrencyService implements ICurrencyService {
     }
 
     const currencies = await this.currencyRepo.findActive(options);
+    const mapped = toCurrencyResponseList(currencies);
 
     await withServiceSignal(
-      this.cache.setJson(CURRENCY_LIST_CACHE_KEY, currencies, env.CURRENCY_LIST_CACHE_TTL_SECONDS),
+      this.cache.setJson(CURRENCY_LIST_CACHE_KEY, mapped, env.CURRENCY_LIST_CACHE_TTL_SECONDS),
       ctx,
     );
-    return currencies;
+    return mapped;
   }
 
-  async getCurrencyByCode(code: string, ctx?: ServiceContext): Promise<Currency> {
+  async getCurrencyByCode(code: string, ctx?: ServiceContext): Promise<PublicCurrencyResponseDto> {
     const formattedCode = code.trim().toUpperCase();
     const options = repoOptions(ctx);
     const cacheKey = buildCurrencyCodeCacheKey(formattedCode);
 
-    const cached = await withServiceSignal(this.cache.getJson<Currency>(cacheKey), ctx);
+    const cached = await withServiceSignal(
+      this.cache.getJson<PublicCurrencyResponseDto>(cacheKey),
+      ctx,
+    );
     if (cached) {
-      return this.#ensureActiveEntity(cached, `Currency with code ${formattedCode} not found`);
+      return cached;
     }
 
     const currency = await this.currencyRepo.findByCode(formattedCode, options);
-
     const active = this.#ensureActiveEntity(
       currency,
       `Currency with code ${formattedCode} not found`,
     );
+    const mapped = toCurrencyResponse(active);
 
     await withServiceSignal(
-      this.cache.setJson(cacheKey, active, env.CURRENCY_ITEM_CACHE_TTL_SECONDS),
+      this.cache.setJson(cacheKey, mapped, env.CURRENCY_ITEM_CACHE_TTL_SECONDS),
       ctx,
     );
-    return active;
+    return mapped;
   }
 
-  async getCurrencyById(id: string, ctx?: ServiceContext): Promise<Currency> {
+  async getCurrencyById(id: string, ctx?: ServiceContext): Promise<PublicCurrencyResponseDto> {
     const options = repoOptions(ctx);
     const cacheKey = buildCurrencyIdCacheKey(id);
 
-    const cached = await withServiceSignal(this.cache.getJson<Currency>(cacheKey), ctx);
+    const cached = await withServiceSignal(
+      this.cache.getJson<PublicCurrencyResponseDto>(cacheKey),
+      ctx,
+    );
     if (cached) {
-      return this.#ensureActiveEntity(cached, "Currency not found");
+      return cached;
     }
 
     const currency = await this.currencyRepo.findById(id, options);
-
     const active = this.#ensureActiveEntity(currency, "Currency not found");
+    const mapped = toCurrencyResponse(active);
 
     await withServiceSignal(
-      this.cache.setJson(cacheKey, active, env.CURRENCY_ITEM_CACHE_TTL_SECONDS),
+      this.cache.setJson(cacheKey, mapped, env.CURRENCY_ITEM_CACHE_TTL_SECONDS),
       ctx,
     );
-    return active;
+    return mapped;
   }
 
   #ensureActiveEntity(entity: Currency | null, errorMessage: string): Currency {

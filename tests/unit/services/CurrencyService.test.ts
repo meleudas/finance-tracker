@@ -58,16 +58,27 @@ describe("CurrencyService - Unit Tests", () => {
       const result = await currencyService.getAllCurrencies();
 
       expect(result).toHaveLength(2);
+      expect(result[0]?.code).toBe("EUR");
+      expect(result[0]).not.toHaveProperty("isDeleted");
       expect(mockCurrencyRepo.findActive).toHaveBeenCalledWith(undefined);
     });
 
     it("не викликає репозиторій при cache hit", async () => {
-      const mockCurrencies = [makeCurrency()];
-      cache.getJson.mockResolvedValueOnce(mockCurrencies);
+      const cachedDto = [
+        {
+          id: "clk7v9x1k0000qzq8x8x8x8xb",
+          code: "USD",
+          name: "US Dollar",
+          minorUnits: 2,
+          createdAt: "2026-05-01T00:00:00.000Z",
+          updatedAt: "2026-05-01T00:00:00.000Z",
+        },
+      ];
+      cache.getJson.mockResolvedValueOnce(cachedDto);
 
       const result = await currencyService.getAllCurrencies();
 
-      expect(result).toEqual(mockCurrencies);
+      expect(result).toEqual(cachedDto);
       expect(mockCurrencyRepo.findActive).not.toHaveBeenCalled();
     });
   });
@@ -79,6 +90,7 @@ describe("CurrencyService - Unit Tests", () => {
       const result = await currencyService.getCurrencyByCode("  eur ");
 
       expect(result.code).toBe("EUR");
+      expect(result).not.toHaveProperty("isDeleted");
       expect(mockCurrencyRepo.findByCode).toHaveBeenCalledWith("EUR", undefined);
     });
 

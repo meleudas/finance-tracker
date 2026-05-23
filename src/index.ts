@@ -2,12 +2,19 @@ import { createApp } from "./app";
 import { env } from "./config/env";
 import { logger } from "./config/logger";
 import "./config/prismaClient";
+import { connectRedis } from "./config/redisClient";
 import { getRecurringRuleRunnerService } from "./container";
 import { startRecurringScheduler } from "./scheduler/recurringScheduler";
 
-const app = createApp();
+async function main(): Promise<void> {
+  await connectRedis();
 
-app.listen(env.PORT, () => {
-  logger.info({ port: env.PORT }, "HTTP server listening");
-  startRecurringScheduler(getRecurringRuleRunnerService());
-});
+  const app = createApp();
+
+  app.listen(env.PORT, () => {
+    logger.info({ port: env.PORT }, "HTTP server listening");
+    startRecurringScheduler(getRecurringRuleRunnerService());
+  });
+}
+
+void main();

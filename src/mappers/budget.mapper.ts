@@ -1,10 +1,7 @@
 // src/mappers/budget.mapper.ts
 import type { Budget } from "../generated/prisma/client";
-import {
-  BudgetResponseSchema,
-  type BudgetResponseDto,
-} from "../dtos/budget/BudgetResponse.dto";
-import { toIsoString } from "./prisma-format.utils";
+import { BudgetResponseSchema, type BudgetResponseDto } from "../dtos/budget/BudgetResponse.dto";
+import { decimalToNumber, toIsoString } from "./prisma-format.utils";
 
 function toBudgetFields(budget: Budget) {
   return {
@@ -13,14 +10,14 @@ function toBudgetFields(budget: Budget) {
     accountId: budget.accountId,
     currencyId: budget.currencyId,
     categoryId: budget.categoryId,
-    limitAmount: budget.limitAmount,
+    limitAmount: decimalToNumber(budget.limitAmount),
     periodStart: toIsoString(budget.periodStart),
     periodEnd: toIsoString(budget.periodEnd),
     createdAt: toIsoString(budget.createdAt),
     updatedAt: toIsoString(budget.updatedAt),
     deletedAt: budget.deletedAt ? toIsoString(budget.deletedAt) : null,
     isDeleted: budget.isDeleted,
-    };
+  };
 }
 
 export function toBudgetResponse(budget: Budget): BudgetResponseDto {

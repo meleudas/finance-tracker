@@ -113,6 +113,25 @@ describe("AccountController (Integration)", () => {
       expect(res.body.data).toHaveLength(1);
       expect(res.body.meta.requestId).toBe("test-request-id");
     });
+
+    it("should accept includeDeleted=true as query string", async () => {
+      mockService.getAccounts.mockResolvedValue({
+        data: [accountResponse],
+        total: 1,
+        page: 1,
+        limit: 20,
+        totalPages: 1,
+      });
+
+      const res = await request(app).get("/api/v1/accounts").query({ includeDeleted: "true" });
+
+      expect(res.status).toBe(200);
+      expect(mockService.getAccounts).toHaveBeenCalledWith(
+        expect.objectContaining({ includeDeleted: true }),
+        { id: userId },
+        expect.any(Object),
+      );
+    });
   });
 
   describe("GET /api/v1/accounts/:id", () => {

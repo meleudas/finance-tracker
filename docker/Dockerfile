@@ -16,6 +16,16 @@ COPY prisma.config.ts ./
 COPY tsconfig.json tsconfig.app.json ./
 COPY src ./src
 RUN npm run build
+
+# Seed runner: migrations + SQL (profile seed/tools). Keeps devDependencies for Prisma CLI.
+FROM build AS seed
+RUN apk add --no-cache postgresql-client
+COPY docker/seed ./docker/seed
+COPY docker/seed-entrypoint.sh ./docker/seed-entrypoint.sh
+RUN sed -i 's/\r$//' ./docker/seed-entrypoint.sh && chmod +x ./docker/seed-entrypoint.sh
+ENTRYPOINT ["sh", "/app/docker/seed-entrypoint.sh"]
+
+FROM build AS build-pruned
 RUN npm prune --omit=dev
 
 FROM node:22-alpine AS runtime

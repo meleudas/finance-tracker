@@ -1,0 +1,72 @@
+{
+  "auth": {
+    "demo": {
+      "email": "demo@swagger.local",
+      "password": "SwaggerDemo123!"
+    },
+    "other": {
+      "email": "other@swagger.local",
+      "password": "OtherSwagger123!"
+    },
+    "csrfFlow": [
+      "GET /api/v1/auth/csrf",
+      "POST /api/v1/auth/login with header x-csrf-token and matching csrfToken cookie"
+    ]
+  },
+  "userIds": {
+    "demo": "clseed0000000000000000000",
+    "other": "clseed0000000000000000001"
+  },
+  "sampleIds": {
+    "currencyByCode": "UAH",
+    "currencyId": "clseed0000000000000000002",
+    "accountId": "clseed0000000000000000022",
+    "categoryId": "clseed0000000000000000045",
+    "incomeCategoryId": "clseed0000000000000000045",
+    "expenseCategoryId": "clseed0000000000000000046",
+    "transactionId": "clseed0000000000000000108",
+    "transferId": "clseed0000000000000000128",
+    "budgetId": "clseed0000000000000000148",
+    "recurringFrequencyId": "clseed0000000000000000068",
+    "recurringRuleId": "clseed0000000000000000088",
+    "attachmentId": "clseed0000000000000000168",
+    "reportJobPendingId": "clseed0000000000000000188",
+    "reportJobCompletedJsonId": "clseed0000000000000000196",
+    "reportJobCompletedPdfId": "clseed0000000000000000197",
+    "reportJobFailedId": "clseed0000000000000000200",
+    "otherUserAccountId": "clseed0000000000000000042",
+    "otherUserTransactionId": "clseed0000000000000000208",
+    "otherUserTransactionHint": "Use other user JWT then demo transaction id for 404"
+  },
+  "swaggerQueries": {
+    "reportGet": {
+      "from": "2026-01-01T00:00:00.000Z",
+      "to": "2026-04-30T23:59:59.999Z",
+      "accountId": "clseed0000000000000000022",
+      "includeRecurring": true
+    },
+    "transactionsList": {
+      "page": 1,
+      "limit": 20,
+      "from": "2026-01-01T00:00:00.000Z",
+      "to": "2026-04-30T23:59:59.999Z"
+    },
+    "transfersList": {
+      "page": 1,
+      "limit": 20
+    }
+  },
+  "counts": {
+    "currencies": 20,
+    "accounts": 20,
+    "categories": 20,
+    "transactions": 20,
+    "recurringFrequencies": 20,
+    "recurringRules": 20
+  },
+  "notes": {
+    "softDeleted": "Indexes 18-19 (0-based) are soft-deleted for accounts, categories, transactions, transfers, budgets, attachments",
+    "currenciesDeleted": "Currency codes KRW and TRY (indexes 18-19) are soft-deleted",
+    "attachmentsMinio": "Presigned download may 404 unless objects exist in MinIO; metadata CRUD works"
+  }
+}

@@ -78,6 +78,16 @@ describe("ReportController (Integration)", () => {
     );
   });
 
+  it("GET /api/v1/reports повертає 400 без from/to", async () => {
+    const res = await request(app).get("/api/v1/reports");
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe("Validation failed");
+    const messages = (res.body.details as { message: string }[]).map((d) => d.message);
+    expect(messages.some((m) => m.includes("from is required"))).toBe(true);
+    expect(messages.some((m) => m.includes("to is required"))).toBe(true);
+  });
+
   it("GET /api/v1/reports повертає 400 при from > to", async () => {
     const res = await request(app).get("/api/v1/reports").query({ from: to, to: from });
 

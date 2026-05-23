@@ -120,6 +120,22 @@ services:
       minio:
         condition: service_started
 
+  seed:
+    profiles: ["seed", "tools"]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: seed
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-finance}:${POSTGRES_PASSWORD:-finance}@postgres:5432/${POSTGRES_DB:-finance_tracker}?schema=public
+      SEED_RESET: "${SEED_RESET:-true}"
+      SEED_DEMO_PASSWORD: "${SEED_DEMO_PASSWORD:-SwaggerDemo123!}"
+      SEED_OTHER_PASSWORD: "${SEED_OTHER_PASSWORD:-OtherSwagger123!}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
 volumes:
   pgdata:
   redisdata:
