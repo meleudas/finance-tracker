@@ -36,13 +36,13 @@ describe("attachAbortSignal", () => {
     expect(req.abortSignal?.aborted).toBe(false);
   });
 
-  it("має скасувати signal при close з незавершеним запитом", () => {
+  it("не має скасувати signal при close (лише aborted)", () => {
     const { req, res, next } = createMockReqRes({ complete: false });
 
     attachAbortSignal(req as Request, res as Response, next);
     req.emit("close");
 
-    expect(req.abortSignal?.aborted).toBe(true);
+    expect(req.abortSignal?.aborted).toBe(false);
   });
 
   it("має скасувати signal при aborted до завершення відповіді", () => {
@@ -60,7 +60,7 @@ describe("attachAbortSignal", () => {
     attachAbortSignal(req as Request, res as Response, next);
     Object.assign(res, { writableEnded: true });
     res.emit("finish");
-    req.emit("close");
+    req.emit("aborted");
 
     expect(req.abortSignal?.aborted).toBe(false);
   });
