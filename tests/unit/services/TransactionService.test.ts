@@ -183,6 +183,25 @@ describe("TransactionService", () => {
   });
 
   describe("getTransaction", () => {
+    it("повертає транзакцію з кешу", async () => {
+      const cached = { id: transactionId, userId };
+      cache.getJson.mockResolvedValueOnce(cached);
+
+      const result = await service.getTransaction({ id: transactionId }, { id: userId });
+
+      expect(result).toEqual(cached);
+      expect(transactionRepo.findById).not.toHaveBeenCalled();
+    });
+
+    it("завантажує та кешує транзакцію", async () => {
+      transactionRepo.findById.mockResolvedValue(makeTransaction());
+
+      const result = await service.getTransaction({ id: transactionId }, { id: userId });
+
+      expect(result.id).toBe(transactionId);
+      expect(cache.setJson).toHaveBeenCalled();
+    });
+
     it("має кинути NotFoundError для чужої транзакції", async () => {
       transactionRepo.findById.mockResolvedValue(makeTransaction({ userId: otherUserId }));
 
@@ -225,6 +244,114 @@ describe("TransactionService", () => {
       expect(result.isDeleted).toBe(true);
       expect(transactionRepo.softDelete).toHaveBeenCalledWith(transactionId, undefined);
       expect(cache.keys).toHaveBeenCalledWith(`budget:progress:${userId}:*`);
+    });
+  });
+
+  describe("updateTransaction", () => {
+    const updateDto = { amount: 75 };
+
+    it("оновлює транзакцію після валідації", async () => {
+      transactionRepo.findById.mockResolvedValue(makeTransaction());
+      accountRepo.findByIdWithCurrency.mockResolvedValue(makeAccountWithCurrency() as never);
+      categoryRepo.findById.mockResolvedValue({
+        id: categoryId,
+        userId,
+        kind: "EXPENSE",
+        isDeleted: false,
+      } as never);
+      transactionRepo.update.mockResolvedValue(makeTransaction({ amount: 75 as never }));
+
+      const result = await service.updateTransaction(
+        updateDto,
+        { id: transactionId },
+        { id: userId },
+      );
+
+      expect(result.id).toBe(transactionId);
+      expect(cache.delete).toHaveBeenCalledWith(`transaction:${userId}:${transactionId}`);
+    });
+
+    it("кидає NotFoundError для відсутньої категорії", async () => {
+      transactionRepo.findById.mockResolvedValue(makeTransaction());
+      accountRepo.findByIdWithCurrency.mockResolvedValue(makeAccountWithCurrency() as never);
+      categoryRepo.findById.mockResolvedValue(null);
+
+      await expect(
+        service.updateTransaction({ categoryId }, { id: transactionId }, { id: userId }),
+      ).rejects.toThrow(NotFoundError);
+    });
+  });
+
+  describe("getTransactions", () => {
+    const listQuery = { page: 1, limit: 20 };
+
+    it("повертає список з кешу", async () => {
+      const cached = { data: [], total: 0, page: 1, limit: 20, totalPages: 0 };
+      cache.getJson.mockResolvedValueOnce(cached);
+
+      const result = await service.getTransactions(listQuery, { id: userId });
+
+      expect(result).toBe(cached);
+    });
+
+    it("завантажує список з репозиторію", async () => {
+      transactionRepo.findByFilter.mockResolvedValue({
+        data: [makeTransaction()],
+        total: 1,
+        page: 1,
+        limit: 20,
+        totalPages: 1,
+      });
+
+      const result = await service.getTransactions(listQuery, { id: userId });
+
+      expect(result.data).toHaveLength(1);
+    });
+  });
+
+  describe("getTransactionsByAccountId", () => {
+    it("повертає з кешу", async () => {
+      const cached = { data: [], total: 0, page: 1, limit: 20, totalPages: 0 };
+      cache.getJson.mockResolvedValueOnce(cached);
+
+      const result = await service.getTransactionsByAccountId(
+        { id: accountId },
+        { page: 1, limit: 20 },
+        { id: userId },
+      );
+
+      expect(result).toBe(cached);
+    });
+  });
+
+  describe("getTransactionsByCategoryId", () => {
+    it("повертає з кешу", async () => {
+      const cached = { data: [], total: 0, page: 1, limit: 20, totalPages: 0 };
+      cache.getJson.mockResolvedValueOnce(cached);
+
+      const result = await service.getTransactionsByCategoryId(
+        { id: categoryId },
+        { page: 1, limit: 20 },
+        { id: userId },
+      );
+
+      expect(result).toBe(cached);
+    });
+  });
+
+  describe("getTransactionsByUserId", () => {
+    it("делегує в getTransactions", async () => {
+      transactionRepo.findByFilter.mockResolvedValue({
+        data: [],
+        total: 0,
+        page: 1,
+        limit: 20,
+        totalPages: 0,
+      });
+
+      await service.getTransactionsByUserId({ page: 1, limit: 20 }, { id: userId });
+
+      expect(transactionRepo.findByFilter).toHaveBeenCalled();
     });
   });
 });

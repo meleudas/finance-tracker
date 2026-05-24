@@ -5,6 +5,8 @@ jest.mock("../../../src/config/prismaClient", () => ({
       findMany: jest.fn(),
       count: jest.fn(),
       findUnique: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
     },
   },
 }));
@@ -20,6 +22,43 @@ describe("AccountRepository", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     repo = new AccountRepository();
+  });
+
+  describe("CRUD", () => {
+    it("create/update/softDelete/findById", async () => {
+      (prisma.account.create as jest.Mock).mockResolvedValue({ id: accountId });
+      (prisma.account.update as jest.Mock).mockResolvedValue({ id: accountId, name: "New" });
+      (prisma.account.findUnique as jest.Mock).mockResolvedValue({ id: accountId });
+
+      await repo.create({
+        userId,
+        name: "Cash",
+        currencyId: "clm7v9x1k0000qzq8x8x8x8xc",
+        balance: 0,
+        deletedAt: null,
+      } as never);
+      await repo.update(accountId, { name: "New" });
+      await repo.softDelete(accountId);
+      await repo.findById(accountId);
+
+      expect(prisma.account.create).toHaveBeenCalled();
+      expect(prisma.account.update).toHaveBeenCalledTimes(2);
+      expect(prisma.account.findUnique).toHaveBeenCalledWith({
+        where: { id: accountId, isDeleted: false },
+      });
+    });
+  });
+
+  describe("findByUserId", () => {
+    it("повертає пагінований результат", async () => {
+      (prisma.account.findMany as jest.Mock).mockResolvedValue([{ id: accountId }]);
+      (prisma.account.count as jest.Mock).mockResolvedValue(1);
+
+      const result = await repo.findByUserId(userId, { page: 1, limit: 20 });
+
+      expect(result.data).toHaveLength(1);
+      expect(result.totalPages).toBe(1);
+    });
   });
 
   describe("findByIdWithCurrency", () => {
@@ -45,6 +84,22 @@ describe("AccountRepository", () => {
       expect(prisma.account.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { userId, isDeleted: false },
+        }),
+      );
+    });
+
+    it("додає currencyId до where", async () => {
+      (prisma.account.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.account.count as jest.Mock).mockResolvedValue(0);
+
+      await repo.findByFilter(
+        { userId, currencyId: "clm7v9x1k0000qzq8x8x8x8xc" },
+        { page: 1, limit: 20 },
+      );
+
+      expect(prisma.account.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { userId, currencyId: "clm7v9x1k0000qzq8x8x8x8xc" },
         }),
       );
     });

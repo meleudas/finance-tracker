@@ -45,4 +45,51 @@ describe("FinancialReportPdfBuilder", () => {
     expect(buffer.length).toBeGreaterThan(100);
     expect(buffer.subarray(0, 4).toString()).toBe("%PDF");
   });
+
+  it("включає account filter, категорії та рахунки", async () => {
+    const baseCurrency = sampleReport.currencies[0];
+    if (baseCurrency === undefined) {
+      throw new Error("expected sample currency");
+    }
+
+    const detailed: FinancialReportDto = {
+      ...sampleReport,
+      filters: { includeRecurring: true, accountId: "clacc0000000000000000001" },
+      currencies: [
+        {
+          ...baseCurrency,
+          byCategory: [
+            {
+              categoryId: "clcat0000000000000000001",
+              categoryName: "Food",
+              kind: "EXPENSE",
+              amount: 50,
+              transactionCount: 2,
+            },
+          ],
+          byAccount: [
+            {
+              accountId: "clacc0000000000000000001",
+              accountName: "Main",
+              income: 100,
+              expense: 50,
+              transfersIn: 0,
+              transfersOut: 0,
+              netTransfer: 0,
+              periodNet: 50,
+            },
+          ],
+        },
+      ],
+    };
+
+    const buffer = await buildFinancialReportPdf(detailed);
+    expect(buffer.length).toBeGreaterThan(200);
+  });
+
+  it("генерує PDF без recurring блоку", async () => {
+    const { recurring: _r, ...withoutRecurring } = sampleReport;
+    const buffer = await buildFinancialReportPdf(withoutRecurring as FinancialReportDto);
+    expect(buffer.subarray(0, 4).toString()).toBe("%PDF");
+  });
 });

@@ -1,5 +1,11 @@
 import { API_V1_PREFIX } from "../constants";
-import { errorResponses, protectedSecurity } from "../helpers";
+import {
+  appendCsrfParameters,
+  errorResponses,
+  mutationErrorResponses,
+  protectedMutationSecurity,
+  protectedSecurity,
+} from "../helpers";
 import { openApiRegistry } from "../registry";
 import {
   FinancialReportEnvelopeSchema,
@@ -39,7 +45,8 @@ openApiRegistry.registerPath({
   summary: "Enqueue financial report job",
   description:
     "Queues report generation (JSON or PDF). Poll GET /reports/jobs/{id} until status is COMPLETED.",
-  security: protectedSecurity,
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: {
     body: { content: { "application/json": { schema: CreateReportJobBodySchema } } },
   },
@@ -48,7 +55,7 @@ openApiRegistry.registerPath({
       description: "Job accepted",
       content: { "application/json": { schema: ReportJobResponseEnvelopeSchema } },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });
 
@@ -73,6 +80,10 @@ openApiRegistry.registerPath({
   path: `${basePath}/jobs/{id}/download`,
   tags: [tag],
   summary: "Download report PDF",
+  description:
+    "Returns the PDF file when the job status is COMPLETED and format is PDF. " +
+    "For seed data use id `clseed0000000000000000197` (not PENDING jobs like `...0191`). " +
+    "New jobs: poll GET /jobs/{id} until COMPLETED and ensure the report worker is running.",
   security: protectedSecurity,
   request: { params: IdParamsSchema },
   responses: {

@@ -23,6 +23,13 @@ for f in /app/docker/seed/sql/[0-9]*.sql; do
   psql "$PSQL_URL" -v ON_ERROR_STOP=1 -f "$f"
 done
 
+if [ -n "${S3_ENDPOINT:-}" ]; then
+  echo "Uploading seed report PDFs to object storage…"
+  node /app/docker/seed/upload-report-pdfs.mjs
+else
+  echo "S3_ENDPOINT not set — skipping MinIO report PDF upload."
+fi
+
 echo ""
 echo "Seed completed."
 echo "  Demo login: demo@swagger.local / ${SEED_DEMO_PASSWORD:-SwaggerDemo123!}"

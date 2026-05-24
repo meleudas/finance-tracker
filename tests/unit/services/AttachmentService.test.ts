@@ -65,6 +65,25 @@ describe("AttachmentService", () => {
   });
 
   describe("uploadAttachment", () => {
+    it("throws ValidationError for empty buffer", async () => {
+      transactionRepo.findById.mockResolvedValue({
+        id: transactionId,
+        userId,
+      } as Awaited<ReturnType<ITransactionRepository["findById"]>>);
+
+      await expect(
+        service.uploadAttachment(
+          {
+            originalName: "empty.pdf",
+            mimeType: "application/pdf",
+            buffer: Buffer.alloc(0),
+          },
+          { transactionId },
+          { id: userId },
+        ),
+      ).rejects.toThrow(ValidationError);
+    });
+
     it("uploads file and returns attachment without storageKey", async () => {
       transactionRepo.findById.mockResolvedValue({
         id: transactionId,
@@ -90,6 +109,24 @@ describe("AttachmentService", () => {
       expect(attachmentRepo.create).toHaveBeenCalled();
       expect(result).not.toHaveProperty("storageKey");
       expect(result.id).toBe(attachmentId);
+    });
+  });
+
+  describe("getPresignedUploadUrl", () => {
+    it("returns upload url and storage key", async () => {
+      transactionRepo.findById.mockResolvedValue({
+        id: transactionId,
+        userId,
+      } as Awaited<ReturnType<ITransactionRepository["findById"]>>);
+
+      const result = await service.getPresignedUploadUrl(
+        { originalName: "receipt.pdf", mimeType: "application/pdf" },
+        { transactionId },
+        { id: userId },
+      );
+
+      expect(result.storageKey).toMatch(new RegExp(`^attachments/${userId}/`));
+      expect(result.uploadUrl).toBe("https://upload.example/url");
     });
   });
 
@@ -141,7 +178,69 @@ describe("AttachmentService", () => {
     });
   });
 
+  describe("updateAttachment", () => {
+    it("updates attachment metadata", async () => {
+      transactionRepo.findById.mockResolvedValue({
+        id: transactionId,
+        userId,
+      } as Awaited<ReturnType<ITransactionRepository["findById"]>>);
+      attachmentRepo.findById.mockResolvedValue(makeAttachment());
+      attachmentRepo.update.mockResolvedValue(makeAttachment({ originalName: "new.pdf" }));
+
+      const result = await service.updateAttachment(
+        { originalName: "new.pdf" },
+        { transactionId, id: attachmentId },
+        { id: userId },
+      );
+
+      expect(result.originalName).toBe("new.pdf");
+      expect(cache.keys).toHaveBeenCalled();
+    });
+  });
+
   describe("getAttachment", () => {
+    it("returns cached attachment with download url", async () => {
+      const cached = { id: attachmentId, downloadUrl: "https://cached" };
+      cache.getJson.mockResolvedValueOnce(cached);
+
+      const result = await service.getAttachment(
+        { transactionId, id: attachmentId },
+        { id: userId },
+      );
+
+      expect(result).toEqual(cached);
+    });
+
+    it("loads attachment and caches download url", async () => {
+      transactionRepo.findById.mockResolvedValue({
+        id: transactionId,
+        userId,
+      } as Awaited<ReturnType<ITransactionRepository["findById"]>>);
+      attachmentRepo.findById.mockResolvedValue(makeAttachment());
+
+      const result = await service.getAttachment(
+        { transactionId, id: attachmentId },
+        { id: userId },
+      );
+
+      expect(result.downloadUrl).toBe("https://download.example/url");
+      expect(cache.setJson).toHaveBeenCalled();
+    });
+
+    it("throws NotFoundError when attachment belongs to another transaction", async () => {
+      transactionRepo.findById.mockResolvedValue({
+        id: transactionId,
+        userId,
+      } as Awaited<ReturnType<ITransactionRepository["findById"]>>);
+      attachmentRepo.findById.mockResolvedValue(
+        makeAttachment({ transactionId: "clothertransaction00000001" }),
+      );
+
+      await expect(
+        service.getAttachment({ transactionId, id: attachmentId }, { id: userId }),
+      ).rejects.toThrow(NotFoundError);
+    });
+
     it("throws NotFoundError when transaction belongs to another user", async () => {
       transactionRepo.findById.mockResolvedValue({
         id: transactionId,
@@ -175,7 +274,59 @@ describe("AttachmentService", () => {
     });
   });
 
+  describe("getAttachmentDownloadUrl", () => {
+    it("returns cached download url", async () => {
+      const cached = { downloadUrl: "https://cached", expiresInSeconds: 900 };
+      cache.getJson.mockResolvedValueOnce(cached);
+
+      const result = await service.getAttachmentDownloadUrl(
+        { transactionId, id: attachmentId },
+        { id: userId },
+      );
+
+      expect(result).toEqual(cached);
+    });
+
+    it("generates and caches presigned download url", async () => {
+      transactionRepo.findById.mockResolvedValue({
+        id: transactionId,
+        userId,
+      } as Awaited<ReturnType<ITransactionRepository["findById"]>>);
+      attachmentRepo.findById.mockResolvedValue(makeAttachment());
+
+      const result = await service.getAttachmentDownloadUrl(
+        { transactionId, id: attachmentId },
+        { id: userId },
+      );
+
+      expect(result.downloadUrl).toBe("https://download.example/url");
+      expect(cache.setJson).toHaveBeenCalled();
+    });
+  });
+
   describe("getAttachments", () => {
+    it("returns cached attachment list", async () => {
+      const cached = [{ id: attachmentId, downloadUrl: "https://cached" }];
+      cache.getJson.mockResolvedValueOnce(cached);
+
+      const result = await service.getAttachments({ transactionId }, { id: userId });
+
+      expect(result).toEqual(cached);
+    });
+
+    it("loads attachments with download urls", async () => {
+      transactionRepo.findById.mockResolvedValue({
+        id: transactionId,
+        userId,
+      } as Awaited<ReturnType<ITransactionRepository["findById"]>>);
+      attachmentRepo.findByTransactionId.mockResolvedValue([makeAttachment()]);
+
+      const result = await service.getAttachments({ transactionId }, { id: userId });
+
+      expect(result).toHaveLength(1);
+      expect(result[0]?.downloadUrl).toBe("https://download.example/url");
+    });
+
     it("throws NotFoundError when transaction not found for user", async () => {
       transactionRepo.findById.mockResolvedValue(null);
 

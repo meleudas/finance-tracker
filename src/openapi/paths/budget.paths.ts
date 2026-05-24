@@ -1,5 +1,11 @@
 import { API_V1_PREFIX } from "../constants";
-import { errorResponses, protectedSecurity } from "../helpers";
+import {
+  appendCsrfParameters,
+  errorResponses,
+  mutationErrorResponses,
+  protectedMutationSecurity,
+  protectedSecurity,
+} from "../helpers";
 import { openApiRegistry } from "../registry";
 import {
   BudgetResponseEnvelopeSchema,
@@ -63,7 +69,8 @@ openApiRegistry.registerPath({
   tags: [tag],
   summary: "Create budget",
   description: "Creates a new budget. `periodEnd` must be strictly after `periodStart`.",
-  security: protectedSecurity,
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: {
     body: {
       content: {
@@ -78,7 +85,7 @@ openApiRegistry.registerPath({
       description: "Budget created successfully",
       content: { "application/json": { schema: BudgetResponseEnvelopeSchema } },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });
 
@@ -107,7 +114,8 @@ openApiRegistry.registerPath({
   summary: "Update budget",
   description:
     "Partially updates budget name, period, or limit. Account and currency cannot be changed.",
-  security: protectedSecurity,
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: {
     params: IdParamsSchema,
     body: {
@@ -123,7 +131,7 @@ openApiRegistry.registerPath({
       description: "Budget updated successfully",
       content: { "application/json": { schema: BudgetResponseEnvelopeSchema } },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });
 
@@ -132,7 +140,8 @@ openApiRegistry.registerPath({
   path: `${basePath}/{id}/limit`,
   tags: [tag],
   summary: "Update budget limit",
-  security: protectedSecurity,
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: {
     params: IdParamsSchema,
     body: {
@@ -148,7 +157,7 @@ openApiRegistry.registerPath({
       description: "Budget limit updated",
       content: { "application/json": { schema: BudgetResponseEnvelopeSchema } },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });
 
@@ -158,7 +167,8 @@ openApiRegistry.registerPath({
   tags: [tag],
   summary: "Delete budget",
   description: "Soft-deletes a budget.",
-  security: protectedSecurity,
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: {
     params: IdParamsSchema,
   },
@@ -167,6 +177,6 @@ openApiRegistry.registerPath({
       description: "Budget soft-deleted",
       content: { "application/json": { schema: DeleteResponseEnvelopeSchema } },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });

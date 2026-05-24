@@ -108,6 +108,19 @@ describe("AccountService", () => {
         NotFoundError,
       );
     });
+
+    it("має завантажити рахунок з репозиторію та закешувати", async () => {
+      accountRepo.findById.mockResolvedValue(makeAccount());
+
+      const result = await service.getAccount({ id: accountId }, { id: userId });
+
+      expect(result.id).toBe(accountId);
+      expect(cache.setJson).toHaveBeenCalledWith(
+        `account:item:${userId}:${accountId}`,
+        expect.objectContaining({ id: accountId }),
+        expect.any(Number),
+      );
+    });
   });
 
   describe("getAccounts", () => {

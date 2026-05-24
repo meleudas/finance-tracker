@@ -3,7 +3,9 @@ import { env } from "../config/env";
 import { getQueueConnection } from "../queues/connection";
 import type { ReportJobPayload } from "../queues/report.queue";
 import type { ReportJobProcessor } from "./reportJobProcessor";
-import { logger } from "../config/logger";
+import { createModuleLogger } from "../config/logger";
+
+const logger = createModuleLogger("ReportWorker");
 
 export function createReportWorker(processor: ReportJobProcessor): Worker<ReportJobPayload> {
   const worker = new Worker<ReportJobPayload>(

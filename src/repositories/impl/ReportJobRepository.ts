@@ -52,4 +52,13 @@ export class ReportJobRepository implements IReportJobRepository {
       options?.signal,
     );
   }
+
+  async delete(id: string, options?: RequestOptions): Promise<void> {
+    await withAbortSignal(
+      prisma.reportJob.delete({
+        where: { id },
+      }),
+      options?.signal,
+    );
+  }
 }

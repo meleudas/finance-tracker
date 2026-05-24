@@ -107,6 +107,45 @@ describe("CategoryController - Unit Tests", () => {
     });
   });
 
+  describe("authorization", () => {
+    it("GET /categories without user returns 401", async () => {
+      const noUserApp = express();
+      noUserApp.use(express.json());
+      const controller = new CategoryController(mockService);
+      noUserApp.get("/api/v1/categories", asyncHandler(controller.list));
+      noUserApp.use((err: Error | AppError, req: express.Request, res: express.Response) => {
+        const isAppError = err instanceof AppError;
+        res.status(isAppError ? err.statusCode : 500).json({
+          error: { code: isAppError ? err.code : "INTERNAL_ERROR", message: err.message },
+        });
+      });
+
+      const res = await request(noUserApp).get("/api/v1/categories");
+      expect(res.status).toBe(401);
+    });
+  });
+
+  describe("GET /api/v1/categories/:id", () => {
+    it("should return category by id", async () => {
+      mockService.getCategoryById.mockResolvedValue({
+        id: categoryId,
+        userId,
+        name: "Food",
+        kind: "EXPENSE",
+        parentId: null,
+        isDeleted: false,
+        createdAt: new Date("2026-05-01T00:00:00.000Z"),
+        updatedAt: new Date("2026-05-01T00:00:00.000Z"),
+        deletedAt: null,
+      });
+
+      const res = await request(app).get(`/api/v1/categories/${categoryId}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.id).toBe(categoryId);
+    });
+  });
+
   describe("GET /api/v1/categories", () => {
     it("should return category tree envelope", async () => {
       mockService.getCategoryTree.mockResolvedValue([

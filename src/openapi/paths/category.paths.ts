@@ -1,5 +1,11 @@
 import { API_V1_PREFIX } from "../constants";
-import { errorResponses, protectedSecurity } from "../helpers";
+import {
+  appendCsrfParameters,
+  errorResponses,
+  mutationErrorResponses,
+  protectedMutationSecurity,
+  protectedSecurity,
+} from "../helpers";
 import { openApiRegistry } from "../registry";
 import {
   CategoryResponseEnvelopeSchema,
@@ -36,7 +42,8 @@ openApiRegistry.registerPath({
   tags: [tag],
   summary: "Create category",
   description: "Creates a new category. `parentId` is optional for nested categories.",
-  security: protectedSecurity,
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: {
     body: {
       content: {
@@ -51,7 +58,7 @@ openApiRegistry.registerPath({
       description: "Category created successfully",
       content: { "application/json": { schema: CategoryResponseEnvelopeSchema } },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });
 
@@ -80,7 +87,8 @@ openApiRegistry.registerPath({
   summary: "Update category",
   description:
     "Partially updates category fields (`name`, `parentId`). At least one field is required. Moving `parentId` validates ownership, matching `kind`, and prevents cycles.",
-  security: protectedSecurity,
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: {
     params: IdParamsSchema,
     body: {
@@ -96,7 +104,7 @@ openApiRegistry.registerPath({
       description: "Category updated successfully",
       content: { "application/json": { schema: CategoryResponseEnvelopeSchema } },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });
 
@@ -107,7 +115,8 @@ openApiRegistry.registerPath({
   summary: "Delete category",
   description:
     "Soft-deletes the category and all descendants in the subtree. Returns 409 if any node in the subtree has active (non-deleted) transactions. Budgets linked to deleted categories have `categoryId` set to null.",
-  security: protectedSecurity,
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: {
     params: IdParamsSchema,
   },
@@ -116,6 +125,6 @@ openApiRegistry.registerPath({
       description: "Category subtree soft-deleted",
       content: { "application/json": { schema: DeleteResponseEnvelopeSchema } },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });

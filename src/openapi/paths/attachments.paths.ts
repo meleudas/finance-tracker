@@ -1,5 +1,11 @@
 import { API_V1_PREFIX } from "../constants";
-import { errorResponses, protectedSecurity } from "../helpers";
+import {
+  appendCsrfParameters,
+  errorResponses,
+  mutationErrorResponses,
+  protectedMutationSecurity,
+  protectedSecurity,
+} from "../helpers";
 import { openApiRegistry } from "../registry";
 import {
   AttachmentDownloadUrlEnvelopeSchema,
@@ -45,7 +51,8 @@ openApiRegistry.registerPath({
   tags: [tag],
   summary: "Upload attachment",
   description: "Uploads a file via multipart form. Field name for the file must be `file`.",
-  security: protectedSecurity,
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: {
     params: TransactionIdParamsSchema,
     body: {
@@ -61,7 +68,7 @@ openApiRegistry.registerPath({
       description: "Attachment metadata stored",
       content: { "application/json": { schema: AttachmentResponseEnvelopeSchema } },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });
 
@@ -72,7 +79,8 @@ openApiRegistry.registerPath({
   summary: "Get presigned upload URL (step 1 of 2)",
   description:
     "Returns a short-lived URL and storageKey for direct PUT upload to object storage. After uploading the file to S3, call POST .../confirm with the same storageKey and file metadata.",
-  security: protectedSecurity,
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: {
     params: TransactionIdParamsSchema,
     body: {
@@ -84,7 +92,7 @@ openApiRegistry.registerPath({
       description: "Presigned upload URL",
       content: { "application/json": { schema: PresignedUploadUrlEnvelopeSchema } },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });
 
@@ -95,7 +103,8 @@ openApiRegistry.registerPath({
   summary: "Confirm presigned upload (step 2 of 2)",
   description:
     "Registers attachment metadata in the database after the client has uploaded the file via the presigned PUT URL.",
-  security: protectedSecurity,
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: {
     params: TransactionIdParamsSchema,
     body: {
@@ -107,7 +116,7 @@ openApiRegistry.registerPath({
       description: "Attachment metadata stored",
       content: { "application/json": { schema: AttachmentResponseEnvelopeSchema } },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });
 
@@ -154,7 +163,8 @@ openApiRegistry.registerPath({
   path: `${basePath}/{id}`,
   tags: [tag],
   summary: "Update attachment metadata",
-  security: protectedSecurity,
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: {
     params: AttachmentIdParamsSchema,
     body: { content: { "application/json": { schema: UpdateAttachmentBodySchema } } },
@@ -164,7 +174,7 @@ openApiRegistry.registerPath({
       description: "Updated attachment",
       content: { "application/json": { schema: AttachmentResponseEnvelopeSchema } },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });
 
@@ -174,13 +184,14 @@ openApiRegistry.registerPath({
   tags: [tag],
   summary: "Delete attachment",
   description: "Soft-deletes metadata and removes the file from object storage.",
-  security: protectedSecurity,
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: { params: AttachmentIdParamsSchema },
   responses: {
     200: {
       description: "Soft-deleted attachment",
       content: { "application/json": { schema: DeleteResponseEnvelopeSchema } },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });

@@ -84,6 +84,23 @@ describe("CurrencyService - Unit Tests", () => {
   });
 
   describe("getCurrencyByCode", () => {
+    it("повертає з кешу без запиту в репозиторій", async () => {
+      const cached = {
+        id: "clk7v9x1k0000qzq8x8x8x8xb",
+        code: "EUR",
+        name: "Euro",
+        minorUnits: 2,
+        createdAt: "2026-05-01T00:00:00.000Z",
+        updatedAt: "2026-05-01T00:00:00.000Z",
+      };
+      cache.getJson.mockResolvedValueOnce(cached);
+
+      const result = await currencyService.getCurrencyByCode("eur");
+
+      expect(result).toEqual(cached);
+      expect(mockCurrencyRepo.findByCode).not.toHaveBeenCalled();
+    });
+
     it("має нормалізувати код і повернути валюту", async () => {
       mockCurrencyRepo.findByCode.mockResolvedValue(makeCurrency({ code: "EUR" }));
 
@@ -104,6 +121,23 @@ describe("CurrencyService - Unit Tests", () => {
   });
 
   describe("getCurrencyById", () => {
+    it("повертає з кешу без запиту в репозиторій", async () => {
+      const cached = {
+        id: "clk7v9x1k0000qzq8x8x8x8xb",
+        code: "USD",
+        name: "US Dollar",
+        minorUnits: 2,
+        createdAt: "2026-05-01T00:00:00.000Z",
+        updatedAt: "2026-05-01T00:00:00.000Z",
+      };
+      cache.getJson.mockResolvedValueOnce(cached);
+
+      const result = await currencyService.getCurrencyById(cached.id);
+
+      expect(result).toEqual(cached);
+      expect(mockCurrencyRepo.findById).not.toHaveBeenCalled();
+    });
+
     it("має повернути валюту за id", async () => {
       const currency = makeCurrency();
       mockCurrencyRepo.findById.mockResolvedValue(currency);

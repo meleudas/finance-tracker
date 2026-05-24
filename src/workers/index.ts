@@ -1,6 +1,6 @@
 import "../config/prismaClient";
 import { env } from "../config/env";
-import { logger } from "../config/logger";
+import { createModuleLogger } from "../config/logger";
 import { ReportJobRepository } from "../repositories/impl/ReportJobRepository";
 import { ReportService } from "../services/impl/ReportService";
 import { AccountRepository } from "../repositories/impl/AccountRepository";
@@ -14,6 +14,8 @@ import { FileStorage } from "../storage/FileStorage";
 import { ReportJobProcessor } from "./reportJobProcessor";
 import { createReportWorker } from "./report.worker";
 import { closeReportQueue } from "../queues/report.queue";
+
+const logger = createModuleLogger("ReportWorker");
 
 const reportProcessor = new ReportJobProcessor(
   new ReportJobRepository(),

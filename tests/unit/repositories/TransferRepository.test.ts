@@ -77,6 +77,43 @@ describe("TransferRepository", () => {
       );
     });
 
+    it("findByFilter: currencyId та лише from у occurredAt", async () => {
+      (prisma.transfer.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.transfer.count as jest.Mock).mockResolvedValue(0);
+      const from = new Date("2025-06-01T00:00:00.000Z");
+
+      await repo.findByFilter({ userId: "u1", currencyId: "cur-1", from }, { page: 1, limit: 20 });
+
+      expect(prisma.transfer.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            userId: "u1",
+            isDeleted: false,
+            currencyId: "cur-1",
+            occurredAt: { gte: from },
+          },
+        }),
+      );
+    });
+
+    it("findByFilter: лише to у occurredAt", async () => {
+      (prisma.transfer.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.transfer.count as jest.Mock).mockResolvedValue(0);
+      const to = new Date("2025-12-31T23:59:59.000Z");
+
+      await repo.findByFilter({ userId: "u1", to }, { page: 1, limit: 20 });
+
+      expect(prisma.transfer.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            userId: "u1",
+            isDeleted: false,
+            occurredAt: { lte: to },
+          },
+        }),
+      );
+    });
+
     it("findByAccountId: OR між from та to", async () => {
       (prisma.transfer.findMany as jest.Mock).mockResolvedValue([]);
 
@@ -89,6 +126,32 @@ describe("TransferRepository", () => {
         },
         orderBy: { occurredAt: "desc" },
       });
+    });
+
+    it("aggregateByAccount: агрегує вхідні та вихідні суми", async () => {
+      (prisma.transfer.groupBy as jest.Mock)
+        .mockResolvedValueOnce([{ toAccountId: "acc-a", _sum: { amount: "100" } }])
+        .mockResolvedValueOnce([{ fromAccountId: "acc-b", _sum: { amount: 50 } }]);
+
+      const result = await repo.aggregateByAccount({ userId: "u1" });
+
+      expect(result).toEqual(
+        expect.arrayContaining([
+          { accountId: "acc-a", transfersIn: 100, transfersOut: 0 },
+          { accountId: "acc-b", transfersIn: 0, transfersOut: 50 },
+        ]),
+      );
+    });
+
+    it("countAndSum: повертає count та totalAmount", async () => {
+      (prisma.transfer.aggregate as jest.Mock).mockResolvedValue({
+        _count: { _all: 3 },
+        _sum: { amount: { toNumber: () => 250 } },
+      });
+
+      const summary = await repo.countAndSum({ userId: "u1" });
+
+      expect(summary).toEqual({ count: 3, totalAmount: 250 });
     });
   });
 

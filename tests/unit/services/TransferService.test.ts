@@ -113,6 +113,36 @@ describe("TransferService", () => {
       expect(transferRepo.create).not.toHaveBeenCalled();
     });
 
+    it("throws ValidationError when from and to accounts are the same", async () => {
+      await expect(
+        service.createTransfer({ ...createPayload, toAccountId: fromAccountId }, { id: userId }),
+      ).rejects.toThrow(ValidationError);
+    });
+
+    it("throws NotFoundError when to account is not owned", async () => {
+      accountRepo.findByIdWithCurrency
+        .mockResolvedValueOnce(makeAccountWithCurrency(fromAccountId) as never)
+        .mockResolvedValueOnce(null);
+
+      await expect(service.createTransfer(createPayload, { id: userId })).rejects.toThrow(
+        NotFoundError,
+      );
+    });
+
+    it("throws ValidationError when currency does not match to account", async () => {
+      const otherCurrency = "clothercurrency0000000000002";
+      accountRepo.findByIdWithCurrency
+        .mockResolvedValueOnce(makeAccountWithCurrency(fromAccountId) as never)
+        .mockResolvedValueOnce({
+          ...makeAccountWithCurrency(toAccountId),
+          currencyId: otherCurrency,
+        } as never);
+
+      await expect(service.createTransfer(createPayload, { id: userId })).rejects.toThrow(
+        ValidationError,
+      );
+    });
+
     it("throws ValidationError when currency does not match account", async () => {
       accountRepo.findByIdWithCurrency
         .mockResolvedValueOnce(makeAccountWithCurrency(fromAccountId) as never)
@@ -127,7 +157,38 @@ describe("TransferService", () => {
     });
   });
 
+  describe("deleteTransfer", () => {
+    it("soft-deletes transfer and invalidates cache", async () => {
+      transferRepo.findById.mockResolvedValue(makeTransfer());
+      transferRepo.softDelete.mockResolvedValue(makeTransfer({ isDeleted: true }));
+
+      const result = await service.deleteTransfer({ id: transferId }, { id: userId });
+
+      expect(result.isDeleted).toBe(true);
+      expect(cache.delete).toHaveBeenCalledWith(`transfer:${userId}:${transferId}`);
+    });
+  });
+
   describe("getTransfer", () => {
+    it("returns cached transfer", async () => {
+      const cached = { id: transferId };
+      cache.getJson.mockResolvedValueOnce(cached);
+
+      const result = await service.getTransfer({ id: transferId }, { id: userId });
+
+      expect(result).toEqual(cached);
+      expect(transferRepo.findById).not.toHaveBeenCalled();
+    });
+
+    it("loads transfer and caches response", async () => {
+      transferRepo.findById.mockResolvedValue(makeTransfer());
+
+      const result = await service.getTransfer({ id: transferId }, { id: userId });
+
+      expect(result.id).toBe(transferId);
+      expect(cache.setJson).toHaveBeenCalled();
+    });
+
     it("throws NotFoundError for transfer owned by another user", async () => {
       transferRepo.findById.mockResolvedValue(makeTransfer({ userId: otherUserId }));
 
@@ -152,7 +213,31 @@ describe("TransferService", () => {
     });
   });
 
+  describe("getTransfers", () => {
+    it("returns cached list", async () => {
+      const cached = { data: [], total: 0, page: 1, limit: 20, totalPages: 0 };
+      cache.getJson.mockResolvedValueOnce(cached);
+
+      const result = await service.getTransfers({ page: 1, limit: 20 }, { id: userId });
+
+      expect(result).toBe(cached);
+    });
+  });
+
   describe("getTransfersByAccountId", () => {
+    it("returns cached list scoped by account", async () => {
+      const cached = { data: [], total: 0, page: 1, limit: 20, totalPages: 0 };
+      cache.getJson.mockResolvedValueOnce(cached);
+
+      const result = await service.getTransfersByAccountId(
+        { id: fromAccountId },
+        { page: 1, limit: 20 },
+        { id: userId },
+      );
+
+      expect(result).toBe(cached);
+    });
+
     it("uses findByFilter with accountId instead of findByAccountId", async () => {
       transferRepo.findByFilter.mockResolvedValue({
         data: [makeTransfer()],
@@ -177,6 +262,22 @@ describe("TransferService", () => {
         undefined,
       );
       expect(transferRepo.findByAccountId).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("getTransfersByUserId", () => {
+    it("delegates to getTransfers", async () => {
+      transferRepo.findByFilter.mockResolvedValue({
+        data: [],
+        total: 0,
+        page: 1,
+        limit: 20,
+        totalPages: 0,
+      });
+
+      await service.getTransfersByUserId({ page: 1, limit: 20 }, { id: userId });
+
+      expect(transferRepo.findByFilter).toHaveBeenCalled();
     });
   });
 });

@@ -1,5 +1,11 @@
 import { API_V1_PREFIX } from "../constants";
-import { errorResponses, protectedSecurity } from "../helpers";
+import {
+  appendCsrfParameters,
+  errorResponses,
+  mutationErrorResponses,
+  protectedMutationSecurity,
+  protectedSecurity,
+} from "../helpers";
 import { openApiRegistry } from "../registry";
 import {
   RecurringRuleListEnvelopeSchema,
@@ -35,7 +41,8 @@ openApiRegistry.registerPath({
   path: basePath,
   tags: [tag],
   summary: "Create recurring rule",
-  security: protectedSecurity,
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: {
     body: { content: { "application/json": { schema: CreateRecurringRuleBodySchema } } },
   },
@@ -44,7 +51,7 @@ openApiRegistry.registerPath({
       description: "Created rule",
       content: { "application/json": { schema: RecurringRuleResponseEnvelopeSchema } },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });
 
@@ -69,7 +76,8 @@ openApiRegistry.registerPath({
   path: `${basePath}/{id}`,
   tags: [tag],
   summary: "Update recurring rule",
-  security: protectedSecurity,
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: {
     params: IdParamsSchema,
     body: { content: { "application/json": { schema: UpdateRecurringRuleBodySchema } } },
@@ -79,7 +87,7 @@ openApiRegistry.registerPath({
       description: "Updated rule",
       content: { "application/json": { schema: RecurringRuleResponseEnvelopeSchema } },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });
 
@@ -88,13 +96,14 @@ openApiRegistry.registerPath({
   path: `${basePath}/{id}`,
   tags: [tag],
   summary: "Delete recurring rule",
-  security: protectedSecurity,
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: { params: IdParamsSchema },
   responses: {
     200: {
       description: "Deleted",
       content: { "application/json": { schema: DeleteResponseEnvelopeSchema } },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });

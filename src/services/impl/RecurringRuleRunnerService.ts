@@ -1,5 +1,5 @@
 import { prisma } from "../../config/prismaClient";
-import { logger } from "../../config/logger";
+import { createModuleLogger } from "../../config/logger";
 import { env } from "../../config/env";
 import type {
   IRecurringRuleRunnerService,
@@ -16,6 +16,8 @@ import {
   RECURRING_RULE_EXHAUSTED_NEXT_RUN,
 } from "../../utils/helpers/recurringSchedule";
 import { invalidateUserTransactionAndBudgetCache } from "./userFinanceCacheInvalidation";
+
+const logger = createModuleLogger("RecurringRuleRunner");
 
 export class RecurringRuleRunnerService implements IRecurringRuleRunnerService {
   constructor(

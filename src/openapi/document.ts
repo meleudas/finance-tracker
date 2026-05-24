@@ -12,7 +12,8 @@ export function generateOpenApiDocument() {
       title: "Finance Tracker API",
       version: "1.0.0",
       description:
-        "REST API for personal finance tracking. Successful responses use `{ data, meta }`; errors use `{ error: { code, message, requestId } }`.",
+        "REST API for personal finance tracking. Successful responses use `{ data, meta }`; errors use `{ error: { code, message, requestId } }`. " +
+        "For POST/PUT/PATCH/DELETE with cookie-based auth: call GET /api/v1/auth/csrf first, then send header `x-csrf-token` matching the `csrfToken` cookie on every mutating request.",
     },
     servers: [
       {

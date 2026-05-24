@@ -21,6 +21,7 @@
     "currencyByCode": "UAH",
     "currencyId": "clseed0000000000000000002",
     "accountId": "clseed0000000000000000022",
+    "secondUahAccountId": "clseed0000000000000000025",
     "categoryId": "clseed0000000000000000045",
     "incomeCategoryId": "clseed0000000000000000045",
     "expenseCategoryId": "clseed0000000000000000046",
@@ -33,6 +34,13 @@
     "reportJobPendingId": "clseed0000000000000000188",
     "reportJobCompletedJsonId": "clseed0000000000000000196",
     "reportJobCompletedPdfId": "clseed0000000000000000197",
+    "reportJobDownloadablePdfIds": [
+      "clseed0000000000000000197",
+      "clseed0000000000000000199",
+      "clseed0000000000000000201",
+      "clseed0000000000000000203",
+      "clseed0000000000000000205"
+    ],
     "reportJobFailedId": "clseed0000000000000000200",
     "otherUserAccountId": "clseed0000000000000000042",
     "otherUserTransactionId": "clseed0000000000000000208",
@@ -53,7 +61,14 @@
     },
     "transfersList": {
       "page": 1,
-      "limit": 20
+      "limit": 20,
+      "fromAccountId": "clseed0000000000000000022",
+      "toAccountId": "clseed0000000000000000025"
+    },
+    "transfersByAccount": {
+      "accountId": "clseed0000000000000000022",
+      "from": "2026-01-01T00:00:00.000Z",
+      "to": "2026-04-30T23:59:59.999Z"
     }
   },
   "counts": {
