@@ -2,6 +2,7 @@ import type { Readable } from "node:stream";
 import type { IFileStorage } from "./IFileStorage";
 import { minioClient, attachmentsBucket } from "../config/minioConfig";
 import { env } from "../config/env";
+import { rethrowStorageError } from "./storageErrors";
 
 async function readableToBuffer(stream: Readable): Promise<Buffer> {
   const chunks: Buffer[] = [];
@@ -16,41 +17,65 @@ export class FileStorage implements IFileStorage {
   private readonly client = minioClient;
 
   async ensureBucketExists(): Promise<void> {
-    const exists = await this.client.bucketExists(this.bucket);
-    if (!exists) {
-      await this.client.makeBucket(this.bucket, env.S3_REGION);
+    try {
+      const exists = await this.client.bucketExists(this.bucket);
+      if (!exists) {
+        await this.client.makeBucket(this.bucket, env.S3_REGION);
+      }
+    } catch (err) {
+      rethrowStorageError(err);
     }
   }
 
   async uploadFile(key: string, buffer: Buffer, mimeType: string): Promise<string> {
-    await this.ensureBucketExists();
+    try {
+      await this.ensureBucketExists();
 
-    await this.client.putObject(this.bucket, key, buffer, buffer.length, {
-      "Content-Type": mimeType,
-    });
-    return key;
+      await this.client.putObject(this.bucket, key, buffer, buffer.length, {
+        "Content-Type": mimeType,
+      });
+      return key;
+    } catch (err) {
+      rethrowStorageError(err);
+    }
   }
 
   async downloadFile(key: string): Promise<Buffer> {
-    const stream = await this.client.getObject(this.bucket, key);
-    return readableToBuffer(stream);
+    try {
+      const stream = await this.client.getObject(this.bucket, key);
+      return await readableToBuffer(stream);
+    } catch (err) {
+      rethrowStorageError(err);
+    }
   }
 
   async deleteFile(key: string): Promise<void> {
-    await this.client.removeObject(this.bucket, key);
+    try {
+      await this.client.removeObject(this.bucket, key);
+    } catch (err) {
+      rethrowStorageError(err);
+    }
   }
 
   async getPresignedDownloadUrl(
     key: string,
     expiresInSeconds = env.S3_PRESIGNED_URL_EXPIRY_SECONDS,
   ): Promise<string> {
-    return this.client.presignedGetObject(this.bucket, key, expiresInSeconds);
+    try {
+      return await this.client.presignedGetObject(this.bucket, key, expiresInSeconds);
+    } catch (err) {
+      rethrowStorageError(err);
+    }
   }
 
   async getPresignedUploadUrl(
     key: string,
     expiresInSeconds = env.S3_PRESIGNED_URL_EXPIRY_SECONDS,
   ): Promise<string> {
-    return this.client.presignedPutObject(this.bucket, key, expiresInSeconds);
+    try {
+      return await this.client.presignedPutObject(this.bucket, key, expiresInSeconds);
+    } catch (err) {
+      rethrowStorageError(err);
+    }
   }
 }
