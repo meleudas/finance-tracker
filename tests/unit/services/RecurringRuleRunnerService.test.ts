@@ -99,6 +99,39 @@ describe("RecurringRuleRunnerService", () => {
     expect(prisma.$transaction).toHaveBeenCalled();
   });
 
+  it("пропускає rule з видаленим рахунком", async () => {
+    ruleRepo.findDueRules.mockResolvedValue([dueRule()]);
+    accountRepo.findByIdWithCurrency.mockResolvedValue(null);
+
+    const result = await service.processDueRules();
+
+    expect(result.processed).toBe(1);
+    expect(result.created).toBe(0);
+    expect(ruleRepo.updateSchedule).toHaveBeenCalled();
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it("рахує failed при помилці processRule", async () => {
+    ruleRepo.findDueRules.mockResolvedValue([dueRule()]);
+    accountRepo.findByIdWithCurrency.mockRejectedValue(new Error("db down"));
+
+    const result = await service.processDueRules();
+
+    expect(result.failed).toBe(1);
+  });
+
+  it("зупиняється коли nextRunAt після endsAt", async () => {
+    const rule = dueRule();
+    rule.endsAt = new Date("2026-04-01T00:00:00.000Z");
+    rule.nextRunAt = new Date("2026-05-01T00:00:00.000Z");
+    ruleRepo.findDueRules.mockResolvedValue([rule]);
+
+    const result = await service.processDueRules();
+
+    expect(result.created).toBe(0);
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
   it("зупиняється на maxOccurrences", async () => {
     const rule = dueRule();
     rule.occurrenceCount = 2;

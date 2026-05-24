@@ -96,6 +96,27 @@ describe("BaseRepository", () => {
       (repo.delegateMock.count as jest.Mock).mockResolvedValue(1);
       await expect(repo.exists("e1")).resolves.toBe(true);
     });
+
+    it("exists повертає false коли count = 0", async () => {
+      (repo.delegateMock.count as jest.Mock).mockResolvedValue(0);
+      await expect(repo.exists("e1")).resolves.toBe(false);
+    });
+
+    it("findAll повертає активні записи", async () => {
+      (repo.delegateMock.findMany as jest.Mock).mockResolvedValue([{ id: "a1" }]);
+      await expect(repo.findAll()).resolves.toEqual([{ id: "a1" }]);
+    });
+
+    it("create делегує до prisma", async () => {
+      (repo.delegateMock.create as jest.Mock).mockResolvedValue({ id: "c1" });
+      await repo.create({ name: "x" });
+      expect(repo.delegateMock.create).toHaveBeenCalledWith({ data: { name: "x" } });
+    });
+
+    it("count повертає кількість активних", async () => {
+      (repo.delegateMock.count as jest.Mock).mockResolvedValue(3);
+      await expect(repo.count()).resolves.toBe(3);
+    });
   });
 
   describe("стійкість до зловмисних / крайніх вхідних даних", () => {
@@ -137,6 +158,18 @@ describe("BaseRepository", () => {
       await repo.findMany({ page: 1, limit: -50 });
 
       expect(repo.delegateMock.findMany).toHaveBeenCalledWith(expect.objectContaining({ take: 1 }));
+    });
+
+    it("findAll/create/count відхиляються при aborted signal", async () => {
+      const ac = new AbortController();
+      ac.abort();
+      (repo.delegateMock.findMany as jest.Mock).mockResolvedValue([]);
+      (repo.delegateMock.create as jest.Mock).mockResolvedValue({ id: "c1" });
+      (repo.delegateMock.count as jest.Mock).mockResolvedValue(0);
+
+      await expect(repo.findAll({ signal: ac.signal })).rejects.toThrow(AbortError);
+      await expect(repo.create({ name: "x" }, { signal: ac.signal })).rejects.toThrow(AbortError);
+      await expect(repo.count({ signal: ac.signal })).rejects.toThrow(AbortError);
     });
 
     it("findById з уже перерваним AbortSignal відхиляється з AbortError", async () => {

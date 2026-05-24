@@ -32,6 +32,18 @@ describe("CurrencyRepository", () => {
     });
   });
 
+  describe("BaseRepository delegation", () => {
+    it("findById використовує currency delegate", async () => {
+      (prisma.currency.findUnique as jest.Mock).mockResolvedValue({ id: "c1", code: "USD" });
+
+      await repo.findById("c1");
+
+      expect(prisma.currency.findUnique).toHaveBeenCalledWith({
+        where: { id: "c1", isDeleted: false },
+      });
+    });
+  });
+
   describe("findActive", () => {
     it("findMany з isDeleted: false та orderBy code asc", async () => {
       (prisma.currency.findMany as jest.Mock).mockResolvedValue([]);

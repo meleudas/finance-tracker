@@ -128,6 +128,55 @@ describe("TransactionRepository", () => {
       expect(rows).toEqual([{ accountId: "acc-1", direction: "INCOME", amount: 200 }]);
     });
 
+    it("findByFilter: лише from без to", async () => {
+      (prisma.transaction.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.transaction.count as jest.Mock).mockResolvedValue(0);
+      const from = new Date("2026-05-01T00:00:00.000Z");
+
+      await repo.findByFilter({ userId: "u1", from }, { page: 1, limit: 10 });
+
+      expect(prisma.transaction.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            occurredAt: { gte: from },
+          }),
+        }),
+      );
+    });
+
+    it("findByCategoryId: фільтр за категорією", async () => {
+      (prisma.transaction.findMany as jest.Mock).mockResolvedValue([]);
+      await repo.findByCategoryId("cat-z");
+      expect(prisma.transaction.findMany).toHaveBeenCalledWith({
+        where: { categoryId: "cat-z", isDeleted: false },
+        orderBy: { occurredAt: "desc" },
+      });
+    });
+
+    it("sumExpenseAmount делегує до sumAmount EXPENSE", async () => {
+      (prisma.transaction.aggregate as jest.Mock).mockResolvedValue({ _sum: { amount: 10 } });
+      const total = await repo.sumExpenseAmount({ userId: "u1" });
+      expect(total).toBe(10);
+      expect(prisma.transaction.aggregate).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expect.objectContaining({ direction: "EXPENSE" }) }),
+      );
+    });
+
+    it("sumByRecurringRule: фільтрує null recurringRuleId", async () => {
+      (prisma.transaction.groupBy as jest.Mock).mockResolvedValue([
+        {
+          recurringRuleId: "rule-1",
+          _sum: { amount: 50 },
+          _count: { _all: 2 },
+        },
+        { recurringRuleId: null, _sum: { amount: 0 }, _count: { _all: 0 } },
+      ]);
+
+      const rows = await repo.sumByRecurringRule({ userId: "u1" });
+
+      expect(rows).toEqual([{ recurringRuleId: "rule-1", amount: 50, transactionCount: 2 }]);
+    });
+
     it("findByAccountId: фільтр за рахунком та isDeleted", async () => {
       (prisma.transaction.findMany as jest.Mock).mockResolvedValue([]);
 
