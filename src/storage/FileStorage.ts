@@ -1,6 +1,6 @@
 import type { Readable } from "node:stream";
 import type { IFileStorage } from "./IFileStorage";
-import { minioClient, attachmentsBucket } from "../config/minioConfig";
+import { minioClient, minioPresignedClient, attachmentsBucket } from "../config/minioConfig";
 import { env } from "../config/env";
 import { rethrowStorageError } from "./storageErrors";
 
@@ -15,6 +15,7 @@ async function readableToBuffer(stream: Readable): Promise<Buffer> {
 export class FileStorage implements IFileStorage {
   private readonly bucket = attachmentsBucket;
   private readonly client = minioClient;
+  private readonly presignedClient = minioPresignedClient;
 
   async ensureBucketExists(): Promise<void> {
     try {
@@ -62,7 +63,8 @@ export class FileStorage implements IFileStorage {
     expiresInSeconds = env.S3_PRESIGNED_URL_EXPIRY_SECONDS,
   ): Promise<string> {
     try {
-      return await this.client.presignedGetObject(this.bucket, key, expiresInSeconds);
+      const url = await this.presignedClient.presignedGetObject(this.bucket, key, expiresInSeconds);
+      return url;
     } catch (err) {
       rethrowStorageError(err);
     }
@@ -73,7 +75,8 @@ export class FileStorage implements IFileStorage {
     expiresInSeconds = env.S3_PRESIGNED_URL_EXPIRY_SECONDS,
   ): Promise<string> {
     try {
-      return await this.client.presignedPutObject(this.bucket, key, expiresInSeconds);
+      const url = await this.presignedClient.presignedPutObject(this.bucket, key, expiresInSeconds);
+      return url;
     } catch (err) {
       rethrowStorageError(err);
     }

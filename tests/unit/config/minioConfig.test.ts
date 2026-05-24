@@ -25,6 +25,7 @@ describe("minioConfig", () => {
         endPoint: "minio.local",
         port: 9000,
         useSSL: false,
+        pathStyle: true,
       }),
     );
     expect(attachmentsBucket).toBe(process.env.S3_BUCKET);

@@ -8,12 +8,16 @@ const mockClient = {
   putObject: jest.fn(),
   getObject: jest.fn(),
   removeObject: jest.fn(),
+};
+
+const mockPresignedClient = {
   presignedGetObject: jest.fn(),
   presignedPutObject: jest.fn(),
 };
 
 jest.mock("../../../src/config/minioConfig", () => ({
   minioClient: mockClient,
+  minioPresignedClient: mockPresignedClient,
   attachmentsBucket: "test-bucket",
 }));
 
@@ -21,6 +25,8 @@ jest.mock("../../../src/config/env", () => ({
   env: {
     S3_REGION: "us-east-1",
     S3_PRESIGNED_URL_EXPIRY_SECONDS: 900,
+    S3_ENDPOINT: "http://minio:9000",
+    S3_PUBLIC_ENDPOINT: "http://localhost:9000",
   },
 }));
 
@@ -70,14 +76,22 @@ describe("FileStorage", () => {
     expect(mockClient.removeObject).toHaveBeenCalledWith("test-bucket", "k4");
   });
 
-  it("returns presigned URLs", async () => {
-    mockClient.presignedGetObject.mockResolvedValue("https://dl");
-    mockClient.presignedPutObject.mockResolvedValue("https://ul");
+  it("returns presigned URLs from the public-endpoint client", async () => {
+    mockPresignedClient.presignedGetObject.mockResolvedValue(
+      "http://localhost:9000/test-bucket/k5?sig=1",
+    );
+    mockPresignedClient.presignedPutObject.mockResolvedValue(
+      "http://localhost:9000/test-bucket/k6?sig=2",
+    );
 
-    await expect(storage.getPresignedDownloadUrl("k5")).resolves.toBe("https://dl");
-    await expect(storage.getPresignedUploadUrl("k6", 120)).resolves.toBe("https://ul");
-    expect(mockClient.presignedGetObject).toHaveBeenCalledWith("test-bucket", "k5", 900);
-    expect(mockClient.presignedPutObject).toHaveBeenCalledWith("test-bucket", "k6", 120);
+    await expect(storage.getPresignedDownloadUrl("k5")).resolves.toBe(
+      "http://localhost:9000/test-bucket/k5?sig=1",
+    );
+    await expect(storage.getPresignedUploadUrl("k6", 120)).resolves.toBe(
+      "http://localhost:9000/test-bucket/k6?sig=2",
+    );
+    expect(mockPresignedClient.presignedGetObject).toHaveBeenCalledWith("test-bucket", "k5", 900);
+    expect(mockPresignedClient.presignedPutObject).toHaveBeenCalledWith("test-bucket", "k6", 120);
   });
 
   it("maps MinIO errors to ServiceUnavailableError", async () => {
@@ -109,12 +123,12 @@ describe("FileStorage", () => {
   });
 
   it("maps presigned GET errors to ServiceUnavailableError", async () => {
-    mockClient.presignedGetObject.mockRejectedValue(new Error("sign fail"));
+    mockPresignedClient.presignedGetObject.mockRejectedValue(new Error("sign fail"));
     await expect(storage.getPresignedDownloadUrl("k")).rejects.toThrow(ServiceUnavailableError);
   });
 
   it("maps presigned PUT errors to ServiceUnavailableError", async () => {
-    mockClient.presignedPutObject.mockRejectedValue(new Error("sign fail"));
+    mockPresignedClient.presignedPutObject.mockRejectedValue(new Error("sign fail"));
     await expect(storage.getPresignedUploadUrl("k")).rejects.toThrow(ServiceUnavailableError);
   });
 

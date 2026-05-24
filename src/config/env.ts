@@ -24,6 +24,8 @@ const envSchema = z.object({
     .regex(/^rediss?:\/\//, "REDIS_URL must be a redis:// or rediss:// URL")
     .default("redis://localhost:6379"),
   S3_ENDPOINT: z.url().default("http://localhost:9000"),
+  /** Browser/client-facing S3 base URL for presigned links (defaults to S3_ENDPOINT). */
+  S3_PUBLIC_ENDPOINT: z.url().optional(),
   S3_REGION: z.string().min(1).default("us-east-1"),
   S3_BUCKET: z.string().min(1).default("finance-tracker"),
   S3_ACCESS_KEY_ID: z.string().min(1).default("minioadmin"),
