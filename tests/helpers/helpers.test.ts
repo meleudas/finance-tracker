@@ -78,6 +78,14 @@ describe("Helpers Logic (Unit)", () => {
         "Connection timeout",
       );
     });
+
+    it("обгортає non-Error rejection у Error", async () => {
+      const controller = new AbortController();
+      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors -- перевіряємо обгортку non-Error rejection
+      await expect(withAbortSignal(Promise.reject("fail"), controller.signal)).rejects.toThrow(
+        "fail",
+      );
+    });
   });
 
   describe("getPaginationOptions", () => {
