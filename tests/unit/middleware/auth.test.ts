@@ -21,7 +21,7 @@ describe("createAuthMiddleware", () => {
     };
     req = { headers: {}, cookies: {}, id: "req-1" };
     res = {};
-    next = jest.fn();
+    next = jest.fn() as jest.MockedFunction<NextFunction>;
   });
 
   it("встановлює req.user з Bearer token", async () => {

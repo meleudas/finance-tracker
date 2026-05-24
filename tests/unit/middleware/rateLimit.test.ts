@@ -30,7 +30,7 @@ describe("rateLimit middleware", () => {
     jest.resetModules();
     const { apiLimiter, strictLimiter } =
       (await import("../../../src/middleware/rateLimit")) as typeof import("../../../src/middleware/rateLimit");
-    const next = jest.fn<NextFunction>();
+    const next = jest.fn() as jest.MockedFunction<NextFunction>;
     apiLimiter({} as Request, {} as Response, next);
     strictLimiter({} as Request, {} as Response, next);
     expect(next).toHaveBeenCalledTimes(2);

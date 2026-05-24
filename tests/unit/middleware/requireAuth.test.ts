@@ -29,7 +29,7 @@ describe("createRequireAuth", () => {
       log: { warn: jest.fn(), error: jest.fn(), info: jest.fn() } as unknown as Request["log"],
     };
     res = {};
-    next = jest.fn();
+    next = jest.fn() as jest.MockedFunction<NextFunction>;
   });
 
   it("має встановити req.user.id з JWT access token", async () => {
