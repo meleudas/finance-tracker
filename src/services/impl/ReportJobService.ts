@@ -2,7 +2,9 @@ import type { IReportJobService } from "../interfaces/IReportJobService";
 import type { IReportJobRepository } from "../../repositories/interfaces/IReportJobRepository";
 import type { CreateReportJobDto } from "../../dtos/report/CreateReportJob.dto";
 import type { ReportJobResponseDto } from "../../dtos/report/ReportJobResponse.dto";
-import { NotFoundError, ValidationError } from "../../utils/errors/ClientErrors";
+import { ConflictError, NotFoundError, ValidationError } from "../../utils/errors/ClientErrors";
+import type { ReportJob } from "../../generated/prisma/client";
+import { ServiceUnavailableError } from "../../utils/errors/serverErrors";
 import { parseOrThrow } from "../../utils/helpers/zodParse";
 import { createReportJobSchema } from "../../dtos/report/CreateReportJob.dto";
 import { getReportQueue } from "../../queues/report.queue";
@@ -14,6 +16,28 @@ import { repoOptions } from "../serviceContext";
 
 function toReportFormat(format: CreateReportJobDto["format"]): "JSON" | "PDF" {
   return format === "pdf" ? "PDF" : "JSON";
+}
+
+function assertPdfDownloadReady(
+  job: ReportJob,
+): asserts job is ReportJob & { status: "COMPLETED"; storageKey: string } {
+  if (job.format !== "PDF") {
+    throw new ValidationError("Report job is not a PDF export");
+  }
+
+  if (job.status === "PENDING" || job.status === "PROCESSING") {
+    throw new ConflictError(
+      `Report PDF is still processing (status: ${job.status}). Poll GET /reports/jobs/${job.id} until COMPLETED.`,
+    );
+  }
+
+  if (job.status === "FAILED") {
+    throw new ValidationError(job.errorMessage ?? "Report PDF generation failed");
+  }
+
+  if (!job.storageKey) {
+    throw new ValidationError("Report PDF is not available");
+  }
 }
 
 export class ReportJobService implements IReportJobService {
@@ -44,19 +68,28 @@ export class ReportJobService implements IReportJobService {
     );
 
     const queue = getReportQueue();
-    await queue.add(
-      "generate",
-      {
-        jobId: job.id,
-        userId,
-        from: validated.from.toISOString(),
-        to: validated.to.toISOString(),
-        accountId: validated.accountId,
-        format,
-        includeRecurring: validated.includeRecurring,
-      },
-      { jobId: job.id },
-    );
+    try {
+      await queue.add(
+        "generate",
+        {
+          jobId: job.id,
+          userId,
+          from: validated.from.toISOString(),
+          to: validated.to.toISOString(),
+          accountId: validated.accountId,
+          format,
+          includeRecurring: validated.includeRecurring,
+        },
+        { jobId: job.id },
+      );
+    } catch {
+      try {
+        await this.reportJobRepo.delete(job.id, options);
+      } catch {
+        // best-effort cleanup if enqueue failed
+      }
+      throw new ServiceUnavailableError("Report queue is unavailable");
+    }
 
     return toReportJobResponse(job);
   }
@@ -75,9 +108,7 @@ export class ReportJobService implements IReportJobService {
       return toReportJobResponse(job, { data });
     }
 
-    if (!job.storageKey) {
-      throw new ValidationError("Report PDF is not available");
-    }
+    assertPdfDownloadReady(job);
 
     const downloadUrl = await this.fileStorage.getPresignedDownloadUrl(
       job.storageKey,
@@ -91,9 +122,7 @@ export class ReportJobService implements IReportJobService {
     const options = repoOptions(ctx);
     const job = await this.reportJobRepo.findByIdForUser(jobId, userId, options);
     if (!job) throw new NotFoundError("Report job");
-    if (job.status !== "COMPLETED" || job.format !== "PDF" || !job.storageKey) {
-      throw new ValidationError("Report PDF is not ready");
-    }
+    assertPdfDownloadReady(job);
     return this.fileStorage.downloadFile(job.storageKey);
   }
 }

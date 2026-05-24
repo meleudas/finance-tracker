@@ -24,4 +24,6 @@ export interface IReportJobRepository {
   findByIdForUser(id: string, userId: string, options?: RequestOptions): Promise<ReportJob | null>;
 
   update(id: string, data: UpdateReportJobInput, options?: RequestOptions): Promise<ReportJob>;
+
+  delete(id: string, options?: RequestOptions): Promise<void>;
 }

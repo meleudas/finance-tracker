@@ -55,7 +55,8 @@ SELECT
     ELSE NULL
   END,
   CASE
-    WHEN i >= 8 AND i < 18 AND i % 2 = 1 THEN 'seed/reports/clseed' || lpad((188 + i)::text, 19, '0') || '.pdf'
+    WHEN i >= 8 AND i < 18 AND i % 2 = 1 THEN
+      'reports/clseed0000000000000000000/clseed' || lpad((188 + i)::text, 19, '0') || '.pdf'
     ELSE NULL
   END,
   CASE WHEN i >= 18 THEN 'Seed failed job for Swagger testing' ELSE NULL END,

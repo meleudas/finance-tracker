@@ -5,7 +5,9 @@ import type { ReportService } from "../services/impl/ReportService";
 import type { IFileStorage } from "../storage/IFileStorage";
 import { buildReportStorageKey } from "../storage/reportKey";
 import { buildFinancialReportPdf } from "../reports/pdf/FinancialReportPdfBuilder";
-import { logger } from "../config/logger";
+import { createModuleLogger } from "../config/logger";
+
+const logger = createModuleLogger("ReportJobProcessor");
 
 export class ReportJobProcessor {
   constructor(

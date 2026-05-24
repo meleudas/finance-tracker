@@ -246,4 +246,73 @@ describe("ReportService", () => {
     expect(report.recurring).toBeUndefined();
     expect(recurringRuleRepo.findIntersectingPeriod).not.toHaveBeenCalled();
   });
+
+  it("додає порожній блок валюти для accountId без руху", async () => {
+    accountRepo.findByIdWithCurrency.mockResolvedValue(accountWithCurrency);
+    transactionRepo.sumAmount.mockResolvedValue(0);
+    transactionRepo.sumByCategory.mockResolvedValue([]);
+    transactionRepo.sumByAccount.mockResolvedValue([]);
+    transferRepo.aggregateByAccount.mockResolvedValue([]);
+    transferRepo.countAndSum.mockResolvedValue({ count: 0, totalAmount: 0 });
+    budgetRepo.findIntersectingPeriod.mockResolvedValue([]);
+
+    const report = await service.getFinancialReport(userId, {
+      ...defaultQuery,
+      accountId,
+    });
+
+    expect(report.currencies).toHaveLength(1);
+    expect(report.currencies[0]?.summary.net).toBe(0);
+  });
+
+  it("використовує назву категорії в byCategory breakdown", async () => {
+    const catId = "clp7v9x1k0000qzq8x8x8x8x8c";
+    accountRepo.findByFilter.mockResolvedValue({
+      data: [accountWithCurrency],
+      total: 1,
+      page: 1,
+      limit: 100,
+      totalPages: 1,
+    });
+    accountRepo.findByIdWithCurrency.mockResolvedValue(accountWithCurrency);
+    transactionRepo.sumAmount.mockImplementation((_f, direction) =>
+      Promise.resolve(direction === "EXPENSE" ? 100 : 0),
+    );
+    transactionRepo.sumByCategory.mockResolvedValue([
+      {
+        categoryId: catId,
+        direction: "EXPENSE",
+        amount: 100,
+        transactionCount: 2,
+      },
+    ]);
+    categoryRepo.findById.mockResolvedValue({
+      id: catId,
+      name: "Food",
+      isDeleted: false,
+    } as never);
+    transactionRepo.sumByAccount.mockResolvedValue([]);
+    transferRepo.aggregateByAccount.mockResolvedValue([]);
+    transferRepo.countAndSum.mockResolvedValue({ count: 0, totalAmount: 0 });
+    budgetRepo.findIntersectingPeriod.mockResolvedValue([
+      {
+        id: "clq7v9x1k0000qzq8x8x8x8x8d",
+        userId,
+        accountId,
+        currencyId,
+        categoryId: catId,
+        name: "Food budget",
+        limitAmount: 500,
+        periodStart: from,
+        periodEnd: to,
+      },
+    ] as never);
+    transactionRepo.sumExpenseAmount.mockResolvedValue(120);
+    currencyRepo.findById.mockResolvedValue(accountWithCurrency.currency);
+
+    const report = await service.getFinancialReport(userId, defaultQuery);
+
+    expect(report.currencies[0]?.byCategory[0]?.categoryName).toBe("Food");
+    expect(report.currencies[0]?.budgets[0]?.spentAmount).toBe(120);
+  });
 });
