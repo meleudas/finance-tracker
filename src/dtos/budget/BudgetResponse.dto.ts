@@ -1,7 +1,7 @@
 // src/validators/budget/budget.response.schema.ts
 import { z } from "zod";
 import { cuidSchema } from "../common/id.dto";
-import { amountSchema, isoDatetimeSchema } from "../common/schemas";
+import { amountSchema, isoDatetimeSchema, nonNegativeAmountSchema } from "../common/schemas";
 
 export const BudgetResponseSchema = z
   .object({
@@ -13,8 +13,8 @@ export const BudgetResponseSchema = z
     limitAmount: amountSchema,
     periodStart: isoDatetimeSchema,
     periodEnd: isoDatetimeSchema,
-    spentAmount: amountSchema.optional(),
-    remainingAmount: amountSchema.optional(),
+    spentAmount: nonNegativeAmountSchema.optional(),
+    remainingAmount: nonNegativeAmountSchema.optional(),
     createdAt: isoDatetimeSchema,
     updatedAt: isoDatetimeSchema,
     deletedAt: isoDatetimeSchema.nullable(),

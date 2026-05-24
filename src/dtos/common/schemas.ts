@@ -7,6 +7,13 @@ export const amountSchema = z
     message: "At most 4 decimal places",
   });
 
+export const nonNegativeAmountSchema = z
+  .number()
+  .nonnegative()
+  .refine((val) => Number(val.toFixed(4)) === val, {
+    message: "At most 4 decimal places",
+  });
+
 export const noteSchema = z.string().trim().max(500);
 export const nullableNoteSchema = noteSchema.nullable().optional();
 
