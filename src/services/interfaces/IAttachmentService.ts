@@ -10,6 +10,8 @@ import {
   AttachmentResponseDto,
   AttachmentWithDownloadUrlResponseDto,
   ConfirmPresignedUploadDto,
+  PresignedUploadBodyDto,
+  PresignedUploadCompleteResponseDto,
   PresignedUploadUrlRequestDto,
   PresignedUploadUrlResponseDto,
   UpdateAttachmentDto,
@@ -38,6 +40,14 @@ export interface IAttachmentService {
     userId: IdDto,
     ctx?: ServiceContext,
   ): Promise<AttachmentResponseDto>;
+
+  uploadPresignedFile(
+    body: PresignedUploadBodyDto,
+    file: UploadAttachmentInput,
+    transactionId: TransactionIdParamDto,
+    userId: IdDto,
+    ctx?: ServiceContext,
+  ): Promise<PresignedUploadCompleteResponseDto>;
 
   updateAttachment(
     attachment: UpdateAttachmentDto,

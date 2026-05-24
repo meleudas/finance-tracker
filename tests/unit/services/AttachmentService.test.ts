@@ -130,6 +130,56 @@ describe("AttachmentService", () => {
     });
   });
 
+  describe("uploadPresignedFile", () => {
+    it("uploads file to storageKey owned by user", async () => {
+      const storageKey = `attachments/${userId}/abc.pdf`;
+      transactionRepo.findById.mockResolvedValue({
+        id: transactionId,
+        userId,
+      } as Awaited<ReturnType<ITransactionRepository["findById"]>>);
+
+      const result = await service.uploadPresignedFile(
+        { storageKey },
+        {
+          originalName: "receipt.pdf",
+          mimeType: "application/pdf",
+          buffer: Buffer.from("pdf-content"),
+        },
+        { transactionId },
+        { id: userId },
+      );
+
+      expect(fileStorage.uploadFile).toHaveBeenCalledWith(
+        storageKey,
+        expect.any(Buffer),
+        "application/pdf",
+      );
+      expect(result.storageKey).toBe(storageKey);
+    });
+
+    it("throws ValidationError when storageKey prefix does not match user", async () => {
+      transactionRepo.findById.mockResolvedValue({
+        id: transactionId,
+        userId,
+      } as Awaited<ReturnType<ITransactionRepository["findById"]>>);
+
+      await expect(
+        service.uploadPresignedFile(
+          { storageKey: `attachments/${otherUserId}/stolen.pdf` },
+          {
+            originalName: "receipt.pdf",
+            mimeType: "application/pdf",
+            buffer: Buffer.from("pdf-content"),
+          },
+          { transactionId },
+          { id: userId },
+        ),
+      ).rejects.toThrow(ValidationError);
+
+      expect(fileStorage.uploadFile).not.toHaveBeenCalled();
+    });
+  });
+
   describe("confirmPresignedUpload", () => {
     it("creates attachment when storageKey has valid user prefix", async () => {
       const storageKey = `attachments/${userId}/abc.pdf`;

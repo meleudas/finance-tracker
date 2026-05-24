@@ -2,6 +2,7 @@ import type { RequestHandler } from "express";
 import { z } from "zod";
 
 import { confirmPresignedUploadSchema } from "../dtos/attachment/ConfirmPresignedUpload.dto";
+import { presignedUploadBodySchema } from "../dtos/attachment/PresignedUploadBody.dto";
 import { UpdateAttachmentSchema } from "../dtos/attachment/UpdateAttachment.dto";
 import { attachmentDownloadUrlQuerySchema } from "../dtos/attachment/AttachmentDownload.dto";
 import { presignedUploadUrlRequestSchema } from "../dtos/attachment/PresignedUploadUrl.dto";
@@ -57,6 +58,11 @@ export const PresignedUploadUrlRequestValidator = createRequestValidator({
 export const ConfirmPresignedUploadRequestValidator = createRequestValidator({
   params: transactionIdParamSchema,
   body: confirmPresignedUploadSchema,
+});
+
+export const PresignedUploadRequestValidator = createRequestValidator({
+  params: transactionIdParamSchema,
+  body: presignedUploadBodySchema,
 });
 
 export const GetAttachmentRequestValidator = createRequestValidator({

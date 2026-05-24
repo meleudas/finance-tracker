@@ -20,6 +20,10 @@ import {
   confirmPresignedUploadSchema,
   ConfirmPresignedUploadDto,
   MAX_ATTACHMENT_SIZE_BYTES,
+  presignedUploadBodySchema,
+  PresignedUploadBodyDto,
+  presignedUploadCompleteResponseSchema,
+  PresignedUploadCompleteResponseDto,
   presignedUploadUrlRequestSchema,
   PresignedUploadUrlRequestDto,
   PresignedUploadUrlResponseDto,
@@ -154,10 +158,7 @@ export class AttachmentService implements IAttachmentService {
 
     await this.findOwnedTransaction(validatedTransactionId.transactionId, validatedUserId.id, ctx);
 
-    const expectedPrefix = `attachments/${validatedUserId.id}/`;
-    if (!validatedBody.storageKey.startsWith(expectedPrefix)) {
-      throw new ValidationError("Invalid storage key for this user");
-    }
+    this.assertStorageKeyOwnedByUser(validatedBody.storageKey, validatedUserId.id);
 
     const createdAttachment = await this.attachmentRepository.create(
       {
@@ -177,6 +178,33 @@ export class AttachmentService implements IAttachmentService {
     );
 
     return toAttachmentResponse(createdAttachment);
+  }
+
+  async uploadPresignedFile(
+    body: PresignedUploadBodyDto,
+    file: UploadAttachmentInput,
+    transactionId: TransactionIdParamDto,
+    userId: IdDto,
+    ctx?: ServiceContext,
+  ): Promise<PresignedUploadCompleteResponseDto> {
+    const validatedBody = parseOrThrow(presignedUploadBodySchema, body);
+    const validatedInput = this.validateUploadInput(file);
+    const validatedTransactionId = parseOrThrow(transactionIdParamSchema, transactionId);
+    const validatedUserId = parseOrThrow(idDtoSchema, userId);
+
+    await this.findOwnedTransaction(validatedTransactionId.transactionId, validatedUserId.id, ctx);
+    this.assertStorageKeyOwnedByUser(validatedBody.storageKey, validatedUserId.id);
+
+    await withServiceSignal(
+      this.fileStorage.uploadFile(
+        validatedBody.storageKey,
+        validatedInput.buffer,
+        validatedInput.mimeType,
+      ),
+      ctx,
+    );
+
+    return presignedUploadCompleteResponseSchema.parse({ storageKey: validatedBody.storageKey });
   }
 
   async updateAttachment(
@@ -432,6 +460,13 @@ export class AttachmentService implements IAttachmentService {
         ctx,
       );
       await Promise.all(downloadKeys.map((key) => withServiceSignal(this.cache.delete(key), ctx)));
+    }
+  }
+
+  private assertStorageKeyOwnedByUser(storageKey: string, userId: string): void {
+    const expectedPrefix = `attachments/${userId}/`;
+    if (!storageKey.startsWith(expectedPrefix)) {
+      throw new ValidationError("Invalid storage key for this user");
     }
   }
 

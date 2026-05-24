@@ -9,6 +9,7 @@ import {
   GetAttachmentDownloadUrlRequestValidator,
   GetAttachmentRequestValidator,
   ListAttachmentsRequestValidator,
+  PresignedUploadRequestValidator,
   PresignedUploadUrlRequestValidator,
   UpdateAttachmentRequestValidator,
   UploadAttachmentParamsValidator,
@@ -18,6 +19,10 @@ import {
   mountControllerErrorHandler,
   TEST_USER_ID,
 } from "../../helpers/controllerUnitTestUtils";
+import {
+  handleMulterError,
+  uploadAttachmentMiddleware,
+} from "../../../src/middleware/uploadAttachment";
 
 describe("AttachmentController - Unit Tests", () => {
   let app: express.Application;
@@ -43,6 +48,7 @@ describe("AttachmentController - Unit Tests", () => {
     mockService = {
       uploadAttachment: jest.fn(),
       getPresignedUploadUrl: jest.fn(),
+      uploadPresignedFile: jest.fn(),
       confirmPresignedUpload: jest.fn(),
       updateAttachment: jest.fn(),
       deleteAttachment: jest.fn(),
@@ -90,9 +96,16 @@ describe("AttachmentController - Unit Tests", () => {
       asyncHandler(controller.upload),
     );
     testApp.post(
-      `${base}/presigned-url`,
+      `${base}/presigned-upload-url`,
       PresignedUploadUrlRequestValidator,
       asyncHandler(controller.createPresignedUploadUrl),
+    );
+    testApp.put(
+      `${base}/presigned-upload`,
+      uploadAttachmentMiddleware,
+      handleMulterError,
+      PresignedUploadRequestValidator,
+      asyncHandler(controller.uploadPresignedFile),
     );
     testApp.post(
       `${base}/confirm`,
@@ -163,16 +176,50 @@ describe("AttachmentController - Unit Tests", () => {
     expect(res.status).toBe(400);
   });
 
-  it("POST /presigned-url — 201", async () => {
+  it("POST /presigned-upload-url — 201", async () => {
     mockService.getPresignedUploadUrl.mockResolvedValue({
       uploadUrl: "https://example.com/upload",
       storageKey: "key",
       expiresInSeconds: 900,
     });
     const res = await request(app)
-      .post(`/api/v1/transactions/${transactionId}/attachments/presigned-url`)
+      .post(`/api/v1/transactions/${transactionId}/attachments/presigned-upload-url`)
       .send({ originalName: "a.pdf", mimeType: "application/pdf" });
     expect(res.status).toBe(201);
+  });
+
+  it("PUT /presigned-upload — 200", async () => {
+    const storageKey = `attachments/${TEST_USER_ID}/file.pdf`;
+    mockService.uploadPresignedFile.mockResolvedValue({ storageKey });
+    const res = await request(app)
+      .put(`/api/v1/transactions/${transactionId}/attachments/presigned-upload`)
+      .field("storageKey", storageKey)
+      .attach("file", Buffer.from("pdf"), {
+        filename: "receipt.pdf",
+        contentType: "application/pdf",
+      });
+    expect(res.status).toBe(200);
+    expect(res.body.data.storageKey).toBe(storageKey);
+  });
+
+  it("PUT /presigned-upload — 400 без файлу", async () => {
+    const noFileApp = createControllerTestApp();
+    noFileApp.use("/api/v1/transactions", (req, _res, next) => {
+      req.user = { id: TEST_USER_ID, email: "test@example.com" };
+      next();
+    });
+    const controller = new AttachmentController(mockService);
+    noFileApp.put(
+      "/api/v1/transactions/:transactionId/attachments/presigned-upload",
+      PresignedUploadRequestValidator,
+      asyncHandler(controller.uploadPresignedFile),
+    );
+    mountControllerErrorHandler(noFileApp);
+
+    const res = await request(noFileApp)
+      .put(`/api/v1/transactions/${transactionId}/attachments/presigned-upload`)
+      .field("storageKey", `attachments/${TEST_USER_ID}/file.pdf`);
+    expect(res.status).toBe(400);
   });
 
   it("POST /confirm — 201", async () => {

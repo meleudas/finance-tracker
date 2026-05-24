@@ -121,6 +121,35 @@ export class AttachmentController {
     sendData(res, req, data, 201);
   };
 
+  uploadPresignedFile = async (req: Request, res: Response): Promise<void> => {
+    const { params, body } = req.validated as {
+      params: { transactionId: string };
+      body: Parameters<IAttachmentService["uploadPresignedFile"]>[0];
+    };
+    const file = req.file;
+
+    if (!file) {
+      throw new ValidationError("File field is required");
+    }
+
+    const metadata = parseOrThrow(uploadAttachmentSchema, {
+      originalName: readMultipartField(req.body, "originalName") ?? file.originalname,
+      mimeType: readMultipartField(req.body, "mimeType") ?? file.mimetype,
+    });
+
+    const data = await this.attachmentService.uploadPresignedFile(
+      body,
+      {
+        ...metadata,
+        buffer: file.buffer,
+      },
+      { transactionId: params.transactionId },
+      { id: getUserId(req) },
+      getServiceContext(req),
+    );
+    sendData(res, req, data);
+  };
+
   update = async (req: Request, res: Response): Promise<void> => {
     const { params, body } = req.validated as {
       params: { transactionId: string; id: string };
