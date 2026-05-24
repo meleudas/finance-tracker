@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { env } from "../config/env";
+import { getRequestLogger } from "../http/requestLog";
 import { getServiceContext } from "../http/requestContext";
 import type { IAuthService } from "../services/interfaces/IAuthService";
 import { UnauthorizedError } from "../utils/errors/securityErrors";
@@ -23,6 +24,14 @@ function tryDevUserFallback(req: Request): boolean {
   }
 
   return false;
+}
+
+function rejectUnauthorized(req: Request, next: NextFunction, reason: string): void {
+  getRequestLogger(req).warn(
+    { path: req.path, method: req.method, reason },
+    "Unauthorized request",
+  );
+  next(new UnauthorizedError());
 }
 
 export function createRequireAuth(authService: IAuthService) {
@@ -53,7 +62,7 @@ export function createRequireAuth(authService: IAuthService) {
       if (token) {
         const isBlacklisted = await authService.isTokenBlacklisted(token, getServiceContext(req));
         if (isBlacklisted) {
-          next(new UnauthorizedError());
+          rejectUnauthorized(req, next, "token_blacklisted");
           return;
         }
 
@@ -70,7 +79,7 @@ export function createRequireAuth(authService: IAuthService) {
         err.name === "TokenExpiredError" ||
         err.name === "NotBeforeError"
       ) {
-        next(new UnauthorizedError());
+        rejectUnauthorized(req, next, err.name);
         return;
       }
 
@@ -83,6 +92,6 @@ export function createRequireAuth(authService: IAuthService) {
       return;
     }
 
-    next(new UnauthorizedError());
+    rejectUnauthorized(req, next, "missing_credentials");
   };
 }

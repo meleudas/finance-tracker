@@ -1,7 +1,9 @@
 import cron, { type ScheduledTask } from "node-cron";
-import { logger } from "../config/logger";
+import { createModuleLogger } from "../config/logger";
 import { env } from "../config/env";
 import type { IRecurringRuleRunnerService } from "../services/interfaces/IRecurringRuleRunnerService";
+
+const logger = createModuleLogger("RecurringScheduler");
 
 let scheduledTask: ScheduledTask | null = null;
 

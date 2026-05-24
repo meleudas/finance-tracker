@@ -1,6 +1,19 @@
 import pino from "pino";
 import { env } from "./env";
 
+const REDACT_PATHS = [
+  "req.headers.authorization",
+  "req.headers.cookie",
+  "password",
+  "refreshToken",
+  "accessToken",
+  "token",
+  "*.password",
+  "*.refreshToken",
+  "*.accessToken",
+  "*.token",
+];
+
 function getDevTransport(): pino.TransportSingleOptions | undefined {
   if (env.NODE_ENV !== "development") {
     return undefined;
@@ -15,6 +28,17 @@ function getDevTransport(): pino.TransportSingleOptions | undefined {
 
 const transport = getDevTransport();
 
-export const logger = pino(
-  transport ? { level: env.LOG_LEVEL, transport } : { level: env.LOG_LEVEL },
-);
+const loggerOptions: pino.LoggerOptions = {
+  level: env.LOG_LEVEL,
+  redact: {
+    paths: REDACT_PATHS,
+    censor: "[REDACTED]",
+  },
+  ...(transport ? { transport } : {}),
+};
+
+export const logger = pino(loggerOptions);
+
+export function createModuleLogger(module: string): pino.Logger {
+  return logger.child({ module });
+}

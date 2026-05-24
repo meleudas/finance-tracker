@@ -1,4 +1,6 @@
 import type { ErrorRequestHandler } from "express";
+import { getRequestLogger } from "../http/requestLog";
+import { requestIdFrom } from "../utils/requestId";
 import { AppError } from "../utils/errors/appError";
 import { AbortError } from "../utils/errors/ClientErrors";
 import { InternalError } from "../utils/errors/serverErrors";
@@ -9,13 +11,6 @@ function isAppError(err: unknown): err is AppError {
 
 function isAbortError(err: unknown): boolean {
   return err instanceof AbortError || (err instanceof Error && err.name === "AbortError");
-}
-
-function requestIdFrom(req: { id?: unknown }): string {
-  if (typeof req.id === "string" && req.id.length > 0) {
-    return req.id;
-  }
-  return "unknown";
 }
 
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next): void => {
@@ -33,8 +28,20 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next): void =>
   }
 
   const requestId = requestIdFrom(req);
-
+  const reqLog = getRequestLogger(req);
   const appError = isAppError(err) ? err : new InternalError();
+
+  if (appError.statusCode >= 500) {
+    reqLog.error(
+      {
+        err,
+        statusCode: appError.statusCode,
+        code: appError.code,
+        handled: isAppError(err),
+      },
+      isAppError(err) ? "Request failed with server error" : "Unhandled request error",
+    );
+  }
 
   const isProduction = process.env.NODE_ENV === "production";
   const isClientError = appError.statusCode < 500;

@@ -1,3 +1,4 @@
+import type { Logger } from "pino";
 import type { RegisterSchema } from "../validators/registerSchema";
 import type { LoginSchema } from "../validators/loginSchema";
 
@@ -6,6 +7,9 @@ declare global {
     interface Request {
       /** Set by pino-http via genReqId */
       id?: string;
+
+      /** Request-scoped logger from pino-http */
+      log?: Logger;
 
       /** Set by attachAbortSignal middleware */
       abortController?: AbortController;
