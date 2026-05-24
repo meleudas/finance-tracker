@@ -8,17 +8,6 @@ import path from "node:path";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default tseslint.config(
-  eslint.configs.recommended,
-  ...tseslint.configs.strictTypeChecked,
-  ...tseslint.configs.stylisticTypeChecked,
-  {
-    languageOptions: {
-      parserOptions: {
-        project: "./tsconfig.eslint.json",
-        tsconfigRootDir: __dirname,
-      },
-    },
-  },
   {
     ignores: [
       "dist/**",
@@ -29,9 +18,22 @@ export default tseslint.config(
       "prisma/seed.ts",
       "commitlint.config.cjs",
       "jest.config.cjs",
+      "docker/**/*.mjs",
       "eslint.config.mjs",
       "prisma.config.ts",
     ],
+  },
+  eslint.configs.recommended,
+  ...tseslint.configs.strictTypeChecked,
+  ...tseslint.configs.stylisticTypeChecked,
+  {
+    files: ["**/*.ts"],
+    languageOptions: {
+      parserOptions: {
+        project: "./tsconfig.eslint.json",
+        tsconfigRootDir: __dirname,
+      },
+    },
   },
   {
     rules: {

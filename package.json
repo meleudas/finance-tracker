@@ -28,8 +28,15 @@
     "postinstall": "prisma generate"
   },
   "lint-staged": {
-    "*.{ts,tsx,js,cjs,mjs}": [
+    "*.{ts,tsx}": [
       "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{js,cjs,mjs}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "docker/**/*.mjs": [
       "prettier --write"
     ],
     "*.{json,md,yml,yaml}": [
