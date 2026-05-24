@@ -27,7 +27,10 @@ export function generateOpenApiDocument() {
       { name: "Auth", description: "Authentication and Authorization" },
       { name: "Transactions", description: "Income and expense entries" },
       { name: "Transfers", description: "Transfers between accounts" },
-      { name: "Attachments", description: "Files linked to transactions" },
+      {
+        name: "Attachments",
+        description: "Files linked to transactions (multipart or presigned MinIO upload)",
+      },
     ],
   });
 }
