@@ -1,4 +1,5 @@
 import { z } from "zod";
+import "../zod";
 import { CreateTransactionSchema } from "../../dtos/transaction/CreateTransaction.dto";
 import { UpdateTransactionSchema } from "../../dtos/transaction/UpdateTransaction.dto";
 import { TransactionResponseSchema } from "../../dtos/transaction/TransactionResponse.dto";
@@ -19,6 +20,7 @@ import {
   presignedUploadUrlResponseSchema,
 } from "../../dtos/attachment";
 import { confirmPresignedUploadSchema, uploadAttachmentSchema } from "../../dtos/attachment";
+import { presignedUploadCompleteResponseSchema } from "../../dtos/attachment";
 import { deleteResponseSchema } from "../../dtos/common";
 import { attachmentIdParamSchema, idDtoSchema, transactionIdParamSchema } from "../../dtos/common";
 import { openApiRegistry } from "../registry";
@@ -141,11 +143,19 @@ export const UpdateAttachmentBodySchema = openApiRegistry.register(
 );
 export const AttachmentDownloadUrlQuerySchema = openApiRegistry.register(
   "AttachmentDownloadUrlQuery",
-  attachmentDownloadUrlQuerySchema,
+  attachmentDownloadUrlQuerySchema.openapi({
+    example: { expiresInSeconds: 3600 },
+  }),
 );
 export const AttachmentDownloadUrlResponseSchemaRef = openApiRegistry.register(
   "AttachmentDownloadUrlResponse",
-  attachmentDownloadUrlResponseSchema,
+  attachmentDownloadUrlResponseSchema.openapi({
+    example: {
+      downloadUrl:
+        "http://localhost:9000/finance-tracker/attachments/clseed0000000000000000001/receipt.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256",
+      expiresInSeconds: 900,
+    },
+  }),
 );
 export const AttachmentWithDownloadUrlResponseSchemaRef = openApiRegistry.register(
   "AttachmentWithDownloadUrlResponse",
@@ -153,15 +163,30 @@ export const AttachmentWithDownloadUrlResponseSchemaRef = openApiRegistry.regist
 );
 export const PresignedUploadUrlRequestSchema = openApiRegistry.register(
   "PresignedUploadUrlRequest",
-  presignedUploadUrlRequestSchema,
+  presignedUploadUrlRequestSchema.openapi({
+    example: { originalName: "receipt.pdf", mimeType: "application/pdf" },
+  }),
 );
 export const PresignedUploadUrlResponseSchemaRef = openApiRegistry.register(
   "PresignedUploadUrlResponse",
-  presignedUploadUrlResponseSchema,
+  presignedUploadUrlResponseSchema.openapi({
+    example: {
+      storageKey: "attachments/clseed0000000000000000001/receipt.pdf",
+      uploadUrl:
+        "http://localhost:9000/finance-tracker/attachments/clseed0000000000000000001/receipt.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256",
+      expiresInSeconds: 900,
+    },
+  }),
 );
 export const ConfirmPresignedUploadBodySchema = openApiRegistry.register(
   "ConfirmPresignedUpload",
-  confirmPresignedUploadSchema,
+  confirmPresignedUploadSchema.openapi({
+    example: {
+      storageKey: "attachments/clseed0000000000000000001/receipt.pdf",
+      originalName: "receipt.pdf",
+      mimeType: "application/pdf",
+    },
+  }),
 );
 export const UploadAttachmentMetadataSchema = openApiRegistry.register(
   "UploadAttachmentMetadata",
@@ -227,6 +252,23 @@ export const UploadAttachmentMultipartSchema = openApiRegistry.register(
   }),
 );
 
+export const PresignedUploadMultipartSchema = openApiRegistry.register(
+  "PresignedUploadMultipart",
+  z.object({
+    storageKey: z.string().openapi({
+      description: "Exact storageKey from step 1 (`POST .../presigned-upload-url`)",
+      example: "attachments/clseed0000000000000000001/receipt.pdf",
+    }),
+    file: z.string().openapi({ type: "string", format: "binary", description: "Attachment file" }),
+    mimeType: z
+      .enum(["image/jpeg", "image/png", "image/webp", "application/pdf"])
+      .optional()
+      .openapi({
+        description: "Override MIME type; must match step 1 and step 3 confirm body",
+      }),
+  }),
+);
+
 // === ENVELOPES: TRANSACTIONS ===
 export const TransactionResponseEnvelopeSchema = dataEnvelopeSchema(
   TransactionResponseSchemaRef,
@@ -267,6 +309,15 @@ export const AttachmentDownloadUrlEnvelopeSchema = dataEnvelopeSchema(
 export const PresignedUploadUrlEnvelopeSchema = dataEnvelopeSchema(
   PresignedUploadUrlResponseSchemaRef,
   "PresignedUploadUrlEnvelope",
+);
+export const PresignedUploadCompleteEnvelopeSchema = dataEnvelopeSchema(
+  openApiRegistry.register(
+    "PresignedUploadCompleteResponse",
+    presignedUploadCompleteResponseSchema.openapi({
+      example: { storageKey: "attachments/clseed0000000000000000001/receipt.pdf" },
+    }),
+  ),
+  "PresignedUploadCompleteEnvelope",
 );
 
 // === ENVELOPES: ACCOUNTS ===

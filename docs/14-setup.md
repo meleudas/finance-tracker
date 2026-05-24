@@ -93,10 +93,50 @@ docker compose up --build
 
 ```bash
 npx prisma migrate dev
-npx prisma db seed
 ```
 
 Для контейнера `app` міграції застосовуються при старті (`prisma migrate deploy` у CMD образу).
+
+### Docker SQL seed для Swagger (демо-дані)
+
+Після підняття Postgres:
+
+```bash
+docker compose up -d postgres redis minio
+npm run db:seed:docker
+```
+
+Або скрипт-обгортка:
+
+```bash
+./docker/seed-db.sh        # Linux / macOS / Git Bash
+./docker/seed-db.ps1       # Windows PowerShell
+```
+
+Сервіс `seed` (compose profile **`seed`** або **`tools`**) виконує `prisma migrate deploy` і SQL-скрипти з [`docker/seed/sql/`](../docker/seed/sql/). Змінні:
+
+| Змінна                | За замовчуванням   | Опис                                                                                |
+| --------------------- | ------------------ | ----------------------------------------------------------------------------------- |
+| `SEED_RESET`          | `true`             | `true` — очистити доменні таблиці перед seed; `false` — лише upsert (`ON CONFLICT`) |
+| `SEED_DEMO_PASSWORD`  | `SwaggerDemo123!`  | Пароль demo-користувача                                                             |
+| `SEED_OTHER_PASSWORD` | `OtherSwagger123!` | Пароль другого користувача (ізоляція / 404)                                         |
+
+**Облікові дані для Swagger UI** (`http://localhost:3000/api-docs`):
+
+1. `GET /api/v1/auth/csrf` — отримати `csrfToken` і cookie.
+2. `POST /api/v1/auth/login` з заголовком `x-csrf-token` і тілом:
+
+   ```json
+   { "email": "demo@swagger.local", "password": "SwaggerDemo123!" }
+   ```
+
+3. Authorize в Swagger: Bearer access token з відповіді або cookies (залежно від клієнта).
+
+Довідник id і прикладів query: [`docker/seed/swagger-fixtures.json`](../docker/seed/swagger-fixtures.json).
+
+Повний перелік пробних GET/POST із параметрами, узгоджених із seed: **[trial-requests/README.md](trial-requests/README.md)** (окремий файл на кожну сутність).
+
+**Що в БД (demo-користувач):** 20 валют (глобально), 20 accounts / categories / transactions / transfers / budgets / recurring frequencies / rules / attachments / report jobs; 2 користувачі; другий користувач — мінімальні записи для перевірки чужих `id`. Report jobs: PENDING, PROCESSING, COMPLETED (JSON/PDF), FAILED.
 
 ## Запуск у режимі розробки (хост)
 
@@ -106,20 +146,21 @@ npm run dev
 
 ## Корисні скрипти
 
-| Скрипт                                                     | Призначення                                                      |
-| ---------------------------------------------------------- | ---------------------------------------------------------------- |
-| `npm run dev`                                              | `tsx watch` на `src/index.ts`                                    |
-| `npm run build`                                            | `prisma generate && tsc -p tsconfig.json`                        |
-| `npm start`                                                | `node dist/index.js`                                             |
-| `npm run lint`                                             | ESLint (flat config)                                             |
-| `npm run format` / `format:check`                          | Prettier                                                         |
-| `npm run typecheck`                                        | `tsc --noEmit`                                                   |
-| `npm test` / `test:ci`                                     | Jest (local / CI з coverage)                                     |
-| `npm run prisma:validate`                                  | Валідація `schema.prisma` (підставляє тимчасовий `DATABASE_URL`) |
-| `npm run prisma:generate`                                  | `prisma generate`                                                |
-| `npm run prisma:migrate` / `prisma:deploy` / `prisma:seed` | Міграції та seed                                                 |
-| `prepare` (lifecycle)                                      | `husky` — встановлення git hooks                                 |
-| `postinstall` (lifecycle)                                  | `prisma generate`                                                |
+| Скрипт                                     | Призначення                                                       |
+| ------------------------------------------ | ----------------------------------------------------------------- |
+| `npm run dev`                              | `tsx watch` на `src/index.ts`                                     |
+| `npm run build`                            | `prisma generate && tsc -p tsconfig.json`                         |
+| `npm start`                                | `node dist/index.js`                                              |
+| `npm run lint`                             | ESLint (flat config)                                              |
+| `npm run format` / `format:check`          | Prettier                                                          |
+| `npm run typecheck`                        | `tsc --noEmit`                                                    |
+| `npm test` / `test:ci`                     | Jest (local / CI з coverage)                                      |
+| `npm run prisma:validate`                  | Валідація `schema.prisma` (підставляє тимчасовий `DATABASE_URL`)  |
+| `npm run prisma:generate`                  | `prisma generate`                                                 |
+| `npm run prisma:migrate` / `prisma:deploy` | Міграції Prisma                                                   |
+| `npm run db:seed:docker`                   | SQL seed у Docker (profile `seed`, потрібен запущений `postgres`) |
+| `prepare` (lifecycle)                      | `husky` — встановлення git hooks                                  |
+| `postinstall` (lifecycle)                  | `prisma generate`                                                 |
 
 ## Troubleshooting
 

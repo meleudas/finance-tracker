@@ -8,6 +8,7 @@ import {
   GetAttachmentDownloadUrlRequestValidator,
   GetAttachmentRequestValidator,
   ListAttachmentsRequestValidator,
+  PresignedUploadRequestValidator,
   PresignedUploadUrlRequestValidator,
   UpdateAttachmentRequestValidator,
   UploadAttachmentParamsValidator,
@@ -21,6 +22,14 @@ router.post(
   "/presigned-upload-url",
   PresignedUploadUrlRequestValidator,
   asyncHandler(attachmentController.createPresignedUploadUrl),
+);
+
+router.put(
+  "/presigned-upload",
+  uploadAttachmentMiddleware,
+  handleMulterError,
+  PresignedUploadRequestValidator,
+  asyncHandler(attachmentController.uploadPresignedFile),
 );
 
 router.post(

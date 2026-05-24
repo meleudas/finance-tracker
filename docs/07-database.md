@@ -195,8 +195,9 @@ erDiagram
 
 ## Seed
 
-- **Мета:** передбачувані демо-дані для dev/staging.
-- **Реалізація:** `prisma/seed.ts`, скрипт у `package.json`: `npm run prisma:seed`.
+- **Мета:** передбачувані демо-дані для dev/staging і ручного тестування Swagger.
+- **Реалізація:** SQL у [`docker/seed/sql/`](../docker/seed/sql/), запуск через `docker compose --profile seed run --rm seed` або `npm run db:seed:docker` (див. [14-setup.md](14-setup.md)).
+- **Довідник id:** [`docker/seed/swagger-fixtures.json`](../docker/seed/swagger-fixtures.json).
 - **Не містити** реальних паролів; використовувати відомий тестовий пароль лише для локалі.
 
 ## Тестова БД

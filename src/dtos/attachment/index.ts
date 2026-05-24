@@ -25,4 +25,10 @@ export {
   confirmPresignedUploadSchema,
   type ConfirmPresignedUploadDto,
 } from "./ConfirmPresignedUpload.dto";
+export {
+  presignedUploadBodySchema,
+  presignedUploadCompleteResponseSchema,
+  type PresignedUploadBodyDto,
+  type PresignedUploadCompleteResponseDto,
+} from "./PresignedUploadBody.dto";
 export { UpdateAttachmentSchema, type UpdateAttachmentDto } from "./UpdateAttachment.dto";

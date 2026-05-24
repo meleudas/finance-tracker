@@ -81,5 +81,6 @@
 
 ## Навігація
 
+- Пробні запити (Docker seed): [trial-requests/README.md](trial-requests/README.md)
 - Безпека: [09-security.md](09-security.md)
 - Тестування контрактів: [12-testing.md](12-testing.md)
