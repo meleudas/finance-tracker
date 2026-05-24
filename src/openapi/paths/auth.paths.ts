@@ -1,12 +1,15 @@
 import { openApiRegistry } from "../registry";
 import { z } from "../zod";
 import { API_V1_PREFIX } from "../constants";
-import { errorResponses, protectedSecurity } from "../helpers";
+import {
+  appendCsrfParameters,
+  authMutationSecurity,
+  errorResponses,
+  protectedSecurity,
+} from "../helpers";
 import { UserResponseSchema } from "../../dtos/users/UserResponse.dto";
 import { registerSchema } from "../../validators/registerSchema";
 import { loginSchema } from "../../validators/loginSchema";
-import { CSRF_HEADER_NAME } from "../../middleware/csrfProtection";
-
 const authTags = ["Auth"];
 const authBasePath = `${API_V1_PREFIX}/auth`;
 
@@ -46,14 +49,6 @@ const simpleSuccessResponse = z.object({
   success: z.boolean().openapi({ example: true }),
 });
 
-const csrfHeaderParameter = {
-  name: CSRF_HEADER_NAME,
-  in: "header" as const,
-  required: true,
-  schema: { type: "string" as const },
-  description: "Must match csrfToken cookie (double-submit CSRF)",
-};
-
 openApiRegistry.registerPath({
   method: "get",
   path: `${authBasePath}/csrf`,
@@ -86,7 +81,8 @@ openApiRegistry.registerPath({
       },
     },
   },
-  parameters: [csrfHeaderParameter],
+  security: authMutationSecurity,
+  parameters: appendCsrfParameters(),
   responses: {
     201: {
       description: "User successfully registered",
@@ -124,7 +120,8 @@ openApiRegistry.registerPath({
       },
     },
   },
-  parameters: [csrfHeaderParameter],
+  security: authMutationSecurity,
+  parameters: appendCsrfParameters(),
   responses: {
     200: {
       description: "User successfully logged in",
@@ -166,7 +163,8 @@ openApiRegistry.registerPath({
       },
     },
   },
-  parameters: [csrfHeaderParameter],
+  security: authMutationSecurity,
+  parameters: appendCsrfParameters(),
   responses: {
     200: {
       description: "Token successfully refreshed",
@@ -192,8 +190,8 @@ openApiRegistry.registerPath({
   summary: "Log out a user",
   description:
     "Blacklists tokens and clears auth cookies. Requires access JWT and X-CSRF-Token header.",
-  security: protectedSecurity,
-  parameters: [csrfHeaderParameter],
+  security: [...protectedSecurity, ...authMutationSecurity],
+  parameters: appendCsrfParameters(),
   responses: {
     200: {
       description: "User successfully logged out",

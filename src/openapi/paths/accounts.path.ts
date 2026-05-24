@@ -1,5 +1,11 @@
 import { API_V1_PREFIX } from "../constants";
-import { errorResponses, protectedSecurity } from "../helpers";
+import {
+  appendCsrfParameters,
+  errorResponses,
+  mutationErrorResponses,
+  protectedMutationSecurity,
+  protectedSecurity,
+} from "../helpers";
 import { openApiRegistry } from "../registry";
 import { ApiErrorResponseSchema } from "../schemas/envelope";
 import {
@@ -44,8 +50,10 @@ openApiRegistry.registerPath({
   path: basePath,
   tags: [tag],
   summary: "Create new account",
-  description: "Creates a new account for the authenticated user",
-  security: protectedSecurity,
+  description:
+    "Creates a new account for the authenticated user. Requires x-csrf-token header when using cookie auth (see GET /auth/csrf).",
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: {
     body: {
       content: {
@@ -64,7 +72,7 @@ openApiRegistry.registerPath({
         },
       },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });
 
@@ -96,8 +104,10 @@ openApiRegistry.registerPath({
   path: `${basePath}/{id}`,
   tags: [tag],
   summary: "Update account",
-  description: "Updates the name of an existing account",
-  security: protectedSecurity,
+  description:
+    "Updates the name of an existing account. Requires x-csrf-token header when using cookie auth.",
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: {
     params: AccountIdParamsSchema,
     body: {
@@ -117,7 +127,7 @@ openApiRegistry.registerPath({
         },
       },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });
 
@@ -127,8 +137,9 @@ openApiRegistry.registerPath({
   tags: [tag],
   summary: "Delete account (soft delete)",
   description:
-    "Marks account as deleted. Returns 409 if the account has active transactions, budgets, transfers, or recurring rules.",
-  security: protectedSecurity,
+    "Marks account as deleted. Returns 409 if the account has active transactions, budgets, transfers, or recurring rules. Requires x-csrf-token header when using cookie auth.",
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: {
     params: AccountIdParamsSchema,
   },
@@ -149,6 +160,6 @@ openApiRegistry.registerPath({
         },
       },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });

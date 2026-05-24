@@ -1,5 +1,11 @@
 import { API_V1_PREFIX } from "../constants";
-import { errorResponses, protectedSecurity } from "../helpers";
+import {
+  appendCsrfParameters,
+  errorResponses,
+  mutationErrorResponses,
+  protectedMutationSecurity,
+  protectedSecurity,
+} from "../helpers";
 import { openApiRegistry } from "../registry";
 import {
   RecurringFrequencyListEnvelopeSchema,
@@ -35,7 +41,8 @@ openApiRegistry.registerPath({
   path: basePath,
   tags: [tag],
   summary: "Create recurring frequency template",
-  security: protectedSecurity,
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: {
     body: { content: { "application/json": { schema: CreateRecurringFrequencyBodySchema } } },
   },
@@ -44,7 +51,7 @@ openApiRegistry.registerPath({
       description: "Created frequency",
       content: { "application/json": { schema: RecurringFrequencyResponseEnvelopeSchema } },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });
 
@@ -69,7 +76,8 @@ openApiRegistry.registerPath({
   path: `${basePath}/{id}`,
   tags: [tag],
   summary: "Update recurring frequency",
-  security: protectedSecurity,
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: {
     params: IdParamsSchema,
     body: { content: { "application/json": { schema: UpdateRecurringFrequencyBodySchema } } },
@@ -79,7 +87,7 @@ openApiRegistry.registerPath({
       description: "Updated frequency",
       content: { "application/json": { schema: RecurringFrequencyResponseEnvelopeSchema } },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });
 
@@ -89,13 +97,14 @@ openApiRegistry.registerPath({
   tags: [tag],
   summary: "Delete recurring frequency",
   description: "Returns 409 if active recurring rules reference this frequency.",
-  security: protectedSecurity,
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: { params: IdParamsSchema },
   responses: {
     200: {
       description: "Deleted",
       content: { "application/json": { schema: DeleteResponseEnvelopeSchema } },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });

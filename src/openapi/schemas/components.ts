@@ -85,6 +85,10 @@ export const AccountIdParamsSchema = openApiRegistry.register(
   "AccountIdParams",
   z.object({ id: idDtoSchema.shape.id }),
 );
+export const AccountScopedIdParamsSchema = openApiRegistry.register(
+  "AccountScopedIdParams",
+  z.object({ accountId: idDtoSchema.shape.id }),
+);
 export const CategoryIdParamsSchema = openApiRegistry.register(
   "CategoryIdParams",
   z.object({ categoryId: idDtoSchema.shape.id }),

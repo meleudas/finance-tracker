@@ -1,8 +1,14 @@
 import { API_V1_PREFIX } from "../constants";
-import { errorResponses, protectedSecurity } from "../helpers";
+import {
+  appendCsrfParameters,
+  errorResponses,
+  mutationErrorResponses,
+  protectedMutationSecurity,
+  protectedSecurity,
+} from "../helpers";
 import { openApiRegistry } from "../registry";
 import {
-  AccountIdParamsSchema,
+  AccountScopedIdParamsSchema,
   CreateTransferBodySchema,
   DeleteResponseEnvelopeSchema,
   IdParamsSchema,
@@ -36,7 +42,8 @@ openApiRegistry.registerPath({
   path: basePath,
   tags: [tag],
   summary: "Create transfer",
-  security: protectedSecurity,
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: {
     body: { content: { "application/json": { schema: CreateTransferBodySchema } } },
   },
@@ -45,7 +52,7 @@ openApiRegistry.registerPath({
       description: "Transfer created",
       content: { "application/json": { schema: TransferResponseEnvelopeSchema } },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });
 
@@ -57,7 +64,7 @@ openApiRegistry.registerPath({
   description: "Returns transfers where the account is either source or destination.",
   security: protectedSecurity,
   request: {
-    params: AccountIdParamsSchema,
+    params: AccountScopedIdParamsSchema,
     query: TransferListQuerySchema,
   },
   responses: {
@@ -90,7 +97,8 @@ openApiRegistry.registerPath({
   path: `${basePath}/{id}`,
   tags: [tag],
   summary: "Update transfer",
-  security: protectedSecurity,
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: {
     params: IdParamsSchema,
     body: { content: { "application/json": { schema: UpdateTransferBodySchema } } },
@@ -100,7 +108,7 @@ openApiRegistry.registerPath({
       description: "Updated transfer",
       content: { "application/json": { schema: TransferResponseEnvelopeSchema } },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });
 
@@ -109,13 +117,14 @@ openApiRegistry.registerPath({
   path: `${basePath}/{id}`,
   tags: [tag],
   summary: "Delete transfer",
-  security: protectedSecurity,
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: { params: IdParamsSchema },
   responses: {
     200: {
       description: "Soft-deleted transfer",
       content: { "application/json": { schema: DeleteResponseEnvelopeSchema } },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });

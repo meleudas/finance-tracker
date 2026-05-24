@@ -1,9 +1,15 @@
 import { API_V1_PREFIX } from "../constants";
-import { errorResponses, protectedSecurity } from "../helpers";
+import {
+  appendCsrfParameters,
+  errorResponses,
+  mutationErrorResponses,
+  protectedMutationSecurity,
+  protectedSecurity,
+} from "../helpers";
 import { openApiRegistry } from "../registry";
 import { ApiErrorResponseSchema } from "../schemas/envelope";
 import {
-  AccountIdParamsSchema,
+  AccountScopedIdParamsSchema,
   CategoryIdParamsSchema,
   CreateTransactionBodySchema,
   DeleteResponseEnvelopeSchema,
@@ -39,7 +45,8 @@ openApiRegistry.registerPath({
   path: basePath,
   tags: [tag],
   summary: "Create transaction",
-  security: protectedSecurity,
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: {
     body: {
       content: { "application/json": { schema: CreateTransactionBodySchema } },
@@ -50,7 +57,7 @@ openApiRegistry.registerPath({
       description: "Transaction created",
       content: { "application/json": { schema: TransactionResponseEnvelopeSchema } },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });
 
@@ -61,7 +68,7 @@ openApiRegistry.registerPath({
   summary: "List transactions by account",
   security: protectedSecurity,
   request: {
-    params: AccountIdParamsSchema,
+    params: AccountScopedIdParamsSchema,
     query: TransactionListQuerySchema,
   },
   responses: {
@@ -113,7 +120,8 @@ openApiRegistry.registerPath({
   path: `${basePath}/{id}`,
   tags: [tag],
   summary: "Update transaction",
-  security: protectedSecurity,
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: {
     params: IdParamsSchema,
     body: { content: { "application/json": { schema: UpdateTransactionBodySchema } } },
@@ -123,7 +131,7 @@ openApiRegistry.registerPath({
       description: "Updated transaction",
       content: { "application/json": { schema: TransactionResponseEnvelopeSchema } },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });
 
@@ -134,7 +142,8 @@ openApiRegistry.registerPath({
   summary: "Delete transaction",
   description:
     "Soft-deletes the transaction. Returns 409 if the transaction still has attachments.",
-  security: protectedSecurity,
+  security: protectedMutationSecurity,
+  parameters: appendCsrfParameters(),
   request: { params: IdParamsSchema },
   responses: {
     200: {
@@ -149,6 +158,6 @@ openApiRegistry.registerPath({
         },
       },
     },
-    ...errorResponses,
+    ...mutationErrorResponses,
   },
 });
